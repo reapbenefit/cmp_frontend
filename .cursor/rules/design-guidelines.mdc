@@ -1,0 +1,119 @@
+# Solve Ninja Changemaker Portfolio (CMP) Platform - Design Guidelines
+
+## Project Overview
+A platform for Solve Ninjas to submit their civic and climate actions and showcase them in their changemaker portfolio. Solve Ninjas are action-oriented youth engaged in hyper-local civic and climate action, developing 21st century skills while creating resilient communities.
+
+## Design Philosophy
+
+### Core Values
+- **Youth Agency**: Empower young people as architects of change, not just participants
+- **Hyper-Local Focus**: Solutions tailored to specific communities and local data
+- **Action-Oriented**: Emphasis on doing, not just learning
+- **Collaborative**: Community-driven problem solving
+- **Skill Development**: Building 21st century capabilities through real-world application
+
+### Visual Identity
+- **Colorful & Playful**: Use vibrant colors that reflect energy and optimism
+- **Ninja Theme**: Incorporate ninja character aesthetics with different personalities/types
+- **Modern & Accessible**: Clean, contemporary design that works for all users
+- **Process-Driven**: Visual representation of the Discover → Investigate → Solve → Share journey
+
+## Color Palette
+- **Primary Green**: #2ECC71 (representing environmental action)
+- **Ocean Blue**: #3498DB (representing civic engagement) 
+- **Sunset Orange**: #F39C12 (representing youth energy)
+- **Deep Teal**: #34495E (representing stability and trust)
+- **Bright Accent**: #E74C3C (for call-to-action elements)
+- **Background**: Light grays and whites for readability
+
+## Ninja Character Types (User Personas)
+- **Techno Tiger**: Tech-savvy, data-driven problem solver
+- **Reporting Rhino**: Research-focused, investigative journalism approach
+- **Hands-on Hippo**: Community organizer, direct action oriented
+- **[Additional types as needed]**: Each with distinct visual representation
+
+## Core Features to Design For
+
+### Action Submission System
+- Simple, intuitive form for logging civic/climate actions
+- Categories aligned with the 4-step process: Discover, Investigate, Solve, Share
+- Rich media support (photos, videos, documents)
+- Tagging system for local issues and solution types
+
+### Portfolio Dashboard
+- Visual representation of user's journey and impact
+- Progress tracking through the Discover → Investigate → Solve → Share cycle
+- Skill badges and achievement system
+- Local impact metrics and community connections
+
+### Community Features
+- Peer collaboration tools
+- Local campaign coordination
+- Knowledge sharing between Solve Ninjas
+- Mentorship connections
+
+## UI/UX Guidelines
+
+### Navigation
+- Clear, intuitive navigation reflecting the 4-step process
+- Persistent access to portfolio and action submission
+- Mobile-first responsive design
+- Quick access to community features
+
+### Forms & Interactions
+- Progressive disclosure to avoid overwhelming users
+- Smart defaults based on user's location and interests
+- Real-time validation and helpful error messages
+- Encouraging micro-interactions and feedback
+
+### Data Visualization
+- Local impact metrics displayed prominently
+- Progress visualization for individual and community goals
+- Interactive charts showing community problem-solving trends
+- Maps showing local action hotspots
+
+## Technical Considerations
+- **Framework**: Next.js with TypeScript for robust, scalable development
+- **Styling**: Tailwind CSS for consistent, maintainable styles
+- **Components**: shadcn/ui for accessible, customizable components
+- **Database**: Design for user profiles, actions, communities, and impact metrics
+- **Authentication**: Secure user management with role-based permissions
+- **Mobile-First**: Responsive design optimized for mobile usage
+
+## Content Strategy
+- **Tone**: Empowering, action-oriented, youth-friendly but not condescending
+- **Language**: Clear, jargon-free communication about civic and climate issues
+- **Guidance**: Built-in help and resources for effective civic engagement
+- **Recognition**: Celebration of achievements and impact stories
+
+## Accessibility Requirements
+- WCAG 2.1 AA compliance minimum
+- Keyboard navigation support
+- Screen reader optimization
+- Color contrast ratios meeting accessibility standards
+- Support for users with varying tech literacy levels
+
+## Performance Standards
+- Fast loading times (<3 seconds on mobile)
+- Offline capability for core features
+- Progressive web app features
+- Optimized images and assets
+- Efficient data fetching and caching
+
+## Development Priorities
+1. User authentication and profile setup
+2. Action submission and categorization system
+3. Portfolio dashboard with basic visualizations
+4. Community features and peer connections
+5. Advanced analytics and impact tracking
+6. Mobile app considerations
+
+## Success Metrics
+- User engagement with action submission
+- Portfolio completion rates
+- Community interaction levels
+- Local impact measurement
+- Skill development tracking
+- Platform retention and growth
+
+Remember: Every design decision should empower young people to see themselves as capable changemakers who can drive meaningful impact in their communities. 

@@ -1,0 +1,100 @@
+## Meet the Solve Ninja
+
+Solve Ninjas are action-oriented youth engaged in hyper-local civic and climate action, to develop 21st century skills and collectively work to create resilient communities and improve governance.
+
+## Why do we need Solve Ninjas?
+
+Solve Ninjas personify the transformative power of youth agency in driving impactful change. Young people bring energy, passion, and boldness to the table. Their high stake in the future elevates them from mere participants to architects, actively addressing civic and climate challenges and fostering resilient communities.
+
+## What makes a Solve Ninja unique?
+
+**Act on Local Data**
+A Solve Ninja taps into local data to drive civic and climate action, and to demand transparency in local governance.
+
+**Engage in Local Campaigns**
+A Solve Ninja drives local campaigns, teaming up with citizens and officials to collaboratively solve climate and civic issues.
+
+**Build on Local Solutions**
+A Solve Ninja crafts custom solutions that fits their community like a glove, breaking free from the 'one-size-fits-all' mold.
+
+**Foster Skills and Agency**
+A Solve Ninja ignites a shift within themselves, cultivating agency and 21st-century skills through their problem-solving journey.
+
+## What does a Solve Ninja do?
+
+From spotting issues to sharing solutions, here's how Solve Ninjas drive climate and civic action at the hyper-local level, fostering a culture of active citizenship.
+
+**Discover**
+Discover civic and environmental issues in their communities
+
+**Investigate**
+Understand the challenge in depth by gathering qualitative and quantitative data
+
+**Solve**
+Ideate, innovate, and craft practical solutions and campaigns
+
+**Share**
+Share findings and learnings with the community, including government officials
+
+## Solve Ninjas come in all shape & sizes
+## Igniting a Movement of Young Changemakers
+
+to redefine civic and climate leadership, one action at a time
+
+### Our Mission
+
+To build a nation-wide movement of 10 million first-mile changemakers called Solve Ninjas by 2030, redefining climate and civic leadership through impactful hyper-local actions
+
+### Awards and Recognitions
+
+* **Reap Benefit** was selected as a 2022 #WISEAwards winner – one of 6 from across the world!
+* **Former US President Barack Obama** lauded the remarkable power of Solve Ninjas to uplift local communities and ignite transformative change!
+* **Recognized as one of the top 50 last-mile COVID responders** by the World Economic Forum in 2021
+* **Recognized in the Top 100 Education Innovations** by HundrED in 2019
+* **Featured in Forbes India's '30 Under 30' list** for 2014
+* **Part of the prestigious Ashoka India Fellowship cohort** in 2013
+## Solve Ninja Tech Platform
+
+Explore the innovative tech solutions we've developed as digital public goods, curated to support our Solve Ninjas in tackling local civic and climate challenges, while helping us build a nation-wide movement. Our platform is packed with super cool tools for reporting problems with ease, driving community engagement, visualizing data, tracking progress, sending behavior-based nudges, mapping local crowdsourced data with geospatial tech, and much more! And the best part? These resources are available for anyone - individuals or organizations - eager to start their changemaking journey!
+
+### Solve Ninja Bot
+
+Reap Benefit's Solve Ninja Bot is your friendly neighborhood problem-solving sidekick on WhatsApp! Currently being used by 120,000+ Solve Ninjas, this trusty tool is designed to help you navigate your hyper-local problem-solving journey through tech-enabled behavior nudges, access to a repository of knowledge, toolkits, crowdsourced campaigns, and solutions; all at your fingertips!
+
+### Changemaker Portfolio
+
+A personalized platform crafted to let you share your unique story as a problem-solver with the world. With the Changemaker Portfolio, Solve Ninjas can showcase their changemaking journeys, document their skills and problem-solving actions, and connect with a community of fellow changemakers. Make your mark and let the world take notice!
+
+### Samaaj Data
+
+Literally translating to "Society's Data", SamaajData is a dynamic repository of crowdsourced, crowd-verified hyper-local data focused on pressing climate and governance issues. With a mission to harness the collective power of public data for the common good, SamaajData envisions a society where data is a communal asset, driving civic and environmental change.
+
+### Solve Ninja Forum
+
+Interested in driving local change with your ideas? The Forum is your go-to hub for citizen-driven discussions around hyper-local problem-solving, policy, best practices, and much more. Explore 160+ conversations covering civic and climate solutions, Ask Me Anything (AMA) sessions, and DIY citizen projects like Smart Bins and Waterless Urinals. Jump in and be a Solve Ninja for your community!
+
+### Samaaja
+
+Samaaja (or "Society") is a free, open-source software solution designed to enable rapid building and deployment of location-based citizen engagement services. An open-source contribution from FOSS United and Reap Benefit, Samaaja aims to empower any organization or individual to mobilize and engage citizens, rapidly and with ease.
+## Theory of Change
+
+Reap Benefit activates and empowers youth to become Solve Ninjas by championing consistent climate and civic actions in their hyper-local contexts, which is to say, right in their own backyards.
+
+As these Solve Ninjas engage more deeply, they pick up essential 21st-century skills and create valuable public assets like local data and community solutions. This empowers them to tackle hyper-local civic and climate challenges head-on, shaping them into active citizens, entrepreneurs and innovators, and first responders to crises—a cycle that fosters resilient communities and improves local governance, one action at a time.
+
+## Levers of Change
+
+Our 'Secret Sauce' includes five powerful levers designed to energise and empower Solve Ninjas, pushing them towards consistent civic and climate action at the hyper-local level:
+
+* **Network of Local Mentors:** Giving Solve Ninjas access to context-savvy mentors to guide them across all stages of hyper-local problem-solving. After all, even Batman needed an Alfred!
+* **Peer Community:** Connecting Solve Ninjas to a community of like-minded youth. Together, they will learn from one another, fuelling a movement faster than you can say, "Ninjas, assemble!"
+* **Knowledge, Toolkits & Solutions:** With access to a youth-driven repository of 550+ innovative ideas and solutions to local civic and climate issues, Solve Ninjas hold the key to bottom-up change within communities!
+* **Access to Local Data:** Using data from our tech platform, Solve Ninjas can level up their problem-solving game, using it like a compass to guide them through a maze of local challenges!
+* **Consistent Behaviour Nudges:** Through our tech and grassroots engagement, we nudge Ninjas to take consistent actions in their communities. Even the best need a gentle prod every now and then!
+
+## Our Operational Model
+
+Our goal to activate 10 million youth by 2030 is brought to life through a three-pronged model:
+
+* **Top-Down Approach:** Governments and CSOs adopt our AI-powered open-source technology, Samaaja, to leverage our learnings and implement scalable, data-driven interventions. Cultivate partnerships with large-scale institutions to integrate our tools, knowledge, and technology, to scale civic and climate action efforts.
+* **Bottom-Up Approach:** Solve Ninja Communities foster consistent, collective action by bringing together youth from both grassroots mobilization and top-down adoption. Grassroots mobilization through Reap Benefit's Tech Platform enables local youth to become Solve Ninjas, driving civic and climate action at the hyper-local level.
