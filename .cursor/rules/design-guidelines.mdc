@@ -1,3 +1,8 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
 # Solve Ninja Changemaker Portfolio (CMP) Platform - Design Guidelines
 
 ## Project Overview
@@ -65,6 +70,11 @@ A platform for Solve Ninjas to submit their civic and climate actions and showca
 - Smart defaults based on user's location and interests
 - Real-time validation and helpful error messages
 - Encouraging micro-interactions and feedback
+
+### Interactive Elements
+- **Cursor Behavior**: All clickable elements (buttons, links, interactive cards, modals triggers, etc.) MUST include the `cursor-pointer` class to ensure consistent user experience
+- **Hover States**: Provide clear visual feedback on hover for all interactive elements
+- **Focus States**: Ensure keyboard navigation has visible focus indicators
 
 ### Data Visualization
 - Local impact metrics displayed prominently

@@ -1,25 +1,11 @@
 "use client";
 
 import Tooltip from "./Tooltip";
-
-interface Skill {
-    name: string;
-    image: string;
-    count: number;
-    description: string;
-}
-
-interface PinnedAction {
-    id: string;
-    title: string;
-    description: string;
-    category: string;
-    isPublic: boolean;
-}
+import { Action, Skill } from "@/types";
 
 interface ActionCardProps {
-    action: PinnedAction;
-    onActionClick: (action: PinnedAction) => void;
+    action: Action;
+    onActionClick: (action: Action) => void;
     skills: Skill[];
     variant?: 'compact' | 'expanded'; // compact for overview, expanded for actions tab
     actionDetails?: {
@@ -80,12 +66,33 @@ export default function ActionCard({
             {/* Main content */}
             <div className={`${isExpanded ? 'mb-4' : 'mb-3'}`}>
                 <div className={`${isExpanded ? 'mb-4' : 'mb-3'}`}>
-                    <h3 className={`font-bold text-gray-900 transition-colors leading-tight ${isExpanded ? 'text-xl mb-2' : 'text-lg mb-2'
-                        }`}>
-                        {action.title}
-                    </h3>
+                    <div className="flex items-start justify-between mb-2">
+                        <h3 className={`font-bold text-gray-900 transition-colors leading-tight flex-1 ${isExpanded ? 'text-xl' : 'text-lg'
+                            }`}>
+                            {action.title}
+                        </h3>
 
-                    {/* Category and Action Type badges - simple colors */}
+                        {/* Verification Status */}
+                        <div className="ml-3 flex-shrink-0">
+                            {action.verified ? (
+                                <div className="flex items-center gap-1 bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">
+                                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                    </svg>
+                                    Verified
+                                </div>
+                            ) : (
+                                <div className="flex items-center gap-1 bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-xs font-medium">
+                                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                                    </svg>
+                                    Verify now
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Category, Action Type, and Hours badges */}
                     <div className="flex items-center gap-2 mb-3">
                         <span className={`bg-blue-100 text-blue-800 px-2 py-1 rounded ${isExpanded ? 'text-sm' : 'text-xs'
                             }`}>
@@ -94,6 +101,10 @@ export default function ActionCard({
                         <span className={`bg-green-100 text-green-800 px-2 py-1 rounded ${isExpanded ? 'text-sm' : 'text-xs'
                             }`}>
                             {actionDetails.actionType}
+                        </span>
+                        <span className={`bg-orange-100 text-orange-800 px-2 py-1 rounded ${isExpanded ? 'text-sm' : 'text-xs'
+                            }`}>
+                            {action.hours}h
                         </span>
                     </div>
                 </div>
@@ -109,7 +120,7 @@ export default function ActionCard({
                         <svg className="w-4 h-4 text-gray-500 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                         </svg>
-                        <span className="font-medium text-gray-600">Skills Developed</span>
+                        <span className="font-medium text-gray-600">Skills Activated</span>
                     </div>
 
                     <div className={`flex flex-wrap ${isExpanded ? 'gap-2' : 'gap-1.5'}`}>

@@ -1,0 +1,197 @@
+---
+description: 
+globs: *.tsx
+alwaysApply: false
+---
+# Solve Ninja Changemaker Portfolio (CMP) - Coding Guidelines
+## Type System Organization
+
+### **Centralized Type Definitions**
+- **ALL types and interfaces must be defined in `src/types.tsx`**
+- **Import and reuse types across files** - never redefine the same interface
+- **No inline type definitions** in component or page files
+- **Consistent naming conventions** for all type definitions
+
+## Architecture Principles
+
+### 1. **Data-Driven Components**
+- **Store all data in page-level files**, not in components
+- **Components should be purely presentational** - they render what's passed to them
+- **No hardcoded content in components** - use props and data structures
+- **Avoid switch cases or conditional logic for data** - move data to source files
+
+```typescript
+// ✅ Good: Data in page file, component renders props
+const actionDetails = action.details || defaultDetails;
+
+// ❌ Bad: Switch case logic in component
+switch (action.id) {
+  case "1": return hardcodedData;
+}
+```
+
+### 2. **TypeScript Standards**
+- **Use proper TypeScript interfaces** for all data structures
+- **No implicit `any` types** - always explicitly type parameters
+- **Optional properties** should use `?:` when appropriate
+- **Extend interfaces** rather than duplicating type definitions
+
+```typescript
+// ✅ Good: Proper typing
+interface Action {
+  id: string;
+  title: string;
+  details?: ActionDetails;
+}
+
+// ❌ Bad: Implicit any
+actionDetails.rawInputs.reflectiveQuestions.forEach(item => { // item: any
+```
+
+### 3. **Component Structure**
+- **One primary export per file**
+- **Interfaces defined at top of file**
+- **Helper functions inside component or in utils**
+- **Consistent prop naming and destructuring**
+
+## UI/UX Implementation
+
+### 4. **Interactive Elements**
+- **ALL clickable elements MUST include `cursor-pointer` class**
+- **Provide hover states** for interactive elements
+- **Ensure keyboard navigation** with visible focus indicators
+- **Use consistent transition classes** (`transition-colors`, `transition-all`)
+
+```tsx
+// ✅ Good: Interactive element with proper classes
+<button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 transition-colors cursor-pointer">
+  Click me
+</button>
+
+// ❌ Bad: Missing cursor-pointer
+<div onClick={handleClick} className="p-4 hover:bg-gray-100">
+```
+
+### 5. **Styling Standards**
+- **Use Tailwind CSS** for all styling
+- **Mobile-first responsive design** (`sm:`, `md:`, `lg:` breakpoints)
+- **Consistent spacing** using Tailwind's spacing scale
+- **Follow Solve Ninja color palette** (green, blue, orange themes)
+
+### 6. **Modal Patterns**
+- **Fixed positioning** with backdrop (`fixed inset-0 bg-black bg-opacity-50`)
+- **Close button** in top-right corner with proper hover states
+- **Max height with overflow** for long content (`max-h-[90vh] overflow-y-auto`)
+- **Responsive padding** and width constraints
+
+## Data Management
+
+### 7. **Action Data Structure**
+- **Rich data in action objects** with `details` property containing all information
+- **Images embedded in context** (rawInputs, submissions) rather than standalone arrays
+- **Consistent timestamp formatting** and content structure
+- **Fallback handling** for actions without detailed data
+
+### 8. **State Management**
+- **useState for component-level state**
+- **Pass state setters as props** for child component communication
+- **Clear state variable naming** (e.g., `selectedAction`, `isModalOpen`)
+- **Consistent boolean state patterns**
+
+## Content Guidelines
+
+### 9. **Solve Ninja Context**
+- **Action-oriented language** emphasizing youth agency and impact
+- **Hyper-local focus** with specific community details
+- **Skill development emphasis** linking actions to 21st century skills
+- **Measurable outcomes** with specific metrics and timelines
+
+### 10. **Text and Copy**
+- **Empowering, youth-friendly tone** without being condescending
+- **Clear, jargon-free communication** about civic and climate issues
+- **Specific impact metrics** (e.g., "2.5 tons diverted", "85% survival rate")
+- **Real stakeholder names** and organization details
+
+## File Organization
+
+### 11. **Import Structure**
+```typescript
+// 1. React imports
+import { useState, useEffect } from "react";
+
+// 2. External libraries
+import { MapPin, Users, CheckCircle } from "lucide-react";
+
+// 3. Internal components
+import ActionCard from "@/components/ActionCard";
+import SkillModal from "@/components/SkillModal";
+
+// 4. Types and interfaces
+interface Action { ... }
+```
+
+### 12. **Component Organization**
+- **Types and interfaces** at the top after imports
+- **Data constants** before component definition
+- **Helper functions** inside component or extracted to utils
+- **Main component** with clear prop destructuring
+- **Export default** at the bottom
+
+## Performance & Accessibility
+
+### 13. **Performance Standards**
+- **Lazy loading** for heavy components when appropriate
+- **Optimize images** with proper sizing parameters
+- **Efficient re-renders** using proper dependency arrays
+- **Loading states** for data-heavy operations
+
+### 14. **Accessibility Requirements**
+- **WCAG 2.1 AA compliance** minimum
+- **Proper alt text** for all images with descriptive content
+- **Semantic HTML** structure with proper headings
+- **Color contrast ratios** meeting accessibility standards
+- **Keyboard navigation support** for all interactive elements
+
+## Error Handling
+
+### 15. **Graceful Fallbacks**
+- **Default data structures** for missing information
+- **Conditional rendering** with proper null checks
+- **User-friendly error states** rather than crashes
+- **Loading states** while data is being fetched
+
+### 16. **TypeScript Error Prevention**
+- **Explicit typing** for all function parameters
+- **Proper interface definitions** for complex objects
+- **Optional chaining** for potentially undefined properties
+- **Type guards** for runtime type checking when needed
+
+## Code Quality
+
+### 17. **Naming Conventions**
+- **camelCase** for variables and functions
+- **PascalCase** for components and interfaces
+- **Descriptive names** that indicate purpose
+- **Consistent naming patterns** across similar functionality
+
+### 18. **Function Design**
+- **Single responsibility** principle for functions
+- **Pure functions** when possible (no side effects)
+- **Clear parameter names** and return types
+- **Extract complex logic** into named functions
+
+### 19. **Comments and Documentation**
+- **JSDoc comments** for complex functions
+- **Inline comments** for business logic explanations
+- **TODO comments** for known technical debt
+- **Interface documentation** for complex data structures
+
+## Security & Best Practices
+
+### 20. **Image and Asset Handling**
+- **Use proper image optimization** with size parameters
+- **Validate external image URLs** when using user-provided content
+- **Proper error handling** for failed image loads
+- **Responsive image sizing** for different screen sizes
+
+Remember: Every design decision should empower young people to see themselves as capable changemakers who can drive meaningful impact in their communities.
