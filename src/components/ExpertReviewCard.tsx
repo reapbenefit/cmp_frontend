@@ -30,7 +30,7 @@ export default function ExpertReviewCard({ review, variant = 'default' }: Expert
             <div className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
                 {/* Comment */}
                 <blockquote className="text-gray-600 text-sm leading-relaxed mb-3">
-                    "{comment}"
+                    &ldquo;{comment}&rdquo;
                 </blockquote>
 
                 {/* Reviewer info */}
@@ -74,7 +74,7 @@ export default function ExpertReviewCard({ review, variant = 'default' }: Expert
 
                 {/* Comment */}
                 <blockquote className="text-gray-600 leading-relaxed text-sm flex-1">
-                    "{comment}"
+                    &ldquo;{comment}&rdquo;
                 </blockquote>
             </div>
 

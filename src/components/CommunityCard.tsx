@@ -1,6 +1,6 @@
 "use client";
 
-import { ExternalLink, Users } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 
 interface Community {
     id: string;
