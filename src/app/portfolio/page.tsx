@@ -1131,7 +1131,7 @@ export default function Portfolio() {
                             {/* Skills */}
                             <div className="mb-6">
                                 <h3 className="text-lg font-semibold text-gray-900 mb-3">Skills</h3>
-                                <div className="grid grid-cols-4 gap-3">
+                                <div className="grid grid-cols-3 gap-3">
                                     {[...skills].sort((a, b) => b.count - a.count).map((skill) => (
                                         <div
                                             key={skill.name}
