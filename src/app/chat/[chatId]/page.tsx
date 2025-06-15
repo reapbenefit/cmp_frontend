@@ -2,8 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { Loader2, Trophy, Star, Trash2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Loader2, Trophy, Star } from "lucide-react";
 import { ChatMessage, ChatSession, StreamingResponse, SkillExtractionResponse } from "@/types";
 import { ChatSidebar, SidebarToggle } from "@/components/ChatSidebar";
 import InputArea from "@/components/InputArea";
@@ -432,35 +431,6 @@ export default function ChatPage() {
         setIsSidebarOpen(false);
     };
 
-    const handleDeleteLastMessage = () => {
-        if (messages.length === 0 || isLoading || isStreaming || apiCallInProgressRef.current) {
-            return;
-        }
-
-        // Remove the last message
-        const updatedMessages = messages.slice(0, -1);
-        setMessages(updatedMessages);
-
-        // Check if conversation is still over after deletion
-        const hasAnalysis = updatedMessages.some((msg: ChatMessage) => msg.role === 'analysis');
-        setIsConversationOver(hasAnalysis);
-
-        // Update session and save to localStorage
-        if (currentSession) {
-            const updatedSession = {
-                ...currentSession,
-                messages: updatedMessages,
-                updatedAt: new Date()
-            };
-            setCurrentSession(updatedSession);
-
-            const updatedSessions = chatSessions.map(s =>
-                s.id === chatId ? updatedSession : s
-            );
-            saveSessions(updatedSessions);
-        }
-    };
-
     return (
         <div className="flex h-screen bg-gray-50">
             <ChatSidebar
@@ -483,20 +453,6 @@ export default function ChatPage() {
                             </h1>
                         </div>
                     </div>
-
-                    {/* Delete Last Message Button */}
-                    {/* {messages.length > 0 && !isLoading && !isStreaming && (
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={handleDeleteLastMessage}
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50 cursor-pointer"
-                            disabled={apiCallInProgressRef.current}
-                        >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Delete Last Message
-                        </Button>
-                    )} */}
                 </div>
 
                 {/* Messages */}
