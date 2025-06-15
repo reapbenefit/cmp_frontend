@@ -52,3 +52,23 @@ export interface Skill {
         explanation: string;
     }>;
 }
+
+// Chat-related types
+export interface ChatMessage {
+    role: 'user' | 'assistant';
+    content: string;
+    timestamp: Date;
+}
+
+export interface ChatSession {
+    id: string;
+    title: string;
+    messages: ChatMessage[];
+    createdAt: Date;
+    updatedAt: Date;
+}
+
+export interface StreamingResponse {
+    response: string;
+    is_done: boolean | null;
+}
