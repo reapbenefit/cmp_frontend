@@ -32,14 +32,14 @@ const Waveform = ({ audioData }: { audioData: number[] }) => {
 };
 
 // Example Actions component
-const ExampleActions = () => {
+const ExampleActions = ({ onExampleClick }: { onExampleClick: (text: string) => void }) => {
   const examples = [
-    { icon: TreePine, text: "Planted trees", color: "text-green-600" },
-    { icon: Recycle, text: "Organized cleanup", color: "text-blue-600" },
-    { icon: Users, text: "Helped neighbors", color: "text-purple-600" },
-    { icon: Sprout, text: "Started garden", color: "text-emerald-600" },
-    { icon: Heart, text: "Volunteered", color: "text-red-500" },
-    { icon: BookOpen, text: "Taught skills", color: "text-orange-600" }
+    { icon: TreePine, text: "Planted trees", color: "text-green-600", starter: "Today I planted trees in my neighborhood to help combat climate change. " },
+    { icon: Recycle, text: "Organized cleanup", color: "text-blue-600", starter: "I organized a community cleanup drive to keep our local area clean. " },
+    { icon: Users, text: "Helped neighbors", color: "text-purple-600", starter: "I helped my neighbors with their daily needs and built stronger community bonds. " },
+    { icon: Sprout, text: "Started garden", color: "text-emerald-600", starter: "I started a community garden to promote sustainable living and fresh produce. " },
+    { icon: Heart, text: "Volunteered", color: "text-red-500", starter: "I volunteered my time for a local cause that I care deeply about. " },
+    { icon: BookOpen, text: "Taught skills", color: "text-orange-600", starter: "I taught valuable skills to community members to help them grow. " }
   ];
 
   return (
@@ -53,6 +53,7 @@ const ExampleActions = () => {
           return (
             <div
               key={index}
+              onClick={() => onExampleClick(example.starter)}
               className="bg-white/60 backdrop-blur-sm rounded-lg p-3 shadow-sm border border-gray-200/50 hover:bg-white/80 transition-all duration-200 cursor-pointer group"
             >
               <div className="flex items-center gap-2">
@@ -504,6 +505,44 @@ export default function Home() {
     setIsPlaying(false);
   }, [stopPlaybackAnalysis]);
 
+  const handleExampleClick = (text: string) => {
+    setAction(text);
+    // Focus the textarea after a short delay to ensure it's rendered
+    setTimeout(() => {
+      if (inputRef.current) {
+        inputRef.current.focus();
+        // Move cursor to the end of the text
+        inputRef.current.setSelectionRange(text.length, text.length);
+        // Trigger resize after setting text
+        handleTextareaResize();
+      }
+    }, 100);
+  };
+
+  const handleTextareaResize = () => {
+    if (inputRef.current) {
+      // Reset height to auto to get the correct scrollHeight
+      inputRef.current.style.height = 'auto';
+
+      // Calculate the height needed
+      const scrollHeight = inputRef.current.scrollHeight;
+
+      // Set minimum height (1 line) and maximum height (5 lines)
+      // Approximate line height is 24px, plus padding
+      const minHeight = 60; // Original height for 1 line
+      const maxHeight = 120; // Approximately 4 lines
+
+      // Set the height, but don't exceed max
+      const newHeight = Math.min(Math.max(scrollHeight, minHeight), maxHeight);
+      inputRef.current.style.height = `${newHeight}px`;
+    }
+  };
+
+  const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setAction(e.target.value);
+    handleTextareaResize();
+  };
+
   const handleSubmit = () => {
     if (recordedBlob) {
       // Here you would typically upload the audio blob to your server
@@ -558,29 +597,31 @@ export default function Home() {
         {/* Hero section */}
         <div className="text-center mb-8 max-w-2xl">
           <div className="mb-6">
-            <div className="text-6xl mb-4">🥷</div>
-            <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent mb-4">
-              Solve Ninja Portal
+            <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent mb-2">
+              Solve Ninja Movement
             </h1>
+            <p className="text-xl text-gray-700 mb-8">
+              India's Largest Changemaker Community
+            </p>
             <p className="text-lg text-gray-600 mb-8">
-              Ready to make a difference? Share your latest community action and inspire others to join the movement!
+              Share your latest community action and inspire others to join the movement!
             </p>
           </div>
 
           {/* Stats or encouragement */}
-          <div className="flex justify-center gap-8 mb-8 text-center">
+          {/* <div className="flex justify-center gap-8 mb-8 text-center">
             <div className="bg-white/70 backdrop-blur-sm rounded-lg p-4 shadow-sm">
               <div className="text-2xl font-bold text-green-600">10M+</div>
-              <div className="text-sm text-gray-600">Goal by 2030</div>
+              <div className="text-sm text-gray-600">Actions by 2030</div>
             </div>
             <div className="bg-white/70 backdrop-blur-sm rounded-lg p-4 shadow-sm">
               <div className="text-2xl font-bold text-blue-600">120K+</div>
               <div className="text-sm text-gray-600">Active Ninjas</div>
             </div>
-          </div>
+          </div> */}
 
           {/* Example Actions */}
-          <ExampleActions />
+          <ExampleActions onExampleClick={handleExampleClick} />
         </div>
       </div>
 
@@ -625,10 +666,10 @@ export default function Home() {
               <textarea
                 ref={inputRef}
                 value={action}
-                onChange={(e) => setAction(e.target.value)}
+                onChange={handleTextChange}
                 onKeyPress={handleKeyPress}
                 placeholder="🌟 What awesome action did you take today?"
-                className="w-full p-4 pr-28 border-2 border-gray-200 rounded-2xl resize-none focus:outline-none focus:border-green-400 focus:ring-2 focus:ring-green-200 transition-all duration-200 shadow-lg placeholder-gray-500 text-gray-700 h-[60px] min-h-[60px] max-h-32 relative z-10 overflow-y-auto"
+                className="w-full p-4 pr-28 border-2 border-gray-200 rounded-2xl resize-none focus:outline-none focus:border-green-400 focus:ring-2 focus:ring-green-200 transition-all duration-200 shadow-lg placeholder-gray-500 text-gray-700 min-h-[60px] relative z-10 overflow-y-auto"
                 rows={1}
               />
             )}
