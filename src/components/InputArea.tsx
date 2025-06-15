@@ -548,7 +548,7 @@ export default function InputArea({
                         onKeyPress={handleKeyPress}
                         placeholder={placeholder}
                         disabled={disabled}
-                        className={`w-full p-4 pr-28 border-2 border-gray-200 rounded-2xl resize-none focus:outline-none focus:border-green-400 focus:ring-2 focus:ring-green-200 transition-all duration-200 shadow-lg placeholder-gray-500 text-gray-700 min-h-[60px] relative z-10 overflow-y-auto bg-white/80 backdrop-blur-sm`}
+                        className={`w-full p-4 pr-28 border-2 border-gray-200 rounded-2xl resize-none focus:outline-none transition-all duration-200 shadow-lg placeholder-gray-500 text-gray-700 min-h-[60px] relative z-10 overflow-y-auto bg-white/80 backdrop-blur-sm`}
                         rows={1}
                     />
                 )}
