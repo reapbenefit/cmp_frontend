@@ -10,7 +10,7 @@ import InputArea from "@/components/InputArea";
 
 // Chat API function
 async function sendChatMessage(messages: ChatMessage[]): Promise<ReadableStream<Uint8Array>> {
-    const response = await fetch('http://localhost:8002/chat', {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/chat`, {
         method: 'POST',
         headers: {
             'accept': 'application/json',
@@ -35,7 +35,7 @@ async function sendChatMessage(messages: ChatMessage[]): Promise<ReadableStream<
 
 // Skill extraction API function
 async function extractSkills(messages: ChatMessage[]): Promise<SkillExtractionResponse> {
-    const response = await fetch('http://localhost:8002/extract', {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/extract`, {
         method: 'POST',
         headers: {
             'accept': 'application/json',
