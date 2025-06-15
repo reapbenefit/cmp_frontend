@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { Send, ArrowLeft, Loader2, Trophy, Star, Brain, Sparkles, Target, Trash2 } from "lucide-react";
+import { Loader2, Trophy, Star, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ChatMessage, ChatSession, StreamingResponse, SkillExtractionResponse } from "@/types";
 import { ChatSidebar, SidebarToggle } from "@/components/ChatSidebar";
@@ -78,8 +78,8 @@ const MessageBubble = ({ message, isStreaming }: { message: ChatMessage; isStrea
                                 {message.content.map((skill, index) => (
                                     <div key={index} className="flex items-center gap-4 p-3 bg-white rounded-lg border shadow-sm hover:shadow-md transition-shadow cursor-pointer">
                                         <img
-                                            src={`/badges/${skill["id"]}.png`}
-                                            alt={skill["name"]}
+                                            src={`/badges/${skill.id}.png`}
+                                            alt={skill.name}
                                             className="w-12 h-12 object-contain flex-shrink-0"
                                             onError={(e) => {
                                                 const target = e.target as HTMLImageElement;
@@ -88,7 +88,7 @@ const MessageBubble = ({ message, isStreaming }: { message: ChatMessage; isStrea
                                         />
                                         <div className="flex-1">
                                             <span className="text-sm text-gray-700">
-                                                {skill["relevance"]}
+                                                {skill.relevance}
                                             </span>
                                         </div>
                                     </div>
@@ -110,7 +110,7 @@ const MessageBubble = ({ message, isStreaming }: { message: ChatMessage; isStrea
                     }`}
             >
                 <div className="text-sm whitespace-pre-wrap">
-                    {message.content}
+                    {typeof message.content === 'string' ? message.content : ''}
                     {isStreaming && (
                         <span className="inline-block w-2 h-4 bg-gray-400 ml-1 animate-pulse" />
                     )}
@@ -135,7 +135,7 @@ const SkillExtractionLoader = () => {
             setCurrentMessage(prev => (prev + 1) % messages.length);
         }, 2000);
         return () => clearInterval(interval);
-    }, []);
+    }, [messages.length]);
 
     return (
         <div className="flex justify-center mb-6">
@@ -169,136 +169,20 @@ export default function ChatPage() {
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const apiCallInProgressRef = useRef<boolean>(false);
 
-    // Combined method to send chat message and handle streaming response
-    const sendChatAndHandleStream = async (messagesToSend: ChatMessage[], session: ChatSession | null, sessions: ChatSession[]) => {
-        if (apiCallInProgressRef.current) {
-            return;
-        }
-
-        apiCallInProgressRef.current = true;
-        setIsLoading(true);
-
-        try {
-            const stream = await sendChatMessage(messagesToSend);
-            await handleStreamingResponse(stream, session, sessions);
-        } catch (error) {
-            console.error('Error in chat communication:', error);
-            setIsLoading(false);
-            setIsStreaming(false);
-        } finally {
-            apiCallInProgressRef.current = false;
-        }
-    };
-
-    // Handle skill extraction and create analysis message
-    const handleSkillExtraction = async (conversationMessages: ChatMessage[], session: ChatSession | null, sessions: ChatSession[]) => {
-        setIsExtractingSkills(true);
-
-        try {
-            console.log('Extracting skills from conversation...');
-            const skillResponse = await extractSkills(conversationMessages);
-
-            if (skillResponse.skills && skillResponse.skills.length > 0) {
-                const analysisMessage: ChatMessage = {
-                    role: 'analysis',
-                    timestamp: new Date(),
-                    content: skillResponse.skills
-                };
-
-                const finalMessages = [...conversationMessages, analysisMessage];
-                setMessages(finalMessages);
-
-                // Update session and save to localStorage
-                if (session) {
-                    const updatedSession = {
-                        ...session,
-                        messages: finalMessages,
-                        updatedAt: new Date()
-                    };
-                    setCurrentSession(updatedSession);
-
-                    const updatedSessions = sessions.map(s =>
-                        s.id === chatId ? updatedSession : s
-                    );
-                    saveSessions(updatedSessions);
-                }
-            }
-        } catch (error) {
-            console.error('Error extracting skills:', error);
-        } finally {
-            setIsExtractingSkills(false);
-        }
-    };
-
-    // Load chat sessions from localStorage
-    useEffect(() => {
-        // Prevent duplicate API calls
-        if (apiCallInProgressRef.current) {
-            return;
-        }
-
-        const savedSessions = localStorage.getItem('chatSessions');
-        if (!savedSessions) {
-            throw new Error('No saved sessions');
-        }
-
-        const parsed = JSON.parse(savedSessions);
-        console.log(parsed);
-        const sessions = parsed.map((session: any) => ({
-            ...session,
-            createdAt: new Date(session.createdAt),
-            updatedAt: new Date(session.updatedAt),
-            messages: session.messages.map((msg: any) => ({
-                ...msg,
-                timestamp: new Date(msg.timestamp)
-            }))
-        }));
-        setChatSessions(sessions);
-
-        // Load current session
-        const current = sessions.find((s: ChatSession) => s.id === chatId);
-        if (!current) {
-            throw new Error('Current session not found');
-        }
-        console.log(current);
-        setCurrentSession(current);
-        setMessages(current.messages);
-
-        // Check if conversation is already over (has analysis message)
-        const hasAnalysis = current.messages.some((msg: ChatMessage) => msg.role === 'analysis');
-        if (hasAnalysis) {
-            setIsConversationOver(true);
-        }
-
-        // Check if we need to get AI response
-        // This handles both new chats and failed responses
-        const needsAIResponse = current.messages[current.messages.length - 1].role === 'user' && !hasAnalysis;
-
-        if (needsAIResponse && current.messages.length > 0) {
-            // There are user messages but no AI response - trigger API call
-            sendChatAndHandleStream(current.messages, current, sessions);
-        }
-    }, [chatId]);
-
     // Save sessions to localStorage
-    const saveSessions = (sessions: ChatSession[]) => {
+    const saveSessions = useCallback((sessions: ChatSession[]) => {
         console.log(sessions);
         localStorage.setItem('chatSessions', JSON.stringify(sessions));
         setChatSessions(sessions);
-    };
-
-    // Auto-scroll to bottom
-    useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [messages]);
+    }, []);
 
     // Handle streaming response
-    const handleStreamingResponse = async (stream: ReadableStream<Uint8Array>, session: ChatSession | null, sessions: ChatSession[]) => {
+    const handleStreamingResponse = useCallback(async (stream: ReadableStream<Uint8Array>, session: ChatSession | null, sessions: ChatSession[]) => {
         const reader = stream.getReader();
         const decoder = new TextDecoder();
         let isConversationComplete = false;
 
-        let assistantMessage: ChatMessage = {
+        const assistantMessage: ChatMessage = {
             role: 'assistant',
             content: '',
             timestamp: new Date()
@@ -368,50 +252,125 @@ export default function ChatPage() {
                 if (isConversationComplete) {
                     setIsConversationOver(true)
 
-                    // Trigger skill extraction after saving
-                    setTimeout(() => {
-                        handleSkillExtraction(finalMessages, updatedSession, updatedSessions);
+                    // Trigger skill extraction after saving - will use the latest function reference
+                    setTimeout(async () => {
+                        setIsExtractingSkills(true);
+
+                        try {
+                            console.log('Extracting skills from conversation...');
+                            const skillResponse = await extractSkills(finalMessages);
+
+                            if (skillResponse.skills && skillResponse.skills.length > 0) {
+                                const analysisMessage: ChatMessage = {
+                                    role: 'analysis',
+                                    timestamp: new Date(),
+                                    content: skillResponse.skills
+                                };
+
+                                const analysisMessages = [...finalMessages, analysisMessage];
+                                setMessages(analysisMessages);
+
+                                // Update session with analysis
+                                const finalSessionUpdate = {
+                                    ...updatedSession,
+                                    messages: analysisMessages,
+                                    updatedAt: new Date()
+                                };
+                                setCurrentSession(finalSessionUpdate);
+
+                                const finalUpdatedSessions = updatedSessions.map(s =>
+                                    s.id === chatId ? finalSessionUpdate : s
+                                );
+                                saveSessions(finalUpdatedSessions);
+                            }
+                        } catch (error) {
+                            console.error('Error extracting skills:', error);
+                        } finally {
+                            setIsExtractingSkills(false);
+                        }
                     }, 500);
                 }
 
                 return finalMessages;
             });
         }
-    };
+    }, [chatId, saveSessions]);
 
-    const handleSubmit = async () => {
-        if (!input.trim() || apiCallInProgressRef.current || isConversationOver) return;
-
-        const userMessage: ChatMessage = {
-            role: 'user',
-            content: input.trim(),
-            timestamp: new Date()
-        };
-
-        const newMessages = [...messages, userMessage];
-        setMessages(newMessages);
-        setInput("");
-
-        // Update session with the new user message
-        if (currentSession) {
-            const updatedSession = {
-                ...currentSession,
-                messages: newMessages,
-                updatedAt: new Date()
-            };
-            setCurrentSession(updatedSession);
-
-            console.log(chatSessions);
-
-            const updatedSessions = chatSessions.map(s =>
-                s.id === chatId ? updatedSession : s
-            );
-            saveSessions(updatedSessions);
+    // Combined method to send chat message and handle streaming response
+    const sendChatAndHandleStream = useCallback(async (messagesToSend: ChatMessage[], session: ChatSession | null, sessions: ChatSession[]) => {
+        if (apiCallInProgressRef.current) {
+            return;
         }
 
-        // Send the complete chat history (including the new user message) to API
-        await sendChatAndHandleStream(newMessages, currentSession, chatSessions);
-    };
+        apiCallInProgressRef.current = true;
+        setIsLoading(true);
+
+        try {
+            const stream = await sendChatMessage(messagesToSend);
+            await handleStreamingResponse(stream, session, sessions);
+        } catch (error) {
+            console.error('Error in chat communication:', error);
+            setIsLoading(false);
+            setIsStreaming(false);
+        } finally {
+            apiCallInProgressRef.current = false;
+        }
+    }, [handleStreamingResponse]);
+
+    // Load chat sessions from localStorage
+    useEffect(() => {
+        // Prevent duplicate API calls
+        if (apiCallInProgressRef.current) {
+            return;
+        }
+
+        const savedSessions = localStorage.getItem('chatSessions');
+        if (!savedSessions) {
+            throw new Error('No saved sessions');
+        }
+
+        const parsed = JSON.parse(savedSessions);
+        console.log(parsed);
+        const sessions = parsed.map((session: ChatSession) => ({
+            ...session,
+            createdAt: new Date(session.createdAt),
+            updatedAt: new Date(session.updatedAt),
+            messages: session.messages.map((msg: ChatMessage) => ({
+                ...msg,
+                timestamp: new Date(msg.timestamp)
+            }))
+        }));
+        setChatSessions(sessions);
+
+        // Load current session
+        const current = sessions.find((s: ChatSession) => s.id === chatId);
+        if (!current) {
+            throw new Error('Current session not found');
+        }
+        console.log(current);
+        setCurrentSession(current);
+        setMessages(current.messages);
+
+        // Check if conversation is already over (has analysis message)
+        const hasAnalysis = current.messages.some((msg: ChatMessage) => msg.role === 'analysis');
+        if (hasAnalysis) {
+            setIsConversationOver(true);
+        }
+
+        // Check if we need to get AI response
+        // This handles both new chats and failed responses
+        const needsAIResponse = current.messages[current.messages.length - 1].role === 'user' && !hasAnalysis;
+
+        if (needsAIResponse && current.messages.length > 0) {
+            // There are user messages but no AI response - trigger API call
+            sendChatAndHandleStream(current.messages, current, sessions);
+        }
+    }, [chatId, sendChatAndHandleStream]);
+
+    // Auto-scroll to bottom
+    useEffect(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [messages]);
 
     const handleInputSubmit = (type: 'text' | 'audio', content: string | Blob) => {
         if (type === 'audio') {
@@ -453,13 +412,6 @@ export default function ChatPage() {
         }
         // Reset input
         setInput("");
-    };
-
-    const handleKeyPress = (e: React.KeyboardEvent) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            handleSubmit();
-        }
     };
 
     const handleNewChat = () => {

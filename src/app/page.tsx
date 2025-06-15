@@ -95,11 +95,11 @@ export default function Home() {
     const savedSessions = localStorage.getItem('chatSessions');
     if (savedSessions) {
       const parsed = JSON.parse(savedSessions);
-      const sessions = parsed.map((session: any) => ({
+      const sessions = parsed.map((session: ChatSession) => ({
         ...session,
         createdAt: new Date(session.createdAt),
         updatedAt: new Date(session.updatedAt),
-        messages: session.messages.map((msg: any) => ({
+        messages: session.messages.map((msg: ChatMessage) => ({
           ...msg,
           timestamp: new Date(msg.timestamp)
         }))
@@ -161,7 +161,7 @@ export default function Home() {
                         Solve Ninja Movement
                       </h1>
                       <p className="text-xl text-gray-700 mb-8">
-                        India's Largest Changemaker Community
+                        India&apos;s Largest Changemaker Community
                       </p>
                       <p className="text-lg text-gray-600 mb-8">
                         Share your latest community action and inspire others to join the movement!
