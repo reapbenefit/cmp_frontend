@@ -38,12 +38,12 @@ export default function ActionCard({
     actionDetails = {
         category: "Waste",
         actionType: "Hands-on",
-        skillsCovered: ["Problem Solving", "Community Collaboration", "Hands-On", "Data Orientation"],
+        skillsCovered: ["Problem Solving", "Community Collaboration", "Hands-On", "Digital + Data Citizenship"],
         skillExplanations: {
             "Problem Solving": "Identified complex waste segregation challenges and systematically developed a Materials Recovery Facility solution to address multiple stakeholder needs.",
             "Community Collaboration": "Successfully coordinated with BBMP, CMC, TMC, local GPs, and 45+ community members to establish sustainable waste management practices.",
             "Hands-On": "Physically set up the Materials Recovery Facility infrastructure and directly trained community members in waste segregation techniques.",
-            "Data Orientation": "Tracked and measured 2.5 tons of diverted plastic waste, monitored facility efficiency, and documented community engagement metrics."
+            "Digital + Data Citizenship": "Tracked and measured 2.5 tons of diverted plastic waste, monitored facility efficiency, and documented community engagement metrics."
         }
     }
 }: ActionCardProps) {

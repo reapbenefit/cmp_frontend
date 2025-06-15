@@ -74,21 +74,23 @@ const MessageBubble = ({ message, isStreaming }: { message: ChatMessage; isStrea
                                 <Star className="h-4 w-4 text-orange-500" />
                                 <span className="text-sm font-medium text-gray-600">You have shown these skills through your action!</span>
                             </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div className="space-y-3">
                                 {message.content.map((skill, index) => (
-                                    <div key={index} className="flex flex-col items-center p-3 bg-white rounded-lg border shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+                                    <div key={index} className="flex items-center gap-4 p-3 bg-white rounded-lg border shadow-sm hover:shadow-md transition-shadow cursor-pointer">
                                         <img
-                                            src={`/badges/${skill}.png`}
-                                            alt={skill}
-                                            className="w-16 h-16 mb-2 object-contain"
+                                            src={`/badges/${skill["id"]}.png`}
+                                            alt={skill["name"]}
+                                            className="w-12 h-12 object-contain flex-shrink-0"
                                             onError={(e) => {
                                                 const target = e.target as HTMLImageElement;
                                                 target.style.display = 'none';
                                             }}
                                         />
-                                        <span className="text-xs font-medium text-gray-600 text-center capitalize">
-                                            {skill.replace('_', ' ')}
-                                        </span>
+                                        <div className="flex-1">
+                                            <span className="text-sm text-gray-700">
+                                                {skill["relevance"]}
+                                            </span>
+                                        </div>
                                     </div>
                                 ))}
                             </div>
@@ -531,7 +533,7 @@ export default function ChatPage() {
                     </div>
 
                     {/* Delete Last Message Button */}
-                    {/* {messages.length > 0 && !isLoading && !isStreaming && (
+                    {messages.length > 0 && !isLoading && !isStreaming && (
                         <Button
                             variant="ghost"
                             size="sm"
@@ -542,7 +544,7 @@ export default function ChatPage() {
                             <Trash2 className="h-4 w-4 mr-2" />
                             Delete Last Message
                         </Button>
-                    )} */}
+                    )}
                 </div>
 
                 {/* Messages */}

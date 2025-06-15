@@ -56,7 +56,7 @@ export interface Skill {
 // Chat-related types
 export interface ChatMessage {
     role: 'user' | 'assistant' | 'analysis';
-    content: string | string[];
+    content: string | any[];
     timestamp: Date;
 }
 

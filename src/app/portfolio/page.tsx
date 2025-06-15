@@ -112,8 +112,8 @@ const skills: Skill[] = [
         ]
     },
     {
-        name: "Data Orientation",
-        image: "/badges/data_orientation.png",
+        name: "Digital + Data Citizenship",
+        image: "/badges/data_digital_citizen.png",
         count: 1,
         description: "Using data and evidence to drive decision-making and measure impact",
         actions: [
@@ -220,12 +220,12 @@ const pinnedActions: Action[] = [
         verified: true,
         details: {
             actionType: "Hands-on",
-            skillsCovered: ["Problem Solving", "Community Collaboration", "Hands-On", "Data Orientation"],
+            skillsCovered: ["Problem Solving", "Community Collaboration", "Hands-On", "Digital + Data Citizenship"],
             skillExplanations: {
                 "Problem Solving": "Identified complex waste segregation challenges and systematically developed a Materials Recovery Facility solution to address multiple stakeholder needs.",
                 "Community Collaboration": "Successfully coordinated with BBMP, CMC, TMC, local GPs, and 45+ community members to establish sustainable waste management practices.",
                 "Hands-On": "Physically set up the Materials Recovery Facility infrastructure and directly trained community members in waste segregation techniques.",
-                "Data Orientation": "Tracked and measured 2.5 tons of diverted plastic waste, monitored facility efficiency, and documented community engagement metrics."
+                "Digital + Data Citizenship": "Tracked and measured 2.5 tons of diverted plastic waste, monitored facility efficiency, and documented community engagement metrics."
             },
             summary: {
                 overview: "Comprehensive plastic waste management initiative aimed at diverting waste from landfills into sustainable recycling and repurposing channels.",
