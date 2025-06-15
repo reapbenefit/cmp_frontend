@@ -55,8 +55,8 @@ export interface Skill {
 
 // Chat-related types
 export interface ChatMessage {
-    role: 'user' | 'assistant';
-    content: string;
+    role: 'user' | 'assistant' | 'analysis';
+    content: string | string[];
     timestamp: Date;
 }
 
@@ -71,4 +71,8 @@ export interface ChatSession {
 export interface StreamingResponse {
     response: string;
     is_done: boolean | null;
+}
+
+export interface SkillExtractionResponse {
+    skills: string[];
 }

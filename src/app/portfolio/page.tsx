@@ -1239,7 +1239,7 @@ export default function Portfolio() {
                                             <p className="text-gray-700 mb-4 leading-relaxed">
                                                 <span className="font-semibold">Through {allActions.length} civic actions totaling {allActions.reduce((sum, action) => sum + action.hours, 0)} hours</span>, Kuppendra has proven himself as a strategic changemaker who tackles complex community challenges. His standout strength is <span className="font-semibold">Community Collaboration</span> (demonstrated in 8 actions), showing he excels at uniting diverse stakeholders for lasting impact.
                                             </p>
-                                            <div className="flex flex-wrap gap-2 mb-4">
+                                            {/* <div className="flex flex-wrap gap-2 mb-4">
                                                 <div className="flex items-center gap-2 bg-white border border-green-200 px-3 py-1.5 rounded-lg">
                                                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                                                     <span className="text-sm font-medium text-gray-700">Systems Thinking: Environment → Social Impact</span>
@@ -1252,7 +1252,7 @@ export default function Portfolio() {
                                                     <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
                                                     <span className="text-sm font-medium text-gray-700">Cross-sector Bridge: Government ↔ Community</span>
                                                 </div>
-                                            </div>
+                                            </div> */}
 
                                         </div>
                                     </div>
