@@ -113,7 +113,7 @@ const skills: Skill[] = [
     },
     {
         name: "Digital + Data Citizenship",
-        image: "/badges/data_digital_citizen.png",
+        image: "/badges/data_digital_citizenship.png",
         count: 1,
         description: "Using data and evidence to drive decision-making and measure impact",
         actions: [

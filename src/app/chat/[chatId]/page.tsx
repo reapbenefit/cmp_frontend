@@ -485,7 +485,7 @@ export default function ChatPage() {
                     </div>
 
                     {/* Delete Last Message Button */}
-                    {messages.length > 0 && !isLoading && !isStreaming && (
+                    {/* {messages.length > 0 && !isLoading && !isStreaming && (
                         <Button
                             variant="ghost"
                             size="sm"
@@ -496,7 +496,7 @@ export default function ChatPage() {
                             <Trash2 className="h-4 w-4 mr-2" />
                             Delete Last Message
                         </Button>
-                    )}
+                    )} */}
                 </div>
 
                 {/* Messages */}
