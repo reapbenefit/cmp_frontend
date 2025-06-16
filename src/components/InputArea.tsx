@@ -568,6 +568,7 @@ export default function InputArea({
                         </Button>
                     ) : (
                         <Button
+                            style={{ display: 'none' }}
                             type="button"
                             size="sm"
                             variant={isRecording ? "default" : "outline"}
@@ -593,7 +594,7 @@ export default function InputArea({
                         size="sm"
                         onClick={handleSubmit}
                         disabled={disabled || (!value.trim() && !recordedBlob)}
-                        className="rounded-full w-10 h-10 p-0 bg-green-500 hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all duration-200 cursor-pointer"
+                        className="rounded-full w-10 h-10 p-0 bg-green-500 hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all duration-200 cursor-pointer flex items-center justify-center"
                     >
                         <Send className="h-4 w-4" />
                     </Button>
