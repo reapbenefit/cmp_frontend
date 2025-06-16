@@ -164,7 +164,7 @@ export default function Home() {
                         India&apos;s Largest Changemaker Community
                       </p>
                       <p className="text-lg text-gray-600 mb-8">
-                        Share your latest community action and inspire others to join the movement!
+                        Share your latest community action and inspire others to join the movement
                       </p>
                     </div>
 
