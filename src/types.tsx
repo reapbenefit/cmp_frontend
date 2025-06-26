@@ -76,3 +76,25 @@ export interface StreamingResponse {
 export interface SkillExtractionResponse {
     skills: Array<{ id: string; name: string; relevance: string; response: string }>;
 }
+
+// Authentication types
+export interface SignupData {
+    firstName: string;
+    lastName: string;
+    username: string;
+    email: string;
+    password: string;
+    confirmPassword: string;
+}
+
+export interface SignupResponse {
+    id: string;
+    email: string;
+    username: string;
+    message: string;
+}
+
+export interface SignupError {
+    message: string;
+    field?: string;
+}

@@ -6,6 +6,7 @@ import { Loader2, Trophy, Star } from "lucide-react";
 import { ChatMessage, ChatSession, StreamingResponse, SkillExtractionResponse } from "@/types";
 import { ChatSidebar, SidebarToggle } from "@/components/ChatSidebar";
 import InputArea from "@/components/InputArea";
+import AuthWrapper from "@/components/AuthWrapper";
 
 // Chat API function
 async function sendChatMessage(messages: ChatMessage[]): Promise<ReadableStream<Uint8Array>> {
@@ -432,20 +433,20 @@ export default function ChatPage() {
     };
 
     return (
-        <div className="flex h-screen bg-gray-50">
-            <ChatSidebar
-                currentChatId={chatId}
-                chatSessions={chatSessions}
-                onNewChat={handleNewChat}
-                onChatSelect={handleChatSelect}
-                isOpen={isSidebarOpen}
-                onClose={closeSidebar}
-            />
+        <AuthWrapper>
+            <div className="flex h-screen bg-gray-50">
+                <ChatSidebar
+                    currentChatId={chatId}
+                    chatSessions={chatSessions}
+                    onNewChat={handleNewChat}
+                    onChatSelect={handleChatSelect}
+                    isOpen={isSidebarOpen}
+                    onClose={closeSidebar}
+                />
 
-            <div className="flex-1 flex flex-col">
-                {/* Header */}
-                <div className="p-4 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
+                <div className="flex-1 flex flex-col">
+                    {/* Header */}
+                    <div className="p-4 flex items-center gap-3">
                         <SidebarToggle isOpen={isSidebarOpen} onToggle={toggleSidebar} />
                         <div>
                             <h1 className="text-lg font-semibold text-gray-800">
@@ -453,44 +454,44 @@ export default function ChatPage() {
                             </h1>
                         </div>
                     </div>
-                </div>
 
-                {/* Messages */}
-                <div className="flex-1 overflow-y-auto p-4 space-y-4 max-w-4xl mx-auto w-full px-8">
-                    {messages.map((message, index) => (
-                        <MessageBubble
-                            key={index}
-                            message={message}
-                            isStreaming={isStreaming && index === messages.length - 1 && message.role === 'assistant'}
-                        />
-                    ))}
+                    {/* Messages */}
+                    <div className="flex-1 overflow-y-auto p-4 space-y-4 max-w-4xl mx-auto w-full px-8">
+                        {messages.map((message, index) => (
+                            <MessageBubble
+                                key={index}
+                                message={message}
+                                isStreaming={isStreaming && index === messages.length - 1 && message.role === 'assistant'}
+                            />
+                        ))}
 
-                    {isLoading && messages.length > 0 && messages[messages.length - 1].role === 'user' && (
-                        <div className="flex justify-start mb-4">
-                            <div className="bg-gray-100 text-gray-800 px-4 py-2 rounded-2xl">
-                                <Loader2 className="h-4 w-4 animate-spin" />
+                        {isLoading && messages.length > 0 && messages[messages.length - 1].role === 'user' && (
+                            <div className="flex justify-start mb-4">
+                                <div className="bg-gray-100 text-gray-800 px-4 py-2 rounded-2xl">
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                </div>
                             </div>
+                        )}
+
+                        {/* Skill Extraction Loading Animation */}
+                        {isExtractingSkills && <SkillExtractionLoader />}
+                        <div ref={messagesEndRef} />
+                    </div>
+
+                    {/* Input */}
+                    {!isConversationOver && (
+                        <div className="p-4 max-w-4xl mx-auto w-full px-8 pb-8">
+                            <InputArea
+                                placeholder="Continue the conversation"
+                                value={input}
+                                onChange={setInput}
+                                onSubmit={handleInputSubmit}
+                                disabled={isLoading}
+                            />
                         </div>
                     )}
-
-                    {/* Skill Extraction Loading Animation */}
-                    {isExtractingSkills && <SkillExtractionLoader />}
-                    <div ref={messagesEndRef} />
                 </div>
-
-                {/* Input */}
-                {!isConversationOver && (
-                    <div className="p-4 max-w-4xl mx-auto w-full px-8 pb-8">
-                        <InputArea
-                            placeholder="Continue the conversation"
-                            value={input}
-                            onChange={setInput}
-                            onSubmit={handleInputSubmit}
-                            disabled={isLoading}
-                        />
-                    </div>
-                )}
             </div>
-        </div>
+        </AuthWrapper>
     );
 } 

@@ -9,6 +9,8 @@ import CommunityCard, { Community } from "@/components/CommunityCard";
 import AddCommunityModal from "@/components/AddCommunityModal";
 import CustomizeTopActionsModal from "@/components/CustomizeTopActionsModal";
 import ExpertReviewCard, { ExpertReview } from "@/components/ExpertReviewCard";
+import AuthWrapper from "@/components/AuthWrapper";
+import { useAuth } from "@/lib/auth";
 import { Action, Skill } from "@/types";
 
 // Auto-scroll animation styles
@@ -31,17 +33,20 @@ const scrollAnimation = `
   }
 `;
 
-// Dummy data matching the user's profile
-const profile = {
-    username: "kuppendra",
-    fullName: "Kuppendra",
-    bio: "B.com tourism graduate, part of SNLA Co-hort 2023. Working on Construction & other labours economical development through easy access of welfare fund.",
-    location: "Bengaluru, Karnataka",
-    // followers: 469,
-    // following: 2,
-    isVerified: true,
-    avatar: "/api/placeholder/260/260",
-};
+// User data interface matching backend response
+interface UserProfile {
+    first_name: string;
+    last_name: string;
+    username: string;
+    email: string;
+    id: number;
+    is_verified: boolean;
+    bio: string | null;
+    location_state: string | null;
+    location_city: string | null;
+    location_country: string | null;
+    communities: Community[];
+}
 
 // Skills data using actual badge images
 const skills: Skill[] = [
@@ -692,14 +697,20 @@ const expertReviews: ExpertReview[] = [
 
 const ContributionHeatmap = ({ setSelectedAction }: { setSelectedAction: (action: Action) => void }) => {
     const [data, setData] = useState<{ date: string; count: number }[]>([]);
-    const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+    const [selectedYear, setSelectedYear] = useState<number>(2025); // Fixed value to avoid hydration mismatch
     const [showingAllActivity, setShowingAllActivity] = useState(false);
+    const [isClient, setIsClient] = useState(false);
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     const years = [2025, 2024, 2023, 2022, 2021];
 
     // Generate contribution data only on client side to avoid hydration issues
     useEffect(() => {
+        setIsClient(true);
+
+        // Set the current year only on client side
+        setSelectedYear(new Date().getFullYear());
+
         const generateData = () => {
             const contributionData = [];
             const today = new Date();
@@ -844,8 +855,8 @@ const ContributionHeatmap = ({ setSelectedAction }: { setSelectedAction: (action
         setShowingAllActivity(true);
     };
 
-    // Show loading state while data is being generated
-    if (data.length === 0) {
+    // Show loading state while data is being generated on client
+    if (!isClient || data.length === 0) {
         return (
             <div className="space-y-6">
                 <div className="bg-white border border-gray-200 rounded-lg p-4">
@@ -1018,25 +1029,72 @@ const ContributionHeatmap = ({ setSelectedAction }: { setSelectedAction: (action
 };
 
 export default function Portfolio() {
+    const { userId, isLoading: authLoading } = useAuth();
+    const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const [selectedSkill, setSelectedSkill] = useState<typeof skills[0] | null>(null);
     const [selectedAction, setSelectedAction] = useState<Action | null>(null);
     const [activeTab, setActiveTab] = useState<'overview' | 'actions' | 'communities'>('overview');
-    const [userCommunities, setUserCommunities] = useState<Community[]>(communities);
+    const [userCommunities, setUserCommunities] = useState<Community[]>([]);
     const [isAddCommunityModalOpen, setIsAddCommunityModalOpen] = useState(false);
     const [isCustomizeModalOpen, setIsCustomizeModalOpen] = useState(false);
     const [topActionIds, setTopActionIds] = useState<string[]>(pinnedActions.map(action => action.id));
     const [isShareModalOpen, setIsShareModalOpen] = useState(false);
     const [copied, setCopied] = useState(false);
+    const [isClient, setIsClient] = useState(false);
+    const [isEditingProfile, setIsEditingProfile] = useState(false);
+
+    // Edit states - remove unused inline editing states
+    const [updateLoading, setUpdateLoading] = useState(false);
+
+    // Edit profile states
+    const [editBio, setEditBio] = useState('');
+    const [editCity, setEditCity] = useState('');
+    const [editState, setEditState] = useState('');
+
+    // Set client flag to avoid hydration issues
+    useEffect(() => {
+        setIsClient(true);
+    }, []);
+
+    // Fetch user profile data
+    useEffect(() => {
+        const fetchUserProfile = async () => {
+            // Don't fetch if auth is still loading or no userId
+            if (authLoading || !userId) {
+                return;
+            }
+
+            try {
+                setLoading(true);
+                const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/portfolio/${userId}`);
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch user profile');
+                }
+
+                const userData: UserProfile = await response.json();
+                setUserProfile(userData);
+                // Set user communities from API response
+                setUserCommunities(userData.communities || []);
+            } catch (err) {
+                setError(err instanceof Error ? err.message : 'Failed to load profile');
+                console.error('Error fetching user profile:', err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchUserProfile();
+    }, [userId, authLoading]);
 
     // Get current top actions based on selected IDs
     const currentTopActions = allActions.filter(action => topActionIds.includes(action.id));
 
-    const handleAddCommunity = (newCommunityData: Omit<Community, 'id'>) => {
-        const newCommunity: Community = {
-            ...newCommunityData,
-            id: String(userCommunities.length + 1),
-        };
-        setUserCommunities(prev => [...prev, newCommunity]);
+    const handleAddCommunity = (newCommunity: Community) => {
+        // Add the new community at the top of the list
+        setUserCommunities(prev => [newCommunity, ...prev]);
     };
 
     const handleSaveTopActions = (selectedActionIds: string[]) => {
@@ -1048,7 +1106,7 @@ export default function Portfolio() {
     };
 
     const handleCopyLink = async () => {
-        const profileLink = `${window.location.origin}/portfolio/${profile.username}`;
+        const profileLink = `${window.location.origin}/portfolio/${userProfile?.username || 'user'}`;
         try {
             await navigator.clipboard.writeText(profileLink);
             setCopied(true);
@@ -1063,215 +1121,566 @@ export default function Portfolio() {
         }
     };
 
+    // Update functions
+    const handleUpdateBio = async () => {
+        if (!userProfile) return;
+
+        setUpdateLoading(true);
+        try {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/portfolio/${userId}`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    bio: editBio
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to update bio');
+            }
+
+            setUserProfile(prev => prev ? { ...prev, bio: editBio } : null);
+            setIsEditingProfile(false);
+        } catch (err) {
+            console.error('Error updating bio:', err);
+            // You could add error handling UI here
+        } finally {
+            setUpdateLoading(false);
+        }
+    };
+
+    const handleUpdateLocation = async () => {
+        if (!userProfile) return;
+
+        setUpdateLoading(true);
+        try {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/portfolio/${userId}`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    location_city: editCity,
+                    location_state: editState,
+                    location_country: userProfile?.location_country || ''
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to update location');
+            }
+
+            setUserProfile(prev => prev ? {
+                ...prev,
+                location_city: editCity,
+                location_state: editState,
+                location_country: userProfile?.location_country || ''
+            } : null);
+            setIsEditingProfile(false);
+        } catch (err) {
+            console.error('Error updating location:', err);
+            // You could add error handling UI here
+        } finally {
+            setUpdateLoading(false);
+        }
+    };
+
+    const startEditingBio = () => {
+        setEditBio(userProfile?.bio || '');
+        setIsEditingProfile(true);
+    };
+
+    const startEditingLocation = () => {
+        setEditCity(userProfile?.location_city || '');
+        setEditState(userProfile?.location_state || '');
+        setIsEditingProfile(true);
+    };
+
+    const cancelEditBio = () => {
+        setIsEditingProfile(false);
+        setEditBio('');
+    };
+
+    const cancelEditLocation = () => {
+        setIsEditingProfile(false);
+        setEditCity('');
+        setEditState('');
+    };
+
+    // Helper function to format location
+    const formatLocation = (city: string | null, state: string | null, country: string | null) => {
+        const parts = [city, state, country].filter(Boolean);
+        return parts.length > 0 ? parts.join(', ') : 'No location set';
+    };
+
+    const handleEditProfile = () => {
+        setEditBio(userProfile?.bio || '');
+        setEditCity(userProfile?.location_city || '');
+        setEditState(userProfile?.location_state || '');
+        setIsEditingProfile(true);
+    };
+
+    const handleSaveProfile = async () => {
+        if (!userProfile) return;
+
+        setUpdateLoading(true);
+        try {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/users/${userId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    bio: editBio || null,
+                    location_city: editCity || null,
+                    location_state: editState || null,
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to update profile');
+            }
+
+            setUserProfile(prev => prev ? {
+                ...prev,
+                bio: editBio || null,
+                location_city: editCity || null,
+                location_state: editState || null,
+            } : null);
+            setIsEditingProfile(false);
+        } catch (err) {
+            console.error('Error updating profile:', err);
+            // You could add error handling UI here
+        } finally {
+            setUpdateLoading(false);
+        }
+    };
+
+    const cancelEditProfile = () => {
+        setIsEditingProfile(false);
+        setEditBio('');
+        setEditCity('');
+        setEditState('');
+    };
+
+    // Show loading state while auth is loading or profile is loading
+    if (authLoading || loading) {
+        return (
+            <AuthWrapper>
+                <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                    <div className="text-center">
+                        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                        <p className="text-gray-600">Loading profile...</p>
+                    </div>
+                </div>
+            </AuthWrapper>
+        );
+    }
+
+    // Show error if no userId after auth loading is complete
+    if (!authLoading && !userId) {
+        return (
+            <AuthWrapper>
+                <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                    <div className="text-center">
+                        <div className="text-red-500 mb-4">
+                            <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">Authentication Error</h3>
+                        <p className="text-gray-600 mb-4">Unable to load user information. Please log in again.</p>
+                        <button
+                            onClick={() => window.location.reload()}
+                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors cursor-pointer"
+                        >
+                            Refresh Page
+                        </button>
+                    </div>
+                </div>
+            </AuthWrapper>
+        );
+    }
+
+    // Show error state for API fetch errors
+    if (error) {
+        return (
+            <AuthWrapper>
+                <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                    <div className="text-center">
+                        <div className="text-red-500 mb-4">
+                            <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">Failed to load profile</h3>
+                        <p className="text-gray-600 mb-4">{error}</p>
+                        <button
+                            onClick={() => window.location.reload()}
+                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors cursor-pointer"
+                        >
+                            Try Again
+                        </button>
+                    </div>
+                </div>
+            </AuthWrapper>
+        );
+    }
+
+    // Don't render if no user profile
+    if (!userProfile) {
+        return null;
+    }
+
+    const fullName = `${userProfile.first_name} ${userProfile.last_name}`;
+
     return (
-        <div className="min-h-screen bg-gray-50">
-            {/* Inject animation styles */}
-            <style dangerouslySetInnerHTML={{ __html: scrollAnimation }} />
+        <AuthWrapper>
+            <div className="min-h-screen bg-gray-50">
+                {/* Inject animation styles */}
+                <style dangerouslySetInnerHTML={{ __html: scrollAnimation }} />
 
-            <div className="max-w-7xl mx-auto p-6">
-                <div className="flex gap-20">
-                    {/* Left sidebar - Profile */}
-                    <div className="w-72 flex-shrink-0">
-                        <div className="sticky top-8">
-                            {/* Avatar */}
-                            <div className="mb-6">
-                                <img
-                                    src={profile.avatar}
-                                    alt={profile.fullName}
-                                    className="w-48 h-48 rounded-full border border-gray-200"
-                                />
-                            </div>
+                <div className="max-w-7xl mx-auto p-6">
+                    <div className="flex gap-20">
+                        {/* Left sidebar - Profile */}
+                        <div className="w-72 flex-shrink-0">
+                            <div className="sticky top-8">
+                                {/* Avatar and Name Section */}
+                                <div className="flex items-center gap-4 mb-6">
+                                    {/* Avatar Circle */}
+                                    <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-green-500 rounded-full flex items-center justify-center flex-shrink-0">
+                                        <span className="text-white text-xl font-bold">
+                                            {userProfile.first_name.charAt(0).toUpperCase()}
+                                        </span>
+                                    </div>
 
-                            {/* Name and verification */}
-                            <div className="mb-4">
-                                <div className="flex items-center gap-2 mb-1">
-                                    <h1 className="text-2xl font-bold text-gray-900">{profile.fullName}</h1>
-                                    {profile.isVerified && (
-                                        <CheckCircle className="w-5 h-5 text-blue-500" />
+                                    {/* Name and Username */}
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <h1 className="text-xl font-bold text-gray-900 truncate">{fullName}</h1>
+                                            {userProfile.is_verified && (
+                                                <CheckCircle className="w-4 h-4 text-blue-500 flex-shrink-0" />
+                                            )}
+                                        </div>
+                                        <p className="text-lg text-gray-600 font-light truncate">{userProfile.username}</p>
+                                    </div>
+                                </div>
+
+                                {/* Bio */}
+                                <div className="mb-4">
+                                    {userProfile.bio && (
+                                        <p className="text-gray-700 leading-relaxed">
+                                            {userProfile.bio}
+                                        </p>
                                     )}
                                 </div>
-                                <p className="text-xl text-gray-600 font-light">{profile.username}</p>
-                            </div>
 
-                            {/* Bio */}
-                            <p className="text-gray-700 mb-4 leading-relaxed">
-                                {profile.bio}
-                            </p>
-
-                            {/* Followers/Following */}
-                            {/* <div className="flex items-center gap-4 mb-2 text-sm">
-                                <div className="flex items-center gap-1">
-                                    <Users className="w-4 h-4 text-gray-600" />
-                                    <span className="font-semibold text-gray-900">{profile.followers}</span>
-                                    <span className="text-gray-600">followers</span>
+                                {/* Location */}
+                                <div className="mb-4">
+                                    {(userProfile.location_city || userProfile.location_state) && (
+                                        <div className="flex items-center gap-2 text-sm text-gray-600">
+                                            <MapPin className="w-4 h-4" />
+                                            <span>{formatLocation(userProfile.location_city, userProfile.location_state, userProfile.location_country)}</span>
+                                        </div>
+                                    )}
                                 </div>
-                                <div className="flex items-center gap-1">
-                                    <span className="font-semibold text-gray-900">{profile.following}</span>
-                                    <span className="text-gray-600">following</span>
-                                </div>
-                            </div> */}
 
-                            {/* Location */}
-                            <div className="flex items-center gap-2 text-sm text-gray-600 mb-4">
-                                <MapPin className="w-4 h-4" />
-                                <span>{profile.location}</span>
-                            </div>
+                                {/* Inline Edit Form */}
+                                {isEditingProfile && (
+                                    <div className="mb-4 space-y-4 p-4 bg-gray-50 rounded-lg border">
+                                        {/* Bio Edit */}
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                Bio
+                                            </label>
+                                            <textarea
+                                                value={editBio}
+                                                onChange={(e) => setEditBio(e.target.value)}
+                                                className="w-full p-3 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                rows={3}
+                                                placeholder="Tell us about yourself..."
+                                            />
+                                        </div>
 
-                            {/* Share Profile Button */}
-                            <div className="mb-4">
-                                <button
-                                    onClick={handleShareProfile}
-                                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium cursor-pointer w-full justify-center"
-                                >
-                                    <Share2 className="w-4 h-4" />
-                                    Share Profile
-                                </button>
-                            </div>
-
-                            {/* Skills */}
-                            <div className="mb-6">
-                                <h3 className="text-lg font-semibold text-gray-900 mb-3">Skills</h3>
-                                <div className="grid grid-cols-3 gap-3">
-                                    {[...skills].sort((a, b) => b.count - a.count).map((skill) => (
-                                        <div
-                                            key={skill.name}
-                                            className="relative group cursor-pointer flex flex-col items-center"
-                                            onClick={() => setSelectedSkill(skill)}
-                                        >
-                                            <div className="relative mb-2">
-                                                <div className="w-16 h-16 rounded-full border-2 border-gray-200 overflow-hidden hover:border-gray-300 transition-colors">
-                                                    <img
-                                                        src={skill.image}
-                                                        alt={skill.name}
-                                                        className="w-full h-full object-cover"
-                                                        title={skill.name}
-                                                    />
-                                                </div>
-                                                {skill.count > 1 && (
-                                                    <div className="absolute -bottom-1 -right-1 bg-gray-900 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center font-semibold">
-                                                        x{skill.count}
-                                                    </div>
-                                                )}
+                                        {/* Location Edit */}
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                Location
+                                            </label>
+                                            <div className="grid grid-cols-2 gap-3">
+                                                <input
+                                                    type="text"
+                                                    value={editCity}
+                                                    onChange={(e) => setEditCity(e.target.value)}
+                                                    placeholder="City"
+                                                    className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                                                />
+                                                <input
+                                                    type="text"
+                                                    value={editState}
+                                                    onChange={(e) => setEditState(e.target.value)}
+                                                    placeholder="State"
+                                                    className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                                                />
                                             </div>
-                                            <span className="text-xs text-gray-700 text-center leading-tight">
-                                                {skill.name}
+                                        </div>
+
+                                        {/* Cancel Button */}
+                                        <div className="flex justify-end">
+                                            <button
+                                                onClick={cancelEditProfile}
+                                                className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-800 transition-colors cursor-pointer"
+                                            >
+                                                Cancel
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Edit Profile / Save Button */}
+                                <div className="mb-4">
+                                    {isEditingProfile ? (
+                                        <button
+                                            onClick={handleSaveProfile}
+                                            disabled={updateLoading}
+                                            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium cursor-pointer w-full justify-center disabled:opacity-50"
+                                        >
+                                            {updateLoading ? (
+                                                <>
+                                                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                                    Saving...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                                    </svg>
+                                                    Save Profile
+                                                </>
+                                            )}
+                                        </button>
+                                    ) : (
+                                        <button
+                                            onClick={handleEditProfile}
+                                            className="flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm font-medium cursor-pointer w-full justify-center"
+                                        >
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                            </svg>
+                                            Edit Profile
+                                        </button>
+                                    )}
+                                </div>
+
+                                {/* Share Profile Button */}
+                                <div className="mb-4">
+                                    <button
+                                        onClick={handleShareProfile}
+                                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium cursor-pointer w-full justify-center"
+                                    >
+                                        <Share2 className="w-4 h-4" />
+                                        Share Profile
+                                    </button>
+                                </div>
+
+                                {/* Skills */}
+                                <div className="mb-6">
+                                    <h3 className="text-lg font-semibold text-gray-900 mb-3">Skills</h3>
+                                    <div className="grid grid-cols-3 gap-3">
+                                        {[...skills].sort((a, b) => b.count - a.count).map((skill) => (
+                                            <div
+                                                key={skill.name}
+                                                className="relative group cursor-pointer flex flex-col items-center"
+                                                onClick={() => setSelectedSkill(skill)}
+                                            >
+                                                <div className="relative mb-2">
+                                                    <div className="w-16 h-16 rounded-full border-2 border-gray-200 overflow-hidden hover:border-gray-300 transition-colors">
+                                                        <img
+                                                            src={skill.image}
+                                                            alt={skill.name}
+                                                            className="w-full h-full object-cover"
+                                                            title={skill.name}
+                                                        />
+                                                    </div>
+                                                    {skill.count > 1 && (
+                                                        <div className="absolute -bottom-1 -right-1 bg-gray-900 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center font-semibold">
+                                                            x{skill.count}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <span className="text-xs text-gray-700 text-center leading-tight">
+                                                    {skill.name}
+                                                </span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Right content */}
+                        <div className="flex-1 min-w-0">
+                            {/* Navigation Tabs */}
+                            <div className="border-b border-gray-200 mb-8">
+                                <nav className="flex gap-8">
+                                    <button
+                                        onClick={() => setActiveTab('overview')}
+                                        className={`pb-3 px-1 border-b-2 font-medium text-sm cursor-pointer transition-colors ${activeTab === 'overview'
+                                            ? 'border-orange-500 text-gray-900'
+                                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                            }`}
+                                    >
+                                        <div className="flex items-center gap-2">
+                                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                                <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" />
+                                            </svg>
+                                            Overview
+                                        </div>
+                                    </button>
+
+                                    <button
+                                        onClick={() => setActiveTab('actions')}
+                                        className={`pb-3 px-1 border-b-2 font-medium text-sm cursor-pointer transition-colors ${activeTab === 'actions'
+                                            ? 'border-orange-500 text-gray-900'
+                                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                            }`}
+                                    >
+                                        <div className="flex items-center gap-2">
+                                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
+                                            </svg>
+                                            Actions
+                                            <span className="bg-gray-200 text-gray-900 text-xs px-2 py-0.5 rounded-full">
+                                                {allActions.length}
                                             </span>
                                         </div>
-                                    ))}
-                                </div>
+                                    </button>
+
+                                    <button
+                                        onClick={() => setActiveTab('communities')}
+                                        className={`pb-3 px-1 border-b-2 font-medium text-sm cursor-pointer transition-colors ${activeTab === 'communities'
+                                            ? 'border-orange-500 text-gray-900'
+                                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                            }`}
+                                    >
+                                        <div className="flex items-center gap-2">
+                                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                                <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
+                                            </svg>
+                                            Communities
+                                            <span className="bg-gray-200 text-gray-900 text-xs px-2 py-0.5 rounded-full">
+                                                {userCommunities.length}
+                                            </span>
+                                        </div>
+                                    </button>
+                                </nav>
                             </div>
-                        </div>
-                    </div>
 
-                    {/* Right content */}
-                    <div className="flex-1 min-w-0">
-                        {/* Navigation Tabs */}
-                        <div className="border-b border-gray-200 mb-8">
-                            <nav className="flex gap-8">
-                                <button
-                                    onClick={() => setActiveTab('overview')}
-                                    className={`pb-3 px-1 border-b-2 font-medium text-sm cursor-pointer transition-colors ${activeTab === 'overview'
-                                        ? 'border-orange-500 text-gray-900'
-                                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                                        }`}
-                                >
-                                    <div className="flex items-center gap-2">
-                                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                            <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" />
-                                        </svg>
-                                        Overview
-                                    </div>
-                                </button>
+                            {/* Tab Content */}
+                            {activeTab === 'overview' ? (
+                                <>
+                                    {/* Actionable Personality Summary */}
+                                    <div className="mb-8 bg-gradient-to-br from-blue-50 via-green-50 to-orange-50 rounded-xl p-6 border border-gray-100">
+                                        <div className="flex items-start gap-4">
+                                            <div className="flex-shrink-0">
+                                                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-green-500 rounded-full flex items-center justify-center">
+                                                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                                    </svg>
+                                                </div>
+                                            </div>
+                                            <div className="flex-1">
+                                                {/* <h2 className="text-xl font-bold text-gray-900 mb-3">Action-Driven Systems Builder</h2> */}
+                                                <p className="text-gray-700 mb-4 leading-relaxed">
+                                                    Through {allActions.length} civic actions totaling {allActions.reduce((sum, action) => sum + action.hours, 0)} hours, Kuppendra has proven himself as a strategic changemaker who tackles complex community challenges. His standout strength is Community Collaboration (demonstrated in 8 actions), showing he excels at uniting diverse stakeholders for lasting impact.
+                                                </p>
+                                                {/* <div className="flex flex-wrap gap-2 mb-4">
+                                                    <div className="flex items-center gap-2 bg-white border border-green-200 px-3 py-1.5 rounded-lg">
+                                                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                                        <span className="text-sm font-medium text-gray-700">Systems Thinking: Environment → Social Impact</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 bg-white border border-blue-200 px-3 py-1.5 rounded-lg">
+                                                        <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                                                        <span className="text-sm font-medium text-gray-700">Hands-On: 4 practical projects</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 bg-white border border-orange-200 px-3 py-1.5 rounded-lg">
+                                                        <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                                                        <span className="text-sm font-medium text-gray-700">Cross-sector Bridge: Government ↔ Community</span>
+                                                    </div>
+                                                </div> */}
 
-                                <button
-                                    onClick={() => setActiveTab('actions')}
-                                    className={`pb-3 px-1 border-b-2 font-medium text-sm cursor-pointer transition-colors ${activeTab === 'actions'
-                                        ? 'border-orange-500 text-gray-900'
-                                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                                        }`}
-                                >
-                                    <div className="flex items-center gap-2">
-                                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
-                                        </svg>
-                                        Actions
-                                        <span className="bg-gray-200 text-gray-900 text-xs px-2 py-0.5 rounded-full">
-                                            {allActions.length}
-                                        </span>
-                                    </div>
-                                </button>
-
-                                <button
-                                    onClick={() => setActiveTab('communities')}
-                                    className={`pb-3 px-1 border-b-2 font-medium text-sm cursor-pointer transition-colors ${activeTab === 'communities'
-                                        ? 'border-orange-500 text-gray-900'
-                                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                                        }`}
-                                >
-                                    <div className="flex items-center gap-2">
-                                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                            <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
-                                        </svg>
-                                        Communities
-                                        <span className="bg-gray-200 text-gray-900 text-xs px-2 py-0.5 rounded-full">
-                                            {userCommunities.length}
-                                        </span>
-                                    </div>
-                                </button>
-                            </nav>
-                        </div>
-
-                        {/* Tab Content */}
-                        {activeTab === 'overview' ? (
-                            <>
-                                {/* Actionable Personality Summary */}
-                                <div className="mb-8 bg-gradient-to-br from-blue-50 via-green-50 to-orange-50 rounded-xl p-6 border border-gray-100">
-                                    <div className="flex items-start gap-4">
-                                        <div className="flex-shrink-0">
-                                            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-green-500 rounded-full flex items-center justify-center">
-                                                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                                                </svg>
                                             </div>
                                         </div>
-                                        <div className="flex-1">
-                                            <h2 className="text-xl font-bold text-gray-900 mb-3">Action-Driven Systems Builder</h2>
-                                            <p className="text-gray-700 mb-4 leading-relaxed">
-                                                <span className="font-semibold">Through {allActions.length} civic actions totaling {allActions.reduce((sum, action) => sum + action.hours, 0)} hours</span>, Kuppendra has proven himself as a strategic changemaker who tackles complex community challenges. His standout strength is <span className="font-semibold">Community Collaboration</span> (demonstrated in 8 actions), showing he excels at uniting diverse stakeholders for lasting impact.
-                                            </p>
-                                            {/* <div className="flex flex-wrap gap-2 mb-4">
-                                                <div className="flex items-center gap-2 bg-white border border-green-200 px-3 py-1.5 rounded-lg">
-                                                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                                                    <span className="text-sm font-medium text-gray-700">Systems Thinking: Environment → Social Impact</span>
-                                                </div>
-                                                <div className="flex items-center gap-2 bg-white border border-blue-200 px-3 py-1.5 rounded-lg">
-                                                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                                                    <span className="text-sm font-medium text-gray-700">Hands-On: 4 practical projects</span>
-                                                </div>
-                                                <div className="flex items-center gap-2 bg-white border border-orange-200 px-3 py-1.5 rounded-lg">
-                                                    <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                                                    <span className="text-sm font-medium text-gray-700">Cross-sector Bridge: Government ↔ Community</span>
-                                                </div>
-                                            </div> */}
+                                    </div>
 
+                                    {/* Pinned Actions */}
+                                    <div className="mb-8">
+                                        <div className="flex items-center justify-between mb-4">
+                                            <h2 className="text-lg font-semibold text-gray-900">Top Actions</h2>
+                                            <button
+                                                onClick={() => setIsCustomizeModalOpen(true)}
+                                                className="text-sm text-blue-600 hover:underline cursor-pointer"
+                                            >
+                                                Customize your top actions
+                                            </button>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                                            {currentTopActions.map(action => (
+                                                <ActionCard
+                                                    key={action.id}
+                                                    action={action}
+                                                    onActionClick={(a) => setSelectedAction(a)}
+                                                    skills={skills}
+                                                    variant="compact"
+                                                />
+                                            ))}
                                         </div>
                                     </div>
-                                </div>
 
-                                {/* Pinned Actions */}
-                                <div className="mb-8">
-                                    <div className="flex items-center justify-between mb-4">
-                                        <h2 className="text-lg font-semibold text-gray-900">Top Actions</h2>
-                                        <button
-                                            onClick={() => setIsCustomizeModalOpen(true)}
-                                            className="text-sm text-blue-600 hover:underline cursor-pointer"
-                                        >
-                                            Customize your top actions
-                                        </button>
+                                    {/* Expert Reviews */}
+                                    <div className="mb-8">
+                                        <h2 className="text-lg font-semibold text-gray-900 mb-6">Expert Reviews</h2>
+
+                                        <div className="relative overflow-hidden">
+                                            {/* Auto-scrolling container */}
+                                            <div className="flex gap-6 animate-scroll">
+                                                {/* First set of reviews */}
+                                                {expertReviews.map(review => (
+                                                    <div key={review.id} className="flex-shrink-0 w-80">
+                                                        <ExpertReviewCard
+                                                            review={review}
+                                                            variant="default"
+                                                        />
+                                                    </div>
+                                                ))}
+                                                {/* Duplicate set for seamless scrolling */}
+                                                {expertReviews.map(review => (
+                                                    <div key={`${review.id}-duplicate`} className="flex-shrink-0 w-80">
+                                                        <ExpertReviewCard
+                                                            review={review}
+                                                            variant="default"
+                                                        />
+                                                    </div>
+                                                ))}
+                                            </div>
+
+                                            {/* Gradient overlays for fade effect */}
+                                            <div className="absolute top-0 left-0 w-20 h-full bg-gradient-to-r from-gray-50 to-transparent pointer-events-none z-10"></div>
+                                            <div className="absolute top-0 right-0 w-20 h-full bg-gradient-to-l from-gray-50 to-transparent pointer-events-none z-10"></div>
+                                        </div>
                                     </div>
 
+                                    {/* Contribution Graph */}
+                                    <ContributionHeatmap setSelectedAction={setSelectedAction} />
+                                </>
+                            ) : activeTab === 'actions' ? (
+                                /* Actions Tab Content */
+                                <div className="space-y-6">
                                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                                        {currentTopActions.map(action => (
+                                        {allActions.map(action => (
                                             <ActionCard
                                                 key={action.id}
                                                 action={action}
@@ -1282,98 +1691,49 @@ export default function Portfolio() {
                                         ))}
                                     </div>
                                 </div>
+                            ) : (
+                                /* Communities Tab Content */
+                                <div className="space-y-6">
+                                    {userCommunities.length > 0 && (
+                                        <div className="flex items-center justify-between">
+                                            <button
+                                                onClick={() => setIsAddCommunityModalOpen(true)}
+                                                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium cursor-pointer"
+                                            >
+                                                <Plus className="w-4 h-4" />
+                                                Add Community
+                                            </button>
+                                        </div>
+                                    )}
 
-                                {/* Expert Reviews */}
-                                <div className="mb-8">
-                                    <h2 className="text-lg font-semibold text-gray-900 mb-6">Expert Reviews</h2>
-
-                                    <div className="relative overflow-hidden">
-                                        {/* Auto-scrolling container */}
-                                        <div className="flex gap-6 animate-scroll">
-                                            {/* First set of reviews */}
-                                            {expertReviews.map(review => (
-                                                <div key={review.id} className="flex-shrink-0 w-80">
-                                                    <ExpertReviewCard
-                                                        review={review}
-                                                        variant="default"
-                                                    />
-                                                </div>
-                                            ))}
-                                            {/* Duplicate set for seamless scrolling */}
-                                            {expertReviews.map(review => (
-                                                <div key={`${review.id}-duplicate`} className="flex-shrink-0 w-80">
-                                                    <ExpertReviewCard
-                                                        review={review}
-                                                        variant="default"
-                                                    />
-                                                </div>
+                                    {userCommunities.length > 0 ? (
+                                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                                            {userCommunities.map(community => (
+                                                <CommunityCard
+                                                    key={community.id}
+                                                    community={community}
+                                                />
                                             ))}
                                         </div>
-
-                                        {/* Gradient overlays for fade effect */}
-                                        <div className="absolute top-0 left-0 w-20 h-full bg-gradient-to-r from-gray-50 to-transparent pointer-events-none z-10"></div>
-                                        <div className="absolute top-0 right-0 w-20 h-full bg-gradient-to-l from-gray-50 to-transparent pointer-events-none z-10"></div>
-                                    </div>
-                                </div>
-
-                                {/* Contribution Graph */}
-                                <ContributionHeatmap setSelectedAction={setSelectedAction} />
-                            </>
-                        ) : activeTab === 'actions' ? (
-                            /* Actions Tab Content */
-                            <div className="space-y-6">
-                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                                    {allActions.map(action => (
-                                        <ActionCard
-                                            key={action.id}
-                                            action={action}
-                                            onActionClick={(a) => setSelectedAction(a)}
-                                            skills={skills}
-                                            variant="compact"
-                                        />
-                                    ))}
-                                </div>
-                            </div>
-                        ) : (
-                            /* Communities Tab Content */
-                            <div className="space-y-6">
-                                <div className="flex items-center justify-between">
-                                    <button
-                                        onClick={() => setIsAddCommunityModalOpen(true)}
-                                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium cursor-pointer"
-                                    >
-                                        <Plus className="w-4 h-4" />
-                                        Add Community
-                                    </button>
-                                </div>
-
-                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                                    {userCommunities.map(community => (
-                                        <CommunityCard
-                                            key={community.id}
-                                            community={community}
-                                        />
-                                    ))}
-                                </div>
-
-                                {userCommunities.length === 0 && (
-                                    <div className="text-center py-12">
-                                        <div className="text-gray-400 mb-4">
-                                            <Users className="w-12 h-12 mx-auto" />
+                                    ) : (
+                                        <div className="text-center py-12">
+                                            <div className="text-gray-400 mb-4">
+                                                <Users className="w-12 h-12 mx-auto" />
+                                            </div>
+                                            <h3 className="text-lg font-medium text-gray-900 mb-2">No communities yet</h3>
+                                            <p className="text-gray-600 mb-4">Start building your network by joining communities that align with your interests.</p>
+                                            <button
+                                                onClick={() => setIsAddCommunityModalOpen(true)}
+                                                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium cursor-pointer"
+                                            >
+                                                <Plus className="w-4 h-4" />
+                                                Add Your First Community
+                                            </button>
                                         </div>
-                                        <h3 className="text-lg font-medium text-gray-900 mb-2">No communities yet</h3>
-                                        <p className="text-gray-600 mb-4">Start building your network by joining communities that align with your interests.</p>
-                                        <button
-                                            onClick={() => setIsAddCommunityModalOpen(true)}
-                                            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium cursor-pointer"
-                                        >
-                                            <Plus className="w-4 h-4" />
-                                            Add Your First Community
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
-                        )}
+                                    )}
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1397,7 +1757,7 @@ export default function Portfolio() {
                         <div className="flex items-center gap-2 mb-4">
                             <input
                                 type="text"
-                                value={`${typeof window !== 'undefined' ? window.location.origin : ''}/portfolio/${profile.username}`}
+                                value={isClient ? `${window.location.origin}/portfolio/${userProfile.username}` : ''}
                                 readOnly
                                 className="flex-1 px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-sm"
                             />
@@ -1445,6 +1805,7 @@ export default function Portfolio() {
                 isOpen={isAddCommunityModalOpen}
                 onClose={() => setIsAddCommunityModalOpen(false)}
                 onAdd={handleAddCommunity}
+                userId={userId}
             />
 
             {/* Customize Top Actions Modal */}
@@ -1455,6 +1816,6 @@ export default function Portfolio() {
                 currentTopActionIds={topActionIds}
                 onSave={handleSaveTopActions}
             />
-        </div>
+        </AuthWrapper>
     );
 }

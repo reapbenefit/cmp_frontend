@@ -6,6 +6,7 @@ import { TreePine, Users, Recycle, Heart, Sprout, BookOpen } from "lucide-react"
 import { ChatSession, ChatMessage } from "@/types";
 import { ChatSidebar, SidebarToggle } from "@/components/ChatSidebar";
 import InputArea from "@/components/InputArea";
+import AuthWrapper from "@/components/AuthWrapper";
 
 // Example Actions component
 const ExampleActions = ({ onExampleClick }: { onExampleClick: (text: string) => void }) => {
@@ -125,61 +126,63 @@ export default function Home() {
   };
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      <ChatSidebar
-        chatSessions={chatSessions}
-        onNewChat={handleNewChat}
-        onChatSelect={handleChatSelect}
-        isOpen={isSidebarOpen}
-        onClose={closeSidebar}
-      />
+    <AuthWrapper>
+      <div className="flex h-screen bg-gray-50">
+        <ChatSidebar
+          chatSessions={chatSessions}
+          onNewChat={handleNewChat}
+          onChatSelect={handleChatSelect}
+          isOpen={isSidebarOpen}
+          onClose={closeSidebar}
+        />
 
-      <div className="flex-1 flex flex-col">
-        {/* Header */}
-        <div className="p-4 flex items-center gap-3 h-16">
-          <SidebarToggle isOpen={isSidebarOpen} onToggle={toggleSidebar} />
-        </div>
+        <div className="flex-1 flex flex-col">
+          {/* Header */}
+          <div className="p-4 flex items-center gap-3 h-16">
+            <SidebarToggle isOpen={isSidebarOpen} onToggle={toggleSidebar} />
+          </div>
 
-        {/* Main content */}
-        <div className="flex-1 overflow-y-auto">
-          <div className="min-h-full bg-gradient-to-br from-green-50 via-white to-blue-50 relative overflow-hidden">
-            {/* Background decoration */}
-            <div className="absolute inset-0 opacity-5">
-              <div className="absolute top-20 left-10 w-32 h-32 bg-green-400 rounded-full blur-3xl"></div>
-              <div className="absolute top-40 right-20 w-24 h-24 bg-blue-400 rounded-full blur-2xl"></div>
-              <div className="absolute bottom-40 left-1/4 w-40 h-40 bg-orange-400 rounded-full blur-3xl"></div>
-            </div>
+          {/* Main content */}
+          <div className="flex-1 overflow-y-auto">
+            <div className="min-h-full bg-gradient-to-br from-green-50 via-white to-blue-50 relative overflow-hidden">
+              {/* Background decoration */}
+              <div className="absolute inset-0 opacity-5">
+                <div className="absolute top-20 left-10 w-32 h-32 bg-green-400 rounded-full blur-3xl"></div>
+                <div className="absolute top-40 right-20 w-24 h-24 bg-blue-400 rounded-full blur-2xl"></div>
+                <div className="absolute bottom-40 left-1/4 w-40 h-40 bg-orange-400 rounded-full blur-3xl"></div>
+              </div>
 
-            {/* Main content */}
-            <div className="relative z-10 px-4 py-16">
-              <div className="max-w-4xl mx-auto">
-                <div className="flex flex-col items-center justify-center min-h-[calc(100vh-8rem)]">
-                  {/* Hero section */}
-                  <div className="text-center mb-8 max-w-2xl">
-                    <div className="mb-6">
-                      <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent mb-2">
-                        Solve Ninja Movement
-                      </h1>
-                      <p className="text-xl text-gray-700 mb-8">
-                        India&apos;s Largest Changemaker Community
-                      </p>
-                      <p className="text-lg text-gray-600 mb-8">
-                        Share your latest community action and inspire others to join the movement
-                      </p>
+              {/* Main content */}
+              <div className="relative z-10 px-4 py-16">
+                <div className="max-w-4xl mx-auto">
+                  <div className="flex flex-col items-center justify-center min-h-[calc(100vh-8rem)]">
+                    {/* Hero section */}
+                    <div className="text-center mb-8 max-w-2xl">
+                      <div className="mb-6">
+                        <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent mb-2">
+                          Solve Ninja Movement
+                        </h1>
+                        <p className="text-xl text-gray-700 mb-8">
+                          India&apos;s Largest Changemaker Community
+                        </p>
+                        <p className="text-lg text-gray-600 mb-8">
+                          Share your latest community action and inspire others to join the movement
+                        </p>
+                      </div>
+
+                      {/* Example Actions */}
+                      <ExampleActions onExampleClick={handleExampleClick} />
                     </div>
 
-                    {/* Example Actions */}
-                    <ExampleActions onExampleClick={handleExampleClick} />
-                  </div>
-
-                  {/* Input area - now using the InputArea component */}
-                  <div className="w-full max-w-2xl">
-                    <InputArea
-                      placeholder="What action did you take today?"
-                      value={action}
-                      onChange={setAction}
-                      onSubmit={handleInputSubmit}
-                    />
+                    {/* Input area - now using the InputArea component */}
+                    <div className="w-full max-w-2xl">
+                      <InputArea
+                        placeholder="What action did you take today?"
+                        value={action}
+                        onChange={setAction}
+                        onSubmit={handleInputSubmit}
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -187,6 +190,6 @@ export default function Home() {
           </div>
         </div>
       </div>
-    </div>
+    </AuthWrapper>
   );
 }

@@ -1,8 +1,10 @@
 "use client";
 
-import { Plus, X, PanelLeft } from "lucide-react";
+import { Plus, X, PanelLeft, User, LogOut, FileUser } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ChatSession } from "@/types";
+import { useAuth } from "@/lib/auth";
 
 interface ChatSidebarProps {
     currentChatId?: string;
@@ -21,6 +23,13 @@ export const ChatSidebar = ({
     isOpen,
     onClose
 }: ChatSidebarProps) => {
+    const { userEmail, logout } = useAuth();
+    const router = useRouter();
+
+    const handlePortfolioClick = () => {
+        router.push("/portfolio");
+    };
+
     if (!isOpen) return null;
 
     return (
@@ -79,6 +88,41 @@ export const ChatSidebar = ({
                         </p>
                     </div>
                 )}
+            </div>
+
+            {/* Profile Section */}
+            <div className="border-t border-gray-200 p-4">
+                <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 bg-gradient-to-r from-green-600 to-blue-600 rounded-full flex items-center justify-center">
+                        <User className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900 truncate">
+                            {userEmail}
+                        </p>
+                        <p className="text-xs text-gray-500">Solve Ninja</p>
+                    </div>
+                </div>
+
+                <div className="space-y-2">
+                    {/* Portfolio Button */}
+                    <button
+                        onClick={handlePortfolioClick}
+                        className="w-full flex items-center gap-3 px-3 py-2 text-left rounded-lg hover:bg-blue-50 text-blue-600 hover:text-blue-700 transition-colors cursor-pointer"
+                    >
+                        <FileUser className="w-4 h-4" />
+                        <span className="text-sm font-medium">View Portfolio</span>
+                    </button>
+
+                    {/* Logout Button */}
+                    <button
+                        onClick={logout}
+                        className="w-full flex items-center gap-3 px-3 py-2 text-left rounded-lg hover:bg-red-50 text-red-600 hover:text-red-700 transition-colors cursor-pointer"
+                    >
+                        <LogOut className="w-4 h-4" />
+                        <span className="text-sm font-medium">Sign out</span>
+                    </button>
+                </div>
             </div>
         </div>
     );

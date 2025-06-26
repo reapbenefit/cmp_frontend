@@ -7,43 +7,64 @@ import { Community } from "./CommunityCard";
 interface AddCommunityModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onAdd: (community: Omit<Community, 'id'>) => void;
+    onAdd: (community: Community) => void;
+    userId: string | null;
 }
 
-export default function AddCommunityModal({ isOpen, onClose, onAdd }: AddCommunityModalProps) {
+export default function AddCommunityModal({ isOpen, onClose, onAdd, userId }: AddCommunityModalProps) {
     const [formData, setFormData] = useState({
         name: '',
         description: '',
         link: ''
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!formData.name.trim() || !formData.description.trim()) {
+        if (!formData.name.trim() || !formData.description.trim() || !userId) {
             return;
         }
 
         setIsSubmitting(true);
+        setError(null);
 
-        // Create new community object
-        const newCommunity: Omit<Community, 'id'> = {
-            name: formData.name.trim(),
-            description: formData.description.trim(),
-            ...(formData.link.trim() && { link: formData.link.trim() })
-        };
+        try {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/communities`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    name: formData.name.trim(),
+                    description: formData.description.trim(),
+                    link: formData.link.trim() || null,
+                    user_id: parseInt(userId)
+                })
+            });
 
-        // Call the onAdd callback
-        onAdd(newCommunity);
+            if (!response.ok) {
+                throw new Error('Failed to create community');
+            }
 
-        // Reset form and close modal
-        setFormData({ name: '', description: '', link: '' });
-        setIsSubmitting(false);
-        onClose();
+            const newCommunity: Community = await response.json();
+
+            // Call the onAdd callback with the API response
+            onAdd(newCommunity);
+
+            // Reset form and close modal
+            setFormData({ name: '', description: '', link: '' });
+            onClose();
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Failed to create community');
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     const handleClose = () => {
         setFormData({ name: '', description: '', link: '' });
+        setError(null);
         onClose();
     };
 
@@ -65,6 +86,12 @@ export default function AddCommunityModal({ isOpen, onClose, onAdd }: AddCommuni
 
                 {/* Form */}
                 <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                    {error && (
+                        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+                            {error}
+                        </div>
+                    )}
+
                     <div>
                         <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
                             Community Name *
