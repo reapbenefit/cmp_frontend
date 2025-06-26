@@ -511,14 +511,7 @@ export default function InputArea({
         <div className="w-full">
             <div className="relative flex items-center">
                 {/* Show different UI based on state */}
-                {isLoading ? (
-                    <div className="w-full border-2 border-blue-400 rounded-2xl bg-gradient-to-r from-blue-50 to-green-50 shadow-lg min-h-[60px] flex items-center justify-center relative z-10">
-                        <div className="flex items-center gap-3 text-blue-600">
-                            <Loader2 className="h-5 w-5 animate-spin" />
-                            <span className="font-medium">Submitting your action...</span>
-                        </div>
-                    </div>
-                ) : isRecording ? (
+                {isRecording ? (
                     <div className="w-full border-2 border-red-400 rounded-2xl bg-gradient-to-r from-red-50 to-orange-50 shadow-lg min-h-[60px] flex items-center justify-center relative z-10">
                         <Waveform audioData={audioData} />
                         <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-red-600 font-medium text-sm flex items-center gap-2">
@@ -557,7 +550,7 @@ export default function InputArea({
                         onChange={handleTextChange}
                         onKeyDown={handleKeyDown}
                         placeholder={placeholder}
-                        disabled={disabled}
+                        disabled={disabled || isLoading}
                         className={`w-full p-4 pr-28 border-2 border-gray-200 rounded-2xl resize-none focus:outline-none transition-all duration-200 shadow-lg placeholder-gray-500 text-gray-700 min-h-[60px] relative z-10 overflow-y-auto bg-white/80 backdrop-blur-sm`}
                         rows={1}
                     />
@@ -571,7 +564,7 @@ export default function InputArea({
                             size="sm"
                             variant="outline"
                             onClick={deleteRecording}
-                            disabled={disabled}
+                            disabled={disabled || isLoading}
                             className="rounded-full w-10 h-10 p-0 text-red-500 hover:text-red-600 border-red-300 hover:border-red-400 transition-all duration-200 cursor-pointer flex items-center justify-center"
                         >
                             <Trash2 className="h-4 w-4" />
@@ -583,7 +576,7 @@ export default function InputArea({
                             size="sm"
                             variant={isRecording ? "default" : "outline"}
                             onClick={isRecording ? stopRecording : startRecording}
-                            disabled={disabled || (isRecording && recordingDuration < 1)}
+                            disabled={disabled || isLoading || (isRecording && recordingDuration < 1)}
                             className={`rounded-full w-10 h-10 p-0 transition-all duration-200 cursor-pointer flex items-center justify-center ${isRecording
                                 ? recordingDuration < 1
                                     ? "bg-gray-400 cursor-not-allowed text-white"
@@ -603,23 +596,21 @@ export default function InputArea({
                         type="button"
                         size="sm"
                         onClick={handleSubmit}
-                        disabled={disabled || (!value.trim() && !recordedBlob)}
+                        disabled={disabled || isLoading || (!value.trim() && !recordedBlob)}
                         className="rounded-full w-10 h-10 p-0 bg-green-500 hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all duration-200 cursor-pointer flex items-center justify-center"
                     >
-                        <Send className="h-4 w-4" />
+                        {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                     </Button>
                 </div>
             </div>
 
             {/* Hint text */}
             <p className="text-xs text-gray-500 mt-2 text-center">
-                {isLoading
-                    ? "⏳ Submitting your action to the Solve Ninja community..."
-                    : isRecording
-                        ? "🔴 Click the stop button when you're done recording"
-                        : recordedBlob
-                            ? "🎵 Review your recording and submit when ready"
-                            : "💡 Type your message and press Enter to submit, or Shift+Enter for new line"
+                {isRecording
+                    ? "🔴 Click the stop button when you're done recording"
+                    : recordedBlob
+                        ? "🎵 Review your recording and submit when ready"
+                        : "💡 Type your message and press Enter to submit, or Shift+Enter for new line"
                 }
             </p>
         </div>
