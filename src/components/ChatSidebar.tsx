@@ -9,7 +9,7 @@ import { useAuth } from "@/lib/auth";
 
 // API function to fetch chat sessions
 async function fetchChatSessions(userId: string): Promise<ChatSession[]> {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/chat_history?user_id=${userId}`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/chat_history/?user_id=${userId}`, {
         method: 'GET',
         headers: {
             'accept': 'application/json',
