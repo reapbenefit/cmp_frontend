@@ -2,15 +2,14 @@
 
 import { useState } from "react";
 import Tooltip from "./Tooltip";
-import { Action, ApiSkill } from "@/types";
+import { Action } from "@/types";
 
 interface ActionModalProps {
     action: Action | null;
     onClose: () => void;
-    skills: ApiSkill[];
 }
 
-export default function ActionModal({ action, onClose, skills }: ActionModalProps) {
+export default function ActionModal({ action, onClose }: ActionModalProps) {
     const [activeTab, setActiveTab] = useState<'summary' | 'raw'>('summary');
 
     if (!action) return null;

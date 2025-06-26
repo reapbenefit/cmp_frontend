@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Plus, X, PanelLeft, User, LogOut, FileUser } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { ChatSession, ChatMessage } from "@/types";
+import { ChatSession } from "@/types";
 import { useAuth } from "@/lib/auth";
 
 // API function to fetch chat sessions
@@ -23,7 +23,7 @@ async function fetchChatSessions(userId: string): Promise<ChatSession[]> {
     const sessionsData = await response.json();
 
     // Transform API response to ChatSession format
-    return sessionsData.map((item: any) => ({
+    return sessionsData.map((item: { uuid: string; title: string; last_message_time: string }) => ({
         id: item.uuid,
         title: item.title,
         messages: [], // We don't need full messages for sidebar display
@@ -33,20 +33,14 @@ async function fetchChatSessions(userId: string): Promise<ChatSession[]> {
 }
 
 interface ChatSidebarProps {
-    currentChatId?: string;
+    currentChatId: string;
     onNewChat: () => void;
     onChatSelect: (chatId: string) => void;
     isOpen: boolean;
     onClose: () => void;
 }
 
-export const ChatSidebar = ({
-    currentChatId,
-    onNewChat,
-    onChatSelect,
-    isOpen,
-    onClose
-}: ChatSidebarProps) => {
+export default function ChatSidebar({ currentChatId, onNewChat, onChatSelect, isOpen, onClose }: ChatSidebarProps) {
     const { userEmail, userId, logout } = useAuth();
     const router = useRouter();
     const [chatSessions, setChatSessions] = useState<ChatSession[]>([]);
@@ -178,7 +172,7 @@ export const ChatSidebar = ({
             </div>
         </div>
     );
-};
+}
 
 // Sidebar toggle button component
 interface SidebarToggleProps {

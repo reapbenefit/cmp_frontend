@@ -1,4 +1,4 @@
-import { ApiSkill, ApiSkillHistory } from "@/types";
+import { ApiSkill } from "@/types";
 
 interface SkillModalProps {
     skill: ApiSkill | null;

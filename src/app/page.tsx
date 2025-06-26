@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { TreePine, Users, Recycle, Heart, Sprout, BookOpen } from "lucide-react";
-import { ChatSidebar, SidebarToggle } from "@/components/ChatSidebar";
+import ChatSidebar, { SidebarToggle } from "@/components/ChatSidebar";
 import InputArea from "@/components/InputArea";
 import AuthWrapper from "@/components/AuthWrapper";
 import { useAuth } from "@/lib/auth";
@@ -127,6 +127,7 @@ export default function Home() {
     <AuthWrapper>
       <div className="flex h-screen bg-gray-50">
         <ChatSidebar
+          currentChatId=""
           onNewChat={handleNewChat}
           onChatSelect={handleChatSelect}
           isOpen={isSidebarOpen}

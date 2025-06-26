@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { SignupData, SignupResponse, SignupError } from "@/types";
+import { SignupData, SignupResponse } from "@/types";
 
 interface AuthContextType {
     isAuthenticated: boolean;

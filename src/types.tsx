@@ -107,7 +107,7 @@ export interface StreamingResponse {
 }
 
 export interface SkillExtractionResponse {
-    skills: Array<{ id: string; name: string; relevance: string; response: string }>;
+    skills: Array<{ id: string; name: string; label: string; relevance: string; response: string }>;
     action_title: string;
     action_description: string;
     action_type: string;

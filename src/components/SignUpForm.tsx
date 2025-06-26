@@ -87,8 +87,8 @@ export default function SignUpForm({ onSignup, onSwitchToLogin, isLoading = fals
 
         try {
             await onSignup(formData);
-        } catch (err) {
-            // Error is handled by parent component through error prop
+        } catch {
+            // Error is handled by the auth context
         }
     };
 

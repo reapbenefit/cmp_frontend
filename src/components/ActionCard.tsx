@@ -1,12 +1,11 @@
 "use client";
 
 import Tooltip from "./Tooltip";
-import { Action, ApiSkill } from "@/types";
+import { Action } from "@/types";
 
 interface ActionCardProps {
     action: Action;
     onActionClick: (action: Action) => void;
-    skills: ApiSkill[];
     variant?: 'compact' | 'expanded';
 }
 
@@ -31,7 +30,6 @@ const getCategoryColor = (category: string) => {
 export default function ActionCard({
     action,
     onActionClick,
-    skills,
     variant = 'compact'
 }: ActionCardProps) {
     const isExpanded = variant === 'expanded';

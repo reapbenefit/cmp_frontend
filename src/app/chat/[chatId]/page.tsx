@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { Loader2, Trophy, Star } from "lucide-react";
 import { ChatMessage, ChatSession, StreamingResponse, SkillExtractionResponse } from "@/types";
-import { ChatSidebar, SidebarToggle } from "@/components/ChatSidebar";
+import ChatSidebar, { SidebarToggle } from "@/components/ChatSidebar";
 import InputArea from "@/components/InputArea";
 import AuthWrapper from "@/components/AuthWrapper";
 
@@ -76,7 +76,19 @@ async function sendChatMessageToBackend(chatId: string, messages: ChatMessage[])
 }
 
 // Create/update action API function
-async function updateAction(actionUuid: string, actionData: any): Promise<void> {
+async function updateAction(actionUuid: string, actionData: {
+    title: string;
+    description: string;
+    status: string;
+    category: string;
+    type: string;
+    skills: Array<{
+        id: string;
+        name: string;
+        label: string;
+        summary: string;
+    }>;
+}): Promise<void> {
     const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/actions/${actionUuid}`, {
         method: 'PUT',
         headers: {
@@ -107,7 +119,7 @@ async function fetchChatHistory(chatId: string): Promise<ChatMessage[]> {
     const historyData = await response.json();
 
     // Transform API response to ChatMessage format
-    return historyData.map((item: any) => ({
+    return historyData.map((item: { role: string; content: string; created_at: string }) => ({
         role: item.role as 'user' | 'assistant' | 'analysis',
         content: item.role === 'analysis' ? JSON.parse(item.content) : item.content,
         timestamp: new Date(item.created_at)
@@ -359,7 +371,7 @@ export default function ChatPage() {
                                         status: 'published',
                                         category: skillResponse.action_category,
                                         type: skillResponse.action_type,
-                                        skills: skillResponse.skills.map((skill: any) => ({
+                                        skills: skillResponse.skills.map((skill: { id: string; name: string; label: string; relevance: string; response: string }) => ({
                                             id: skill.id,
                                             name: skill.name,
                                             label: skill.label,

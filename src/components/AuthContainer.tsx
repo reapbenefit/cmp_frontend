@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useAuth } from "@/lib/auth";
 import LoginForm from "@/components/LoginForm";
 import SignUpForm from "@/components/SignUpForm";
+import { SignupData } from "@/types";
 
 export default function AuthContainer() {
     // Persist auth mode in localStorage so the UI stays on the same form even if the component remounts
@@ -30,12 +31,12 @@ export default function AuthContainer() {
     };
 
     // Custom signup handler that doesn't change form state on error
-    const handleSignup = async (data: any) => {
+    const handleSignup = async (data: SignupData) => {
         try {
             await signup(data);
             // Only on success, the auth context will set isAuthenticated to true
             // and AuthWrapper will handle the navigation
-        } catch (err) {
+        } catch {
             // Stay on signup form when there's an error
             // Error is already handled by the auth context
         }

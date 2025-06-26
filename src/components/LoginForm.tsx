@@ -79,8 +79,8 @@ export default function LoginForm({ onLogin, onSwitchToSignup, isLoading = false
                     </form>
 
                     <div className="mt-6 text-center">
-                        <p className="text-sm text-gray-600">
-                            Don't have an account?{" "}
+                        <p className="text-gray-600 text-sm">
+                            Don&apos;t have an account?{" "}
                             <button
                                 onClick={onSwitchToSignup}
                                 className="text-green-600 hover:text-green-700 font-medium cursor-pointer hover:underline"

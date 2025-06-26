@@ -8,10 +8,9 @@ import ActionModal from "@/components/ActionModal";
 import CommunityCard, { Community } from "@/components/CommunityCard";
 import AddCommunityModal from "@/components/AddCommunityModal";
 import CustomizeTopActionsModal from "@/components/CustomizeTopActionsModal";
-import ExpertReviewCard, { ExpertReview } from "@/components/ExpertReviewCard";
 import AuthWrapper from "@/components/AuthWrapper";
 import { useAuth } from "@/lib/auth";
-import { Action, Skill, UserProfile, ApiSkill } from "@/types";
+import { Action, UserProfile, ApiSkill } from "@/types";
 
 // Auto-scroll animation styles
 const scrollAnimation = `
@@ -33,389 +32,8 @@ const scrollAnimation = `
   }
 `;
 
-const expertReviews: ExpertReview[] = [
-    {
-        id: "1",
-        comment: "Kuppendra's approach to waste management is exemplary. His ability to coordinate with multiple stakeholders and create sustainable systems shows remarkable leadership for someone so young. The Materials Recovery Facility he helped establish is now a model for other communities.",
-        reviewerName: "Dr. Ramesh Kumar",
-        designation: "Environmental Policy Advisor",
-        company: "Karnataka State Pollution Control Board",
-        reviewerAvatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=center",
-        date: "March 2025"
-    },
-    {
-        id: "2",
-        comment: "Working with Kuppendra on the youth rights workshop was inspiring. He brings a unique perspective that bridges grassroots action with policy understanding. His questions during sessions showed deep critical thinking about systemic issues.",
-        reviewerName: "Priya Sharma",
-        designation: "Youth Rights Advocate",
-        company: "Karnataka Youth Collective",
-        reviewerAvatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=center",
-        date: "February 2024"
-    },
-    {
-        id: "3",
-        comment: "Kuppendra's dedication to construction workers' welfare is commendable. He spent months understanding the bureaucratic challenges and created simple solutions. His empathy-driven approach makes complex government schemes accessible to those who need them most.",
-        reviewerName: "Suresh Naik",
-        designation: "Labour Union Leader",
-        company: "Karnataka Construction Workers Federation",
-        date: "October 2024"
-    },
-    {
-        id: "4",
-        comment: "As a mentor in the SNLA program, I've watched Kuppendra grow from an enthusiastic participant to a strategic changemaker. His ability to see connections between environmental and social issues sets him apart. He thinks systemically.",
-        reviewerName: "Anjali Reddy",
-        designation: "Program Director",
-        company: "Strategic Network of Leaders Academy",
-        reviewerAvatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=center",
-        date: "December 2023"
-    },
-    {
-        id: "5",
-        comment: "Kuppendra's hands-on approach to tree plantation went beyond just planting saplings. He created a maintenance system that ensures long-term success. His 85% survival rate speaks to his commitment to follow-through and community engagement.",
-        reviewerName: "Dr. Venkatesh Rao",
-        designation: "Urban Forestry Specialist",
-        company: "Bengaluru Forest Department",
-        date: "June 2024"
-    },
-    {
-        id: "6",
-        comment: "What impressed me most about Kuppendra is his data-driven mindset. He doesn't just implement solutions; he measures impact, tracks progress, and adapts strategies. This combination of passion and analytical thinking is rare.",
-        reviewerName: "Meera Patel",
-        designation: "Impact Measurement Consultant",
-        company: "Social Impact Partners",
-        reviewerAvatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&h=150&fit=crop&crop=center",
-        date: "January 2025"
-    }
-];
-
-const ContributionHeatmap = ({ setSelectedAction }: { setSelectedAction: (action: Action) => void }) => {
-    const [data, setData] = useState<{ date: string; count: number }[]>([]);
-    const [selectedYear, setSelectedYear] = useState<number>(2025); // Fixed value to avoid hydration mismatch
-    const [showingAllActivity, setShowingAllActivity] = useState(false);
-    const [isClient, setIsClient] = useState(false);
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    const years = [2025, 2024, 2023, 2022, 2021];
-
-    // Generate contribution data only on client side to avoid hydration issues
-    useEffect(() => {
-        setIsClient(true);
-
-        // Set the current year only on client side
-        setSelectedYear(new Date().getFullYear());
-
-        const generateData = () => {
-            const contributionData = [];
-            const today = new Date();
-            const startDate = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate());
-
-            for (let d = new Date(startDate); d <= today; d.setDate(d.getDate() + 1)) {
-                const contributions = Math.random() > 0.7 ? Math.floor(Math.random() * 4) + 1 : 0;
-                contributionData.push({
-                    date: new Date(d).toISOString().split('T')[0],
-                    count: contributions
-                });
-            }
-            return contributionData;
-        };
-
-        setData(generateData());
-    }, []);
-
-    const getContributionColor = (count: number) => {
-        if (count === 0) return 'bg-gray-100';
-        if (count === 1) return 'bg-green-200';
-        if (count === 2) return 'bg-green-300';
-        if (count === 3) return 'bg-green-400';
-        return 'bg-green-500';
-    };
-
-    const totalContributions = data.reduce((sum, day) => sum + day.count, 0);
-
-    // Generate activity data for selected year
-    const getYearlyActivity = (year: number) => {
-        const baseActivities = [
-            {
-                month: 'June',
-                year: year,
-                totalActions: 3,
-                timeline: [
-                    {
-                        action: 'plastic-waste-management',
-                        date: 'Jun 15',
-                        description: 'Started working with Saahas Waste Management on plastic waste diversion project'
-                    },
-                    {
-                        action: 'community-outreach-session',
-                        date: 'Jun 22',
-                        description: 'Conducted awareness session about waste segregation in local community'
-                    },
-                    {
-                        action: 'materials-recovery-setup',
-                        date: 'Jun 28',
-                        description: 'Set up Materials Recovery Facility for processing collected plastics'
-                    }
-                ]
-            },
-            {
-                month: 'May',
-                year: year,
-                totalActions: 5,
-                timeline: [
-                    {
-                        action: 'tree-plantation-planning',
-                        date: 'May 5',
-                        description: 'Coordinated with local authorities for tree plantation permissions'
-                    },
-                    {
-                        action: 'volunteer-mobilization',
-                        date: 'May 12',
-                        description: 'Mobilized 25+ volunteers for upcoming plantation drive'
-                    },
-                    {
-                        action: 'tree-plantation-drive',
-                        date: 'May 18',
-                        description: 'Successfully planted 50+ native species saplings'
-                    },
-                    {
-                        action: 'labor-welfare-research',
-                        date: 'May 24',
-                        description: 'Researched government welfare schemes for construction workers'
-                    },
-                    {
-                        action: 'youth-rights-workshop',
-                        date: 'May 30',
-                        description: 'Attended 4-day residential workshop on youth rights in Mangalore'
-                    }
-                ]
-            }
-        ];
-
-        // Add more months if showing all activity
-        const additionalActivities = [
-            {
-                month: 'April',
-                year: year,
-                totalActions: 2,
-                timeline: [
-                    {
-                        action: 'waste-audit-initiative',
-                        date: 'Apr 8',
-                        description: 'Conducted comprehensive waste audit in local residential areas'
-                    },
-                    {
-                        action: 'skill-development-workshop',
-                        date: 'Apr 20',
-                        description: 'Organized skill development workshop for construction workers'
-                    }
-                ]
-            },
-            {
-                month: 'March',
-                year: year,
-                totalActions: 4,
-                timeline: [
-                    {
-                        action: 'water-conservation-drive',
-                        date: 'Mar 3',
-                        description: 'Initiated water conservation awareness campaign in schools'
-                    },
-                    {
-                        action: 'community-garden-setup',
-                        date: 'Mar 12',
-                        description: 'Set up community garden with organic farming techniques'
-                    },
-                    {
-                        action: 'environmental-education',
-                        date: 'Mar 18',
-                        description: 'Conducted environmental education sessions for local youth'
-                    },
-                    {
-                        action: 'clean-energy-advocacy',
-                        date: 'Mar 25',
-                        description: 'Advocated for solar energy adoption in residential complexes'
-                    }
-                ]
-            }
-        ];
-
-        return showingAllActivity ? [...baseActivities, ...additionalActivities] : baseActivities;
-    };
-
-    const yearlyActivity = getYearlyActivity(selectedYear);
-
-    const handleShowMoreActivity = () => {
-        setShowingAllActivity(true);
-    };
-
-    // Show loading state while data is being generated on client
-    if (!isClient || data.length === 0) {
-        return (
-            <div className="space-y-6">
-                <div className="bg-white border border-gray-200 rounded-lg p-4">
-                    <div className="flex items-center justify-between mb-3">
-                        <h2 className="text-lg font-semibold text-gray-900">
-                            Loading actions...
-                        </h2>
-                    </div>
-                    <div className="h-32 bg-gray-50 rounded animate-pulse"></div>
-                </div>
-            </div>
-        );
-    }
-
-    return (
-        <div className="space-y-6">
-            {/* Contribution Heatmap with Year Selection */}
-            <div className="flex gap-4 items-start">
-                {/* Contribution Heatmap Card */}
-                <div className="bg-white border border-gray-200 rounded-lg p-4 flex-1">
-                    <div className="flex items-center justify-between mb-3">
-                        <h2 className="text-lg font-semibold text-gray-900">
-                            {totalContributions} actions in the last year
-                        </h2>
-
-                    </div>
-
-                    {/* Main heatmap area */}
-                    <div className="overflow-x-auto">
-                        <div className="inline-block min-w-full">
-                            {/* Month labels */}
-                            <div className="flex text-xs text-gray-600 mb-1 min-w-max">
-                                {months.map((month, index) => (
-                                    <div key={month} className="w-12 text-center" style={{ marginLeft: index === 0 ? '14px' : '0' }}>
-                                        {month}
-                                    </div>
-                                ))}
-                            </div>
-
-                            {/* Days and contribution grid */}
-                            <div className="flex min-w-max">
-                                {/* Day labels */}
-                                <div className="flex flex-col text-xs text-gray-600 mr-2">
-                                    {days.map((day, index) => (
-                                        <div key={day} className="h-2.5 flex items-center mb-0.5">
-                                            {index % 2 === 1 ? day : ''}
-                                        </div>
-                                    ))}
-                                </div>
-
-                                {/* Contribution squares */}
-                                <div className="flex gap-0.5">
-                                    {Array.from({ length: 53 }, (_, weekIndex) => (
-                                        <div key={weekIndex} className="flex flex-col gap-0.5">
-                                            {Array.from({ length: 7 }, (_, dayIndex) => {
-                                                const dataIndex = weekIndex * 7 + dayIndex;
-                                                const dayData = data[dataIndex];
-                                                return (
-                                                    <div
-                                                        key={dayIndex}
-                                                        className={`w-2.5 h-2.5 rounded-sm ${dayData ? getContributionColor(dayData.count) : 'bg-gray-100'}`}
-                                                        title={dayData ? `${dayData.count} actions on ${dayData.date}` : ''}
-                                                    />
-                                                );
-                                            })}
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Legend */}
-                    <div className="flex items-center justify-end mt-3">
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                            <span>Less</span>
-                            <div className="flex gap-1">
-                                <div className="w-2.5 h-2.5 bg-gray-100 rounded-sm"></div>
-                                <div className="w-2.5 h-2.5 bg-green-200 rounded-sm"></div>
-                                <div className="w-2.5 h-2.5 bg-green-300 rounded-sm"></div>
-                                <div className="w-2.5 h-2.5 bg-green-400 rounded-sm"></div>
-                                <div className="w-2.5 h-2.5 bg-green-500 rounded-sm"></div>
-                            </div>
-                            <span>More</span>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Year Selection - Outside the card */}
-                <div className="flex flex-col gap-1">
-                    {years.map(year => (
-                        <button
-                            key={year}
-                            onClick={() => setSelectedYear(year)}
-                            className={`text-sm px-3 py-1 rounded cursor-pointer transition-colors ${year === selectedYear
-                                ? 'bg-blue-600 text-white'
-                                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                                }`}
-                        >
-                            {year}
-                        </button>
-                    ))}
-                </div>
-            </div>
-
-            {/* Contribution Activity */}
-            <div>
-                <h2 className="text-lg font-semibold text-gray-900 mb-6">Action activity</h2>
-
-                <div className="space-y-8">
-                    {yearlyActivity.map((activity, index) => (
-                        <div key={index}>
-                            <h3 className="text-gray-900 font-medium mb-4">
-                                {activity.month} {activity.year}
-                            </h3>
-
-                            <div className="border-l-2 border-gray-200 pl-6 ml-2">
-                                <div className="space-y-3">
-                                    {activity.timeline.map((item, idx) => (
-                                        <div key={idx} className="flex items-start gap-3">
-                                            <div className="flex flex-col items-center mt-1">
-                                                <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></div>
-                                                {idx < activity.timeline.length - 1 && (
-                                                    <div className="w-0.5 bg-gray-300 h-8 mt-1"></div>
-                                                )}
-                                            </div>
-                                            <div className="flex-1 pb-2">
-                                                <div className="flex items-center gap-2 mb-1">
-                                                    <span
-                                                        className="text-blue-600 hover:underline text-sm font-medium"
-                                                    >
-                                                        {item.action}
-                                                    </span>
-                                                    <span className="text-xs text-gray-500">
-                                                        on {item.date}
-                                                    </span>
-                                                </div>
-                                                <p className="text-sm text-gray-600">
-                                                    {item.description}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-
-                <div className="mt-8">
-                    {!showingAllActivity && (
-                        <button
-                            onClick={handleShowMoreActivity}
-                            className="w-full bg-white hover:bg-gray-50 text-blue-600 text-sm py-3 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors cursor-pointer"
-                        >
-                            Show more activity
-                        </button>
-                    )}
-                </div>
-            </div>
-        </div>
-    );
-};
-
 export default function Portfolio() {
-    const { userId, username, isLoading: authLoading } = useAuth();
+    const { username, isLoading: authLoading } = useAuth();
     const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -523,106 +141,6 @@ export default function Portfolio() {
     };
 
     // Update functions
-    const handleUpdateBio = async () => {
-        if (!userProfile) return;
-
-        setUpdateLoading(true);
-        try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/portfolio/${username}`, {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    bio: editBio
-                })
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to update bio');
-            }
-
-            setUserProfile(prev => prev ? { ...prev, bio: editBio } : null);
-            setIsEditingProfile(false);
-        } catch (err) {
-            console.error('Error updating bio:', err);
-            // You could add error handling UI here
-        } finally {
-            setUpdateLoading(false);
-        }
-    };
-
-    const handleUpdateLocation = async () => {
-        if (!userProfile) return;
-
-        setUpdateLoading(true);
-        try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/portfolio/${username}`, {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    location_city: editCity,
-                    location_state: editState,
-                    location_country: userProfile?.location_country || ''
-                })
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to update location');
-            }
-
-            setUserProfile(prev => prev ? {
-                ...prev,
-                location_city: editCity,
-                location_state: editState,
-                location_country: userProfile?.location_country || ''
-            } : null);
-            setIsEditingProfile(false);
-        } catch (err) {
-            console.error('Error updating location:', err);
-            // You could add error handling UI here
-        } finally {
-            setUpdateLoading(false);
-        }
-    };
-
-    const startEditingBio = () => {
-        setEditBio(userProfile?.bio || '');
-        setIsEditingProfile(true);
-    };
-
-    const startEditingLocation = () => {
-        setEditCity(userProfile?.location_city || '');
-        setEditState(userProfile?.location_state || '');
-        setIsEditingProfile(true);
-    };
-
-    const cancelEditBio = () => {
-        setIsEditingProfile(false);
-        setEditBio('');
-    };
-
-    const cancelEditLocation = () => {
-        setIsEditingProfile(false);
-        setEditCity('');
-        setEditState('');
-    };
-
-    // Helper function to format location
-    const formatLocation = (city: string | null, state: string | null, country: string | null) => {
-        const parts = [city, state, country].filter(Boolean);
-        return parts.length > 0 ? parts.join(', ') : 'No location set';
-    };
-
-    const handleEditProfile = () => {
-        setEditBio(userProfile?.bio || '');
-        setEditCity(userProfile?.location_city || '');
-        setEditState(userProfile?.location_state || '');
-        setIsEditingProfile(true);
-    };
-
     const handleSaveProfile = async () => {
         if (!userProfile) return;
 
@@ -657,6 +175,19 @@ export default function Portfolio() {
         } finally {
             setUpdateLoading(false);
         }
+    };
+
+    // Helper function to format location
+    const formatLocation = (city: string | null, state: string | null, country: string | null) => {
+        const parts = [city, state, country].filter(Boolean);
+        return parts.length > 0 ? parts.join(', ') : 'No location set';
+    };
+
+    const handleEditProfile = () => {
+        setEditBio(userProfile?.bio || '');
+        setEditCity(userProfile?.location_city || '');
+        setEditState(userProfile?.location_state || '');
+        setIsEditingProfile(true);
     };
 
     const cancelEditProfile = () => {
@@ -1052,7 +583,6 @@ export default function Portfolio() {
                                                     key={action.id}
                                                     action={action}
                                                     onActionClick={(a) => setSelectedAction(a)}
-                                                    skills={[] as ApiSkill[]}
                                                     variant="compact"
                                                 />
                                             ))}
@@ -1100,7 +630,6 @@ export default function Portfolio() {
                                                 key={action.id}
                                                 action={action}
                                                 onActionClick={(a) => setSelectedAction(a)}
-                                                skills={[] as ApiSkill[]}
                                                 variant="compact"
                                             />
                                         ))}
@@ -1211,7 +740,6 @@ export default function Portfolio() {
                 <ActionModal
                     action={selectedAction}
                     onClose={() => setSelectedAction(null)}
-                    skills={userProfile.skills}
                 />
             )}
 
