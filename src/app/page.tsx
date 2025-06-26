@@ -49,6 +49,7 @@ export default function Home() {
   const router = useRouter();
   const [action, setAction] = useState("");
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { userId } = useAuth();
 
   const handleExampleClick = (text: string) => {
@@ -61,10 +62,16 @@ export default function Home() {
       return;
     }
 
+    setIsSubmitting(true);
+
     if (type === 'audio') {
       // Here you would typically upload the audio blob to your server
       console.log('Submitting audio recording:', content);
-      alert('Voice recording submitted successfully! 🥷✨');
+      // Simulate API delay for audio
+      setTimeout(() => {
+        alert('Voice recording submitted successfully! 🥷✨');
+        setIsSubmitting(false);
+      }, 1500);
     } else if (typeof content === 'string' && content.trim()) {
       try {
         // Make API call to create action
@@ -87,11 +94,17 @@ export default function Home() {
       } catch (error) {
         console.error('Error creating action:', error);
         alert('Failed to create action. Please try again.');
+        setIsSubmitting(false);
       }
     }
 
-    // Reset action
-    setAction("");
+    // Reset action (only if not navigating away)
+    if (type === 'audio') {
+      setAction("");
+    } else {
+      // For text submissions, don't reset here as we're navigating away
+      // The reset will happen on navigation or error
+    }
   };
 
   const handleNewChat = () => {
@@ -165,6 +178,8 @@ export default function Home() {
                         value={action}
                         onChange={setAction}
                         onSubmit={handleInputSubmit}
+                        disabled={isSubmitting}
+                        isLoading={isSubmitting}
                       />
                     </div>
                   </div>

@@ -36,10 +36,20 @@ export interface Action {
     title: string;
     description: string;
     category: string;
+    type: string;
+    is_verified: boolean;
+    is_pinned: boolean;
     isPublic: boolean;
     hours: number;
     verified?: boolean;
     details?: ActionDetails;
+    chat_history?: ChatHistoryMessage[];
+    skills?: Array<{
+        id: number;
+        name: string;
+        label: string;
+        summary: string;
+    }>;
 }
 
 export interface Skill {
@@ -55,7 +65,28 @@ export interface Skill {
     }>;
 }
 
+// New API-based skill interfaces
+export interface ApiSkillHistory {
+    action_title: string;
+    summary: string;
+}
+
+export interface ApiSkill {
+    id: number;
+    name: string;
+    label: string;
+    history: ApiSkillHistory[];
+}
+
 // Chat-related types
+export interface ChatHistoryMessage {
+    role: 'user' | 'assistant';
+    content: string;
+    response_type: string;
+    id: number;
+    created_at: string;
+}
+
 export interface ChatMessage {
     role: 'user' | 'assistant' | 'analysis';
     content: string | Array<{ id: string; name: string; relevance: string, response: string }>;
@@ -77,6 +108,10 @@ export interface StreamingResponse {
 
 export interface SkillExtractionResponse {
     skills: Array<{ id: string; name: string; relevance: string; response: string }>;
+    action_title: string;
+    action_description: string;
+    action_type: string;
+    action_category: string;
 }
 
 // Authentication types
@@ -116,4 +151,6 @@ export interface UserProfile {
     location_city: string | null;
     location_country: string | null;
     communities: Community[];
+    actions: Action[];
+    skills: ApiSkill[];
 }

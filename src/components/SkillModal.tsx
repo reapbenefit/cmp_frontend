@@ -1,20 +1,7 @@
-interface SkillAction {
-    id: string;
-    date: string;
-    title: string;
-    explanation: string;
-}
-
-interface Skill {
-    name: string;
-    image: string;
-    count: number;
-    description: string;
-    actions: SkillAction[];
-}
+import { ApiSkill, ApiSkillHistory } from "@/types";
 
 interface SkillModalProps {
-    skill: Skill | null;
+    skill: ApiSkill | null;
     onClose: () => void;
 }
 
@@ -36,53 +23,50 @@ const SkillModal = ({ skill, onClose }: SkillModalProps) => {
                 <div className="bg-gradient-to-br from-green-100 to-blue-100 p-8 text-center">
                     <div className="w-24 h-24 rounded-full border-4 border-white mx-auto mb-4 overflow-hidden">
                         <img
-                            src={skill.image}
-                            alt={skill.name}
+                            src={`/badges/${skill.name}.png`}
+                            alt={skill.label}
                             className="w-full h-full object-cover"
+                            onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.style.display = 'none';
+                            }}
                         />
                     </div>
 
                     <h2 className="text-2xl font-bold text-gray-900 mb-2 flex items-center justify-center gap-2">
-                        <span>{skill.name}</span>
+                        <span>{skill.label}</span>
                         <span className="bg-gray-900 text-white text-sm px-3 py-1 rounded-full">
-                            x{skill.count}
+                            x{skill.history.length}
                         </span>
                     </h2>
 
-                    <p className="text-gray-700">
-                        {skill.description}
-                    </p>
+                    {/* <p className="text-gray-700">
+                        Demonstrated across {skill.history.length} action{skill.history.length !== 1 ? 's' : ''}
+                    </p> */}
                 </div>
 
                 {/* Content */}
                 <div className="p-6 max-h-96 overflow-y-auto">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">History</h3>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Action history</h3>
 
                     <div className="space-y-4">
-                        {skill.actions.map((action, index) => (
-                            <div key={action.id} className="flex gap-4">
+                        {skill.history.map((historyItem, index) => (
+                            <div key={index} className="flex gap-4">
                                 <div className="flex flex-col items-center">
                                     <div className="flex items-center h-6">
                                         <div className="w-3 h-3 bg-blue-500 rounded-full flex-shrink-0"></div>
                                     </div>
-                                    {index < skill.actions.length - 1 && (
+                                    {index < skill.history.length - 1 && (
                                         <div className="w-0.5 bg-gray-300 flex-1 mt-1 mb-2"></div>
                                     )}
                                 </div>
 
                                 <div className="flex-1 pb-6">
                                     <div className="flex items-center gap-2 mb-1 h-6">
-                                        <span className="font-medium text-blue-600 cursor-pointer hover:underline">{action.title}</span>
-                                        <span className="text-sm text-gray-500">
-                                            • {new Date(action.date).toLocaleDateString('en-US', {
-                                                year: 'numeric',
-                                                month: 'short',
-                                                day: 'numeric'
-                                            })}
-                                        </span>
+                                        <span className="font-medium text-blue-600 cursor-pointer hover:underline">{historyItem.action_title}</span>
                                     </div>
                                     <p className="text-gray-700 text-sm leading-relaxed">
-                                        {action.explanation}
+                                        {historyItem.summary}
                                     </p>
                                 </div>
                             </div>

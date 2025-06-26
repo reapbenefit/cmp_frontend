@@ -1,29 +1,27 @@
 "use client";
 
 import Tooltip from "./Tooltip";
-import { Action, Skill } from "@/types";
+import { Action, ApiSkill } from "@/types";
 
 interface ActionCardProps {
     action: Action;
     onActionClick: (action: Action) => void;
-    skills: Skill[];
-    variant?: 'compact' | 'expanded'; // compact for overview, expanded for actions tab
-    actionDetails?: {
-        category: string;
-        actionType: string;
-        skillsCovered: string[];
-        skillExplanations: Record<string, string>;
-    };
+    skills: ApiSkill[];
+    variant?: 'compact' | 'expanded';
 }
 
 // Color mapping based on design guidelines
 const getCategoryColor = (category: string) => {
     switch (category.toLowerCase()) {
         case 'waste':
+        case 'environment':
             return 'from-emerald-400 to-green-500'; // Primary Green gradient
         case 'civic':
+        case 'traffic/road':
+        case 'social justice':
             return 'from-blue-400 to-blue-500'; // Ocean Blue gradient
         case 'youth':
+        case 'education':
             return 'from-orange-400 to-orange-500'; // Sunset Orange gradient
         default:
             return 'from-teal-400 to-teal-500'; // Deep Teal gradient
@@ -34,21 +32,10 @@ export default function ActionCard({
     action,
     onActionClick,
     skills,
-    variant = 'compact',
-    actionDetails = {
-        category: "Waste",
-        actionType: "Hands-on",
-        skillsCovered: ["Problem Solving", "Community Collaboration", "Hands-On", "Digital + Data Citizenship"],
-        skillExplanations: {
-            "Problem Solving": "Identified complex waste segregation challenges and systematically developed a Materials Recovery Facility solution to address multiple stakeholder needs.",
-            "Community Collaboration": "Successfully coordinated with BBMP, CMC, TMC, local GPs, and 45+ community members to establish sustainable waste management practices.",
-            "Hands-On": "Physically set up the Materials Recovery Facility infrastructure and directly trained community members in waste segregation techniques.",
-            "Digital + Data Citizenship": "Tracked and measured 2.5 tons of diverted plastic waste, monitored facility efficiency, and documented community engagement metrics."
-        }
-    }
+    variant = 'compact'
 }: ActionCardProps) {
     const isExpanded = variant === 'expanded';
-    const categoryGradient = getCategoryColor(actionDetails.category);
+    const categoryGradient = getCategoryColor(action.category || 'default');
 
     const handleSkillClick = (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -74,7 +61,7 @@ export default function ActionCard({
 
                         {/* Verification Status */}
                         <div className="ml-3 flex-shrink-0">
-                            {action.verified ? (
+                            {action.is_verified ? (
                                 <div className="flex items-center gap-1 bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">
                                     <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
@@ -92,19 +79,15 @@ export default function ActionCard({
                         </div>
                     </div>
 
-                    {/* Category, Action Type, and Hours badges */}
+                    {/* Category and Action Type badges */}
                     <div className="flex items-center gap-2 mb-3">
                         <span className={`bg-blue-100 text-blue-800 px-2 py-1 rounded ${isExpanded ? 'text-sm' : 'text-xs'
                             }`}>
-                            {actionDetails.category}
+                            {action.category}
                         </span>
                         <span className={`bg-green-100 text-green-800 px-2 py-1 rounded ${isExpanded ? 'text-sm' : 'text-xs'
                             }`}>
-                            {actionDetails.actionType}
-                        </span>
-                        <span className={`bg-orange-100 text-orange-800 px-2 py-1 rounded ${isExpanded ? 'text-sm' : 'text-xs'
-                            }`}>
-                            {action.hours}h
+                            {action.type}
                         </span>
                     </div>
                 </div>
@@ -114,22 +97,21 @@ export default function ActionCard({
                     {action.description}
                 </p>
 
-                {/* Skills section with overflow containment */}
-                <div className="relative overflow-visible">
-                    <div className={`flex items-center mb-2 ${isExpanded ? 'text-sm' : 'text-xs'}`}>
-                        <svg className="w-4 h-4 text-gray-500 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                        </svg>
-                        <span className="font-medium text-gray-600">Skills Activated</span>
-                    </div>
+                {/* Skills section */}
+                {action.skills && action.skills.length > 0 && (
+                    <div className="relative overflow-visible">
+                        <div className={`flex items-center mb-2 ${isExpanded ? 'text-sm' : 'text-xs'}`}>
+                            <svg className="w-4 h-4 text-gray-500 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                            </svg>
+                            <span className="font-medium text-gray-600">Skills Activated</span>
+                        </div>
 
-                    <div className={`flex flex-wrap ${isExpanded ? 'gap-2' : 'gap-1.5'}`}>
-                        {actionDetails.skillsCovered.map((skillName, index) => {
-                            const skillData = skills.find(s => s.name === skillName);
-                            return skillData ? (
+                        <div className={`flex flex-wrap ${isExpanded ? 'gap-2' : 'gap-1.5'}`}>
+                            {action.skills.map((skill, index) => (
                                 <Tooltip
                                     key={index}
-                                    content={actionDetails.skillExplanations[skillName]}
+                                    content={skill.summary}
                                     position="bottom"
                                     width="w-64"
                                 >
@@ -139,32 +121,21 @@ export default function ActionCard({
                                         onClick={handleSkillClick}
                                     >
                                         <img
-                                            src={skillData.image}
-                                            alt={skillData.name}
+                                            src={`/badges/${skill.name}.png`}
+                                            alt={skill.label}
                                             className={`rounded-full ${isExpanded ? 'w-4 h-4' : 'w-3 h-3'}`}
+                                            onError={(e) => {
+                                                const target = e.target as HTMLImageElement;
+                                                target.style.display = 'none';
+                                            }}
                                         />
-                                        <span className="text-gray-700 font-medium">{skillData.name}</span>
+                                        <span className="text-gray-700 font-medium">{skill.label}</span>
                                     </div>
                                 </Tooltip>
-                            ) : (
-                                <Tooltip
-                                    key={index}
-                                    content={actionDetails.skillExplanations[skillName]}
-                                    position="bottom"
-                                    width="w-64"
-                                >
-                                    <span
-                                        className={`inline-flex items-center bg-gray-100 hover:bg-purple-50 text-gray-700 hover:text-purple-700 border border-gray-200 hover:border-purple-200 px-2 py-1 rounded-lg font-medium transition-all duration-200 ${isExpanded ? 'text-sm px-3' : 'text-xs'
-                                            }`}
-                                        onClick={handleSkillClick}
-                                    >
-                                        {skillName}
-                                    </span>
-                                </Tooltip>
-                            );
-                        })}
+                            ))}
+                        </div>
                     </div>
-                </div>
+                )}
             </div>
         </div>
     );

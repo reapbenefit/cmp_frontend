@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Mic, Square, Play, Pause, Send, Trash2 } from "lucide-react";
+import { Mic, Square, Play, Pause, Send, Trash2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 // TypeScript declarations for Audio APIs
@@ -17,6 +17,7 @@ interface InputAreaProps {
     onChange: (value: string) => void;
     onSubmit: (type: 'text' | 'audio', content: string | Blob) => void;
     disabled?: boolean;
+    isLoading?: boolean;
 }
 
 // Waveform component
@@ -44,7 +45,8 @@ export default function InputArea({
     value,
     onChange,
     onSubmit,
-    disabled = false
+    disabled = false,
+    isLoading = false
 }: InputAreaProps) {
     const [isRecording, setIsRecording] = useState(false);
     const [isPlaying, setIsPlaying] = useState(false);
@@ -469,6 +471,14 @@ export default function InputArea({
         handleTextareaResize();
     };
 
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault(); // Prevent new line
+            handleSubmit();
+        }
+        // Shift+Enter will allow default behavior (new line)
+    };
+
     const handleSubmit = () => {
         if (recordedBlob) {
             onSubmit('audio', recordedBlob);
@@ -499,9 +509,16 @@ export default function InputArea({
 
     return (
         <div className="w-full">
-            <div className="relative">
+            <div className="relative flex items-center">
                 {/* Show different UI based on state */}
-                {isRecording ? (
+                {isLoading ? (
+                    <div className="w-full border-2 border-blue-400 rounded-2xl bg-gradient-to-r from-blue-50 to-green-50 shadow-lg min-h-[60px] flex items-center justify-center relative z-10">
+                        <div className="flex items-center gap-3 text-blue-600">
+                            <Loader2 className="h-5 w-5 animate-spin" />
+                            <span className="font-medium">Submitting your action...</span>
+                        </div>
+                    </div>
+                ) : isRecording ? (
                     <div className="w-full border-2 border-red-400 rounded-2xl bg-gradient-to-r from-red-50 to-orange-50 shadow-lg min-h-[60px] flex items-center justify-center relative z-10">
                         <Waveform audioData={audioData} />
                         <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-red-600 font-medium text-sm flex items-center gap-2">
@@ -538,6 +555,7 @@ export default function InputArea({
                         ref={inputRef}
                         value={value}
                         onChange={handleTextChange}
+                        onKeyDown={handleKeyDown}
                         placeholder={placeholder}
                         disabled={disabled}
                         className={`w-full p-4 pr-28 border-2 border-gray-200 rounded-2xl resize-none focus:outline-none transition-all duration-200 shadow-lg placeholder-gray-500 text-gray-700 min-h-[60px] relative z-10 overflow-y-auto bg-white/80 backdrop-blur-sm`}
@@ -545,8 +563,8 @@ export default function InputArea({
                     />
                 )}
 
-                {/* Action buttons */}
-                <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex gap-2 z-20">
+                {/* Action buttons - positioned absolutely but relative to the flex container */}
+                <div className="absolute right-3 flex items-center gap-2 z-20 h-full">
                     {recordedBlob ? (
                         <Button
                             type="button"
@@ -595,11 +613,13 @@ export default function InputArea({
 
             {/* Hint text */}
             <p className="text-xs text-gray-500 mt-2 text-center">
-                {isRecording
-                    ? "🔴 Click the stop button when you're done recording"
-                    : recordedBlob
-                        ? "🎵 Review your recording and submit when ready"
-                        : "💡 Type your message and hit enter to submit"
+                {isLoading
+                    ? "⏳ Submitting your action to the Solve Ninja community..."
+                    : isRecording
+                        ? "🔴 Click the stop button when you're done recording"
+                        : recordedBlob
+                            ? "🎵 Review your recording and submit when ready"
+                            : "💡 Type your message and press Enter to submit, or Shift+Enter for new line"
                 }
             </p>
         </div>

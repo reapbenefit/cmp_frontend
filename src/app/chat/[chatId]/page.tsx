@@ -10,7 +10,7 @@ import AuthWrapper from "@/components/AuthWrapper";
 
 // Chat API function
 async function sendChatMessage(messages: ChatMessage[]): Promise<ReadableStream<Uint8Array>> {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/chat`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/ai/chat`, {
         method: 'POST',
         headers: {
             'accept': 'application/json',
@@ -35,7 +35,7 @@ async function sendChatMessage(messages: ChatMessage[]): Promise<ReadableStream<
 
 // Skill extraction API function
 async function extractSkills(messages: ChatMessage[]): Promise<SkillExtractionResponse> {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/extract`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/ai/extract`, {
         method: 'POST',
         headers: {
             'accept': 'application/json',
@@ -55,7 +55,7 @@ async function extractSkills(messages: ChatMessage[]): Promise<SkillExtractionRe
 }
 
 // Send chat message to backend API function
-async function sendChatMessageToBackend(chatId: string, message: ChatMessage): Promise<void> {
+async function sendChatMessageToBackend(chatId: string, messages: ChatMessage[]): Promise<void> {
     console.log('asasdasd')
     const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/chat_messages/${chatId}`, {
         method: 'POST',
@@ -63,11 +63,27 @@ async function sendChatMessageToBackend(chatId: string, message: ChatMessage): P
             'accept': 'application/json',
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify([{
+        body: JSON.stringify(messages.map(message => ({
             role: message.role,
-            content: message.content,
+            content: Array.isArray(message.content) ? JSON.stringify(message.content) : message.content,
             response_type: "text"
-        }])
+        })))
+    });
+
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+    }
+}
+
+// Create/update action API function
+async function updateAction(actionUuid: string, actionData: any): Promise<void> {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/actions/${actionUuid}`, {
+        method: 'PUT',
+        headers: {
+            'accept': 'application/json',
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(actionData)
     });
 
     if (!response.ok) {
@@ -93,7 +109,7 @@ async function fetchChatHistory(chatId: string): Promise<ChatMessage[]> {
     // Transform API response to ChatMessage format
     return historyData.map((item: any) => ({
         role: item.role as 'user' | 'assistant' | 'analysis',
-        content: item.content,
+        content: item.role === 'analysis' ? JSON.parse(item.content) : item.content,
         timestamp: new Date(item.created_at)
     }));
 }
@@ -122,7 +138,7 @@ const MessageBubble = ({ message, isStreaming }: { message: ChatMessage; isStrea
                                 {message.content.map((skill, index) => (
                                     <div key={index} className="flex items-center gap-4 p-3 bg-white rounded-lg border shadow-sm hover:shadow-md transition-shadow cursor-pointer">
                                         <img
-                                            src={`/badges/${skill.id}.png`}
+                                            src={`/badges/${skill.name}.png`}
                                             alt={skill.name}
                                             className="w-12 h-12 object-contain flex-shrink-0"
                                             onError={(e) => {
@@ -211,9 +227,10 @@ export default function ChatPage() {
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const apiCallInProgressRef = useRef<boolean>(false);
+    const analysisSentRef = useRef<boolean>(false);
 
     // Handle streaming response
-    const handleStreamingResponse = useCallback(async (stream: ReadableStream<Uint8Array>, session: ChatSession | null, sessions: ChatSession[]) => {
+    const handleStreamingResponse = useCallback(async (stream: ReadableStream<Uint8Array>, session: ChatSession | null, sessions: ChatSession[], messageCount: number, userMessage?: ChatMessage) => {
         const reader = stream.getReader();
         const decoder = new TextDecoder();
         let isConversationComplete = false;
@@ -261,10 +278,22 @@ export default function ChatPage() {
             setIsStreaming(false);
             setIsLoading(false);
 
-            // Send AI response to backend
-            sendChatMessageToBackend(chatId, assistantMessage).catch(error => {
-                console.error('Error sending AI message to backend:', error);
-            });
+            // Send messages to backend
+            // For first exchange (messageCount <= 1), send only AI response
+            // For subsequent exchanges, send both user message and AI response together
+            const isFirstExchange = messageCount <= 1;
+
+            if (isFirstExchange) {
+                // First exchange - send only AI response
+                sendChatMessageToBackend(chatId, [assistantMessage]).catch(error => {
+                    console.error('Error sending AI message to backend:', error);
+                });
+            } else if (userMessage) {
+                // Subsequent exchange - send both user message and AI response
+                sendChatMessageToBackend(chatId, [userMessage, assistantMessage]).catch(error => {
+                    console.error('Error sending messages to backend:', error);
+                });
+            }
 
             // Final message update
             setMessages(prev => {
@@ -308,6 +337,41 @@ export default function ChatPage() {
                                     updatedAt: new Date()
                                 };
                                 setCurrentSession(finalSessionUpdate);
+
+                                // Send analysis message to backend for persistence (only once)
+                                if (!analysisSentRef.current) {
+                                    analysisSentRef.current = true;
+                                    try {
+                                        await sendChatMessageToBackend(chatId, [analysisMessage]);
+                                        console.log('Analysis message sent to backend successfully');
+                                    } catch (error) {
+                                        console.error('Error sending analysis message to backend:', error);
+                                        // Reset flag on error so it can be retried
+                                        analysisSentRef.current = false;
+                                    }
+                                }
+
+                                // Create/update action with extracted data
+                                try {
+                                    const actionData = {
+                                        title: skillResponse.action_title,
+                                        description: skillResponse.action_description,
+                                        status: 'published',
+                                        category: skillResponse.action_category,
+                                        type: skillResponse.action_type,
+                                        skills: skillResponse.skills.map((skill: any) => ({
+                                            id: skill.id,
+                                            name: skill.name,
+                                            label: skill.label,
+                                            summary: skill.relevance
+                                        }))
+                                    };
+
+                                    await updateAction(chatId, actionData);
+                                    console.log('Action created/updated successfully');
+                                } catch (error) {
+                                    console.error('Error creating/updating action:', error);
+                                }
                             }
                         } catch (error) {
                             console.error('Error extracting skills:', error);
@@ -333,7 +397,9 @@ export default function ChatPage() {
 
         try {
             const stream = await sendChatMessage(messagesToSend);
-            await handleStreamingResponse(stream, session, []);
+            const lastUserMessage = messagesToSend[messagesToSend.length - 1];
+            const userMessage = lastUserMessage?.role === 'user' ? lastUserMessage : undefined;
+            await handleStreamingResponse(stream, session, [], messagesToSend.length, userMessage);
         } catch (error) {
             console.error('Error in chat communication:', error);
             setIsLoading(false);
@@ -352,6 +418,9 @@ export default function ChatPage() {
 
         const loadChatHistory = async () => {
             try {
+                // Reset analysis sent flag for new chat
+                analysisSentRef.current = false;
+
                 // Fetch chat history from API
                 const chatHistory = await fetchChatHistory(chatId);
 
@@ -412,32 +481,28 @@ export default function ChatPage() {
             console.log('Audio not supported in chat yet:', content);
             alert('Voice messages coming soon! 🎵');
         } else if (typeof content === 'string') {
-            // Update input state and trigger submit
-            setInput(content);
-            // Use setTimeout to ensure state is updated before submit
-            setTimeout(async () => {
-                const userMessage: ChatMessage = {
-                    role: 'user',
-                    content: content,
-                    timestamp: new Date()
+            // Create user message
+            const userMessage: ChatMessage = {
+                role: 'user',
+                content: content,
+                timestamp: new Date()
+            };
+
+            const newMessages = [...messages, userMessage];
+            setMessages(newMessages);
+
+            // Update session with the new user message
+            if (currentSession) {
+                const updatedSession = {
+                    ...currentSession,
+                    messages: newMessages,
+                    updatedAt: new Date()
                 };
+                setCurrentSession(updatedSession);
 
-                const newMessages = [...messages, userMessage];
-                setMessages(newMessages);
-
-                // Update session with the new user message
-                if (currentSession) {
-                    const updatedSession = {
-                        ...currentSession,
-                        messages: newMessages,
-                        updatedAt: new Date()
-                    };
-                    setCurrentSession(updatedSession);
-
-                    // Send the complete chat history to API
-                    sendChatAndHandleStream(newMessages, updatedSession);
-                }
-            }, 0);
+                // Send the complete chat history to AI
+                sendChatAndHandleStream(newMessages, updatedSession);
+            }
         }
         // Reset input
         setInput("");
