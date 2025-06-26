@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { TreePine, Users, Recycle, Heart, Sprout, BookOpen } from "lucide-react";
-import { ChatSession, ChatMessage } from "@/types";
 import { ChatSidebar, SidebarToggle } from "@/components/ChatSidebar";
 import InputArea from "@/components/InputArea";
 import AuthWrapper from "@/components/AuthWrapper";
+import { useAuth } from "@/lib/auth";
 
 // Example Actions component
 const ExampleActions = ({ onExampleClick }: { onExampleClick: (text: string) => void }) => {
@@ -48,66 +48,51 @@ const ExampleActions = ({ onExampleClick }: { onExampleClick: (text: string) => 
 export default function Home() {
   const router = useRouter();
   const [action, setAction] = useState("");
-  const [chatSessions, setChatSessions] = useState<ChatSession[]>([]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const { userId } = useAuth();
 
   const handleExampleClick = (text: string) => {
     setAction(text);
   };
 
-  const handleInputSubmit = (type: 'text' | 'audio', content: string | Blob) => {
+  const handleInputSubmit = async (type: 'text' | 'audio', content: string | Blob) => {
+    if (!userId) {
+      alert('Please login to submit an action');
+      return;
+    }
+
     if (type === 'audio') {
       // Here you would typically upload the audio blob to your server
       console.log('Submitting audio recording:', content);
       alert('Voice recording submitted successfully! 🥷✨');
     } else if (typeof content === 'string' && content.trim()) {
-      // Create a new chat session
-      const chatId = Date.now().toString();
-      const userMessage: ChatMessage = {
-        role: 'user',
-        content: content,
-        timestamp: new Date()
-      };
+      try {
+        // Make API call to create action
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/actions`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ user_id: parseInt(userId), title: "New Action", user_message: content }),
+        });
 
-      const newSession: ChatSession = {
-        id: chatId,
-        title: content.slice(0, 50) + (content.length > 50 ? '...' : ''),
-        messages: [userMessage],
-        createdAt: new Date(),
-        updatedAt: new Date()
-      };
+        if (!response.ok) {
+          throw new Error('Failed to create action');
+        }
 
-      // Save to localStorage
-      const savedSessions = localStorage.getItem('chatSessions');
-      const existingSessions = savedSessions ? JSON.parse(savedSessions) : [];
-      const updatedSessions = [newSession, ...existingSessions];
-      localStorage.setItem('chatSessions', JSON.stringify(updatedSessions));
+        const actionData = await response.json();
 
-      // Navigate to chat page
-      router.push(`/chat/${chatId}`);
+        // Navigate to chat page
+        router.push(`/chat/${actionData.uuid}`);
+      } catch (error) {
+        console.error('Error creating action:', error);
+        alert('Failed to create action. Please try again.');
+      }
     }
 
     // Reset action
     setAction("");
   };
-
-  // Load chat sessions from localStorage
-  useEffect(() => {
-    const savedSessions = localStorage.getItem('chatSessions');
-    if (savedSessions) {
-      const parsed = JSON.parse(savedSessions);
-      const sessions = parsed.map((session: ChatSession) => ({
-        ...session,
-        createdAt: new Date(session.createdAt),
-        updatedAt: new Date(session.updatedAt),
-        messages: session.messages.map((msg: ChatMessage) => ({
-          ...msg,
-          timestamp: new Date(msg.timestamp)
-        }))
-      }));
-      setChatSessions(sessions);
-    }
-  }, []);
 
   const handleNewChat = () => {
     setIsSidebarOpen(false);
@@ -129,7 +114,6 @@ export default function Home() {
     <AuthWrapper>
       <div className="flex h-screen bg-gray-50">
         <ChatSidebar
-          chatSessions={chatSessions}
           onNewChat={handleNewChat}
           onChatSelect={handleChatSelect}
           isOpen={isSidebarOpen}

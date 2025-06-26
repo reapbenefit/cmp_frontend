@@ -1,14 +1,39 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { Plus, X, PanelLeft, User, LogOut, FileUser } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { ChatSession } from "@/types";
+import { ChatSession, ChatMessage } from "@/types";
 import { useAuth } from "@/lib/auth";
+
+// API function to fetch chat sessions
+async function fetchChatSessions(userId: string): Promise<ChatSession[]> {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/chat_history?user_id=${userId}`, {
+        method: 'GET',
+        headers: {
+            'accept': 'application/json',
+        }
+    });
+
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const sessionsData = await response.json();
+
+    // Transform API response to ChatSession format
+    return sessionsData.map((item: any) => ({
+        id: item.uuid,
+        title: item.title,
+        messages: [], // We don't need full messages for sidebar display
+        createdAt: new Date(item.last_message_time),
+        updatedAt: new Date(item.last_message_time)
+    }));
+}
 
 interface ChatSidebarProps {
     currentChatId?: string;
-    chatSessions: ChatSession[];
     onNewChat: () => void;
     onChatSelect: (chatId: string) => void;
     isOpen: boolean;
@@ -17,14 +42,35 @@ interface ChatSidebarProps {
 
 export const ChatSidebar = ({
     currentChatId,
-    chatSessions,
     onNewChat,
     onChatSelect,
     isOpen,
     onClose
 }: ChatSidebarProps) => {
-    const { userEmail, logout } = useAuth();
+    const { userEmail, userId, logout } = useAuth();
     const router = useRouter();
+    const [chatSessions, setChatSessions] = useState<ChatSession[]>([]);
+    const [isLoading, setIsLoading] = useState(false);
+
+    // Load chat sessions from API
+    useEffect(() => {
+        const loadChatSessions = async () => {
+            if (!userId) return;
+
+            setIsLoading(true);
+            try {
+                const sessions = await fetchChatSessions(userId);
+                setChatSessions(sessions);
+            } catch (error) {
+                console.error('Error loading chat sessions:', error);
+                setChatSessions([]);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        loadChatSessions();
+    }, [userId]);
 
     const handlePortfolioClick = () => {
         router.push("/portfolio");
@@ -55,9 +101,18 @@ export const ChatSidebar = ({
             </div>
 
             <div className="flex-1 overflow-y-auto p-4">
-                {chatSessions.length > 0 ? (
+                {isLoading ? (
+                    <div className="flex flex-col items-center justify-center h-full text-center px-2">
+                        <div className="text-gray-400 mb-2">
+                            <div className="w-8 h-8 border-2 border-green-600 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+                        </div>
+                        <p className="text-sm text-gray-500">
+                            Loading your actions...
+                        </p>
+                    </div>
+                ) : chatSessions.length > 0 ? (
                     <>
-                        <h3 className="text-sm font-medium text-gray-700 mb-3">Recent Actions</h3>
+                        <h3 className="text-sm font-medium text-gray-700 mb-3">Recent actions</h3>
                         <div className="space-y-2">
                             {chatSessions.map((session) => (
                                 <div
@@ -69,9 +124,6 @@ export const ChatSidebar = ({
                                         }`}
                                 >
                                     <div className="text-sm font-medium truncate">{session.title}</div>
-                                    <div className="text-xs text-gray-500 mt-1">
-                                        {session.createdAt.toLocaleDateString()}
-                                    </div>
                                 </div>
                             ))}
                         </div>

@@ -54,6 +54,50 @@ async function extractSkills(messages: ChatMessage[]): Promise<SkillExtractionRe
     return response.json();
 }
 
+// Send chat message to backend API function
+async function sendChatMessageToBackend(chatId: string, message: ChatMessage): Promise<void> {
+    console.log('asasdasd')
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/chat_messages/${chatId}`, {
+        method: 'POST',
+        headers: {
+            'accept': 'application/json',
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify([{
+            role: message.role,
+            content: message.content,
+            response_type: "text"
+        }])
+    });
+
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+    }
+}
+
+// Chat history API function
+async function fetchChatHistory(chatId: string): Promise<ChatMessage[]> {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/chat_history/${chatId}`, {
+        method: 'GET',
+        headers: {
+            'accept': 'application/json',
+        }
+    });
+
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const historyData = await response.json();
+
+    // Transform API response to ChatMessage format
+    return historyData.map((item: any) => ({
+        role: item.role as 'user' | 'assistant' | 'analysis',
+        content: item.content,
+        timestamp: new Date(item.created_at)
+    }));
+}
+
 // Message component
 const MessageBubble = ({ message, isStreaming }: { message: ChatMessage; isStreaming?: boolean }) => {
     const isUser = message.role === 'user';
@@ -162,19 +206,11 @@ export default function ChatPage() {
     const [isStreaming, setIsStreaming] = useState(false);
     const [isConversationOver, setIsConversationOver] = useState(false);
     const [isExtractingSkills, setIsExtractingSkills] = useState(false);
-    const [chatSessions, setChatSessions] = useState<ChatSession[]>([]);
     const [currentSession, setCurrentSession] = useState<ChatSession | null>(null);
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const apiCallInProgressRef = useRef<boolean>(false);
-
-    // Save sessions to localStorage
-    const saveSessions = useCallback((sessions: ChatSession[]) => {
-        console.log(sessions);
-        localStorage.setItem('chatSessions', JSON.stringify(sessions));
-        setChatSessions(sessions);
-    }, []);
 
     // Handle streaming response
     const handleStreamingResponse = useCallback(async (stream: ReadableStream<Uint8Array>, session: ChatSession | null, sessions: ChatSession[]) => {
@@ -225,13 +261,14 @@ export default function ChatPage() {
             setIsStreaming(false);
             setIsLoading(false);
 
-            console.log('here');
+            // Send AI response to backend
+            sendChatMessageToBackend(chatId, assistantMessage).catch(error => {
+                console.error('Error sending AI message to backend:', error);
+            });
 
-            // Final save to ensure AI response is persisted
+            // Final message update
             setMessages(prev => {
                 const finalMessages = [...prev.slice(0, -1), assistantMessage];
-
-                console.log(session);
 
                 if (!session) {
                     throw new Error('Session not found');
@@ -242,12 +279,6 @@ export default function ChatPage() {
                     updatedAt: new Date()
                 };
                 setCurrentSession(updatedSession);
-
-                const updatedSessions = sessions.map(s =>
-                    s.id === chatId ? updatedSession : s
-                );
-                console.log(updatedSessions);
-                saveSessions(updatedSessions);
 
                 if (isConversationComplete) {
                     setIsConversationOver(true)
@@ -277,11 +308,6 @@ export default function ChatPage() {
                                     updatedAt: new Date()
                                 };
                                 setCurrentSession(finalSessionUpdate);
-
-                                const finalUpdatedSessions = updatedSessions.map(s =>
-                                    s.id === chatId ? finalSessionUpdate : s
-                                );
-                                saveSessions(finalUpdatedSessions);
                             }
                         } catch (error) {
                             console.error('Error extracting skills:', error);
@@ -294,10 +320,10 @@ export default function ChatPage() {
                 return finalMessages;
             });
         }
-    }, [chatId, saveSessions]);
+    }, [chatId]);
 
     // Combined method to send chat message and handle streaming response
-    const sendChatAndHandleStream = useCallback(async (messagesToSend: ChatMessage[], session: ChatSession | null, sessions: ChatSession[]) => {
+    const sendChatAndHandleStream = useCallback(async (messagesToSend: ChatMessage[], session: ChatSession | null) => {
         if (apiCallInProgressRef.current) {
             return;
         }
@@ -307,7 +333,7 @@ export default function ChatPage() {
 
         try {
             const stream = await sendChatMessage(messagesToSend);
-            await handleStreamingResponse(stream, session, sessions);
+            await handleStreamingResponse(stream, session, []);
         } catch (error) {
             console.error('Error in chat communication:', error);
             setIsLoading(false);
@@ -317,54 +343,62 @@ export default function ChatPage() {
         }
     }, [handleStreamingResponse]);
 
-    // Load chat sessions from localStorage
+    // Load chat history from API
     useEffect(() => {
         // Prevent duplicate API calls
         if (apiCallInProgressRef.current) {
             return;
         }
 
-        const savedSessions = localStorage.getItem('chatSessions');
-        if (!savedSessions) {
-            throw new Error('No saved sessions');
-        }
+        const loadChatHistory = async () => {
+            try {
+                // Fetch chat history from API
+                const chatHistory = await fetchChatHistory(chatId);
 
-        const parsed = JSON.parse(savedSessions);
-        console.log(parsed);
-        const sessions = parsed.map((session: ChatSession) => ({
-            ...session,
-            createdAt: new Date(session.createdAt),
-            updatedAt: new Date(session.updatedAt),
-            messages: session.messages.map((msg: ChatMessage) => ({
-                ...msg,
-                timestamp: new Date(msg.timestamp)
-            }))
-        }));
-        setChatSessions(sessions);
+                // Create a basic session structure
+                const currentChatSession: ChatSession = {
+                    id: chatId,
+                    title: `Chat ${chatId}`,
+                    messages: chatHistory,
+                    createdAt: chatHistory.length > 0 ? chatHistory[0].timestamp : new Date(),
+                    updatedAt: chatHistory.length > 0 ? chatHistory[chatHistory.length - 1].timestamp : new Date()
+                };
 
-        // Load current session
-        const current = sessions.find((s: ChatSession) => s.id === chatId);
-        if (!current) {
-            throw new Error('Current session not found');
-        }
-        console.log(current);
-        setCurrentSession(current);
-        setMessages(current.messages);
+                setCurrentSession(currentChatSession);
+                setMessages(chatHistory);
 
-        // Check if conversation is already over (has analysis message)
-        const hasAnalysis = current.messages.some((msg: ChatMessage) => msg.role === 'analysis');
-        if (hasAnalysis) {
-            setIsConversationOver(true);
-        }
+                // Check if conversation is already over (has analysis message)
+                const hasAnalysis = chatHistory.some((msg: ChatMessage) => msg.role === 'analysis');
+                if (hasAnalysis) {
+                    setIsConversationOver(true);
+                }
 
-        // Check if we need to get AI response
-        // This handles both new chats and failed responses
-        const needsAIResponse = current.messages[current.messages.length - 1].role === 'user' && !hasAnalysis;
+                // Check if we need to get AI response
+                // This handles both new chats and failed responses
+                const needsAIResponse = chatHistory.length > 0 &&
+                    chatHistory[chatHistory.length - 1].role === 'user' &&
+                    !hasAnalysis;
 
-        if (needsAIResponse && current.messages.length > 0) {
-            // There are user messages but no AI response - trigger API call
-            sendChatAndHandleStream(current.messages, current, sessions);
-        }
+                if (needsAIResponse) {
+                    // There are user messages but no AI response - trigger API call
+                    sendChatAndHandleStream(chatHistory, currentChatSession);
+                }
+            } catch (error) {
+                console.error('Error loading chat history:', error);
+                // Fallback to empty chat if API fails
+                const emptyChatSession: ChatSession = {
+                    id: chatId,
+                    title: `Chat ${chatId}`,
+                    messages: [],
+                    createdAt: new Date(),
+                    updatedAt: new Date()
+                };
+                setCurrentSession(emptyChatSession);
+                setMessages([]);
+            }
+        };
+
+        loadChatHistory();
     }, [chatId, sendChatAndHandleStream]);
 
     // Auto-scroll to bottom
@@ -381,7 +415,7 @@ export default function ChatPage() {
             // Update input state and trigger submit
             setInput(content);
             // Use setTimeout to ensure state is updated before submit
-            setTimeout(() => {
+            setTimeout(async () => {
                 const userMessage: ChatMessage = {
                     role: 'user',
                     content: content,
@@ -400,14 +434,9 @@ export default function ChatPage() {
                     };
                     setCurrentSession(updatedSession);
 
-                    const updatedSessions = chatSessions.map(s =>
-                        s.id === chatId ? updatedSession : s
-                    );
-                    saveSessions(updatedSessions);
+                    // Send the complete chat history to API
+                    sendChatAndHandleStream(newMessages, updatedSession);
                 }
-
-                // Send the complete chat history to API
-                sendChatAndHandleStream(newMessages, currentSession, chatSessions);
             }, 0);
         }
         // Reset input
@@ -437,7 +466,6 @@ export default function ChatPage() {
             <div className="flex h-screen bg-gray-50">
                 <ChatSidebar
                     currentChatId={chatId}
-                    chatSessions={chatSessions}
                     onNewChat={handleNewChat}
                     onChatSelect={handleChatSelect}
                     isOpen={isSidebarOpen}

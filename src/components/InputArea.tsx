@@ -554,7 +554,7 @@ export default function InputArea({
                             variant="outline"
                             onClick={deleteRecording}
                             disabled={disabled}
-                            className="rounded-full w-10 h-10 p-0 text-red-500 hover:text-red-600 border-red-300 hover:border-red-400 transition-all duration-200 cursor-pointer"
+                            className="rounded-full w-10 h-10 p-0 text-red-500 hover:text-red-600 border-red-300 hover:border-red-400 transition-all duration-200 cursor-pointer flex items-center justify-center"
                         >
                             <Trash2 className="h-4 w-4" />
                         </Button>
@@ -566,7 +566,7 @@ export default function InputArea({
                             variant={isRecording ? "default" : "outline"}
                             onClick={isRecording ? stopRecording : startRecording}
                             disabled={disabled || (isRecording && recordingDuration < 1)}
-                            className={`rounded-full w-10 h-10 p-0 transition-all duration-200 cursor-pointer ${isRecording
+                            className={`rounded-full w-10 h-10 p-0 transition-all duration-200 cursor-pointer flex items-center justify-center ${isRecording
                                 ? recordingDuration < 1
                                     ? "bg-gray-400 cursor-not-allowed text-white"
                                     : "bg-red-500 hover:bg-red-600 text-white"
