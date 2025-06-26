@@ -12,6 +12,7 @@ interface AuthContextType {
     error: string | null;
     userId: string | null;
     userEmail: string | null;
+    username: string | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -35,13 +36,17 @@ export function AuthProvider({ children, backendUrl }: AuthProviderProps) {
     const [error, setError] = useState<string | null>(null);
     const [userId, setUserId] = useState<string | null>(null);
     const [userEmail, setUserEmail] = useState<string | null>(null);
+    const [username, setUsername] = useState<string | null>(null);
 
     // Check if user is already authenticated on mount
     useEffect(() => {
         const storedUserId = localStorage.getItem("userId");
         const storedUserEmail = localStorage.getItem("userEmail");
-        if (storedUserId && storedUserEmail) {
+        const storedUsername = localStorage.getItem("username");
+
+        if (storedUserId && storedUsername) {
             setUserId(storedUserId);
+            setUsername(storedUsername);
             setUserEmail(storedUserEmail);
             setIsAuthenticated(true);
         }
@@ -68,10 +73,16 @@ export function AuthProvider({ children, backendUrl }: AuthProviderProps) {
 
             const data = await response.json();
 
-            // Store user ID and email if provided by backend
+            // Store user ID if provided by backend
             if (data.id) {
                 localStorage.setItem("userId", data.id);
                 setUserId(data.id);
+            }
+
+            // Store username if provided by backend
+            if (data.username) {
+                localStorage.setItem("username", data.username);
+                setUsername(data.username);
             }
 
             // Store the email used for login
@@ -124,6 +135,16 @@ export function AuthProvider({ children, backendUrl }: AuthProviderProps) {
                 setUserId(responseData.id);
             }
 
+            // Store username from response, or use the submitted username as fallback
+            if (responseData.username) {
+                localStorage.setItem("username", responseData.username);
+                setUsername(responseData.username);
+            } else {
+                // Fallback: use the username from form data
+                localStorage.setItem("username", data.username);
+                setUsername(data.username);
+            }
+
             localStorage.setItem("userEmail", data.email);
             setUserEmail(data.email);
 
@@ -144,8 +165,10 @@ export function AuthProvider({ children, backendUrl }: AuthProviderProps) {
     const logout = () => {
         localStorage.removeItem("userId");
         localStorage.removeItem("userEmail");
+        localStorage.removeItem("username");
         setUserId(null);
         setUserEmail(null);
+        setUsername(null);
         setIsAuthenticated(false);
         setError(null);
     };
@@ -159,6 +182,7 @@ export function AuthProvider({ children, backendUrl }: AuthProviderProps) {
         error,
         userId,
         userEmail,
+        username,
     };
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -478,13 +478,6 @@ export default function InputArea({
         }
     };
 
-    const handleKeyPress = (e: React.KeyboardEvent) => {
-        if (e.key === 'Enter' && e.shiftKey) {
-            e.preventDefault();
-            handleSubmit();
-        }
-    };
-
     const formatDuration = (seconds: number) => {
         const mins = Math.floor(seconds / 60);
         const secs = seconds % 60;
@@ -545,7 +538,6 @@ export default function InputArea({
                         ref={inputRef}
                         value={value}
                         onChange={handleTextChange}
-                        onKeyPress={handleKeyPress}
                         placeholder={placeholder}
                         disabled={disabled}
                         className={`w-full p-4 pr-28 border-2 border-gray-200 rounded-2xl resize-none focus:outline-none transition-all duration-200 shadow-lg placeholder-gray-500 text-gray-700 min-h-[60px] relative z-10 overflow-y-auto bg-white/80 backdrop-blur-sm`}
@@ -607,7 +599,7 @@ export default function InputArea({
                     ? "🔴 Click the stop button when you're done recording"
                     : recordedBlob
                         ? "🎵 Review your recording and submit when ready"
-                        : "💡 Type your message or click the mic to record a voice message"
+                        : "💡 Type your message and hit enter to submit"
                 }
             </p>
         </div>

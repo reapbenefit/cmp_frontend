@@ -1,3 +1,5 @@
+import { Community } from "@/components/CommunityCard";
+
 export interface ActionDetails {
     actionType: string;
     skillsCovered: string[];
@@ -97,4 +99,21 @@ export interface SignupResponse {
 export interface SignupError {
     message: string;
     field?: string;
+}
+
+
+
+// User data interface matching backend response
+export interface UserProfile {
+    first_name: string;
+    last_name: string;
+    username: string;
+    email: string;
+    id: number;
+    is_verified: boolean;
+    bio: string | null;
+    location_state: string | null;
+    location_city: string | null;
+    location_country: string | null;
+    communities: Community[];
 }

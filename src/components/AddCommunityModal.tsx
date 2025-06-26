@@ -8,10 +8,10 @@ interface AddCommunityModalProps {
     isOpen: boolean;
     onClose: () => void;
     onAdd: (community: Community) => void;
-    userId: string | null;
+    username: string | null;
 }
 
-export default function AddCommunityModal({ isOpen, onClose, onAdd, userId }: AddCommunityModalProps) {
+export default function AddCommunityModal({ isOpen, onClose, onAdd, username }: AddCommunityModalProps) {
     const [formData, setFormData] = useState({
         name: '',
         description: '',
@@ -22,7 +22,7 @@ export default function AddCommunityModal({ isOpen, onClose, onAdd, userId }: Ad
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!formData.name.trim() || !formData.description.trim() || !userId) {
+        if (!formData.name.trim() || !formData.description.trim() || !username) {
             return;
         }
 
@@ -39,7 +39,7 @@ export default function AddCommunityModal({ isOpen, onClose, onAdd, userId }: Ad
                     name: formData.name.trim(),
                     description: formData.description.trim(),
                     link: formData.link.trim() || null,
-                    user_id: parseInt(userId)
+                    username: username
                 })
             });
 
