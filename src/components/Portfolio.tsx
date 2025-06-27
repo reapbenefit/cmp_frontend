@@ -431,40 +431,49 @@ export default function Portfolio() {
                                 <div className="mb-6">
                                     <h3 className="text-lg font-semibold text-gray-900 mb-3">Skills</h3>
                                     <div className="grid grid-cols-3 gap-3">
-                                        {userProfile?.skills?.sort((a, b) => b.history.length - a.history.length).map((skill) => (
-                                            <div
-                                                key={skill.id}
-                                                className="relative group cursor-pointer flex flex-col items-center"
-                                                onClick={() => setSelectedSkill(skill)}
-                                            >
-                                                <div className="relative mb-2">
-                                                    <div className="w-16 h-16 rounded-full border-2 border-gray-200 overflow-hidden hover:border-gray-300 transition-colors">
-                                                        <img
-                                                            src={`/badges/${skill.name}.png`}
-                                                            alt={skill.label}
-                                                            className="w-full h-full object-cover"
-                                                            title={skill.label}
-                                                            onError={(e) => {
-                                                                const target = e.target as HTMLImageElement;
-                                                                target.style.display = 'none';
-                                                            }}
-                                                        />
-                                                    </div>
-                                                    {skill.history.length > 1 && (
-                                                        <div className="absolute -bottom-1 -right-1 bg-gray-900 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center font-semibold">
-                                                            x{skill.history.length}
+                                        {userProfile?.skills && userProfile.skills.length > 0 ? (
+                                            userProfile.skills.sort((a, b) => b.history.length - a.history.length).map((skill) => (
+                                                <div
+                                                    key={skill.id}
+                                                    className="relative group cursor-pointer flex flex-col items-center"
+                                                    onClick={() => setSelectedSkill(skill)}
+                                                >
+                                                    <div className="relative mb-2">
+                                                        <div className="w-16 h-16 rounded-full border-2 border-gray-200 overflow-hidden hover:border-gray-300 transition-colors">
+                                                            <img
+                                                                src={`/badges/${skill.name}.png`}
+                                                                alt={skill.label}
+                                                                className="w-full h-full object-cover"
+                                                                title={skill.label}
+                                                                onError={(e) => {
+                                                                    const target = e.target as HTMLImageElement;
+                                                                    target.style.display = 'none';
+                                                                }}
+                                                            />
                                                         </div>
-                                                    )}
+                                                        {skill.history.length > 1 && (
+                                                            <div className="absolute -bottom-1 -right-1 bg-gray-900 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center font-semibold">
+                                                                x{skill.history.length}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <span className="text-xs text-gray-700 text-center leading-tight">
+                                                        {skill.label}
+                                                    </span>
                                                 </div>
-                                                <span className="text-xs text-gray-700 text-center leading-tight">
-                                                    {skill.label}
-                                                </span>
+                                            ))
+                                        ) : (
+                                            <div className="col-span-3 text-center py-6">
+                                                <div className="text-gray-400 mb-3">
+                                                    <svg className="w-8 h-8 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                                                    </svg>
+                                                </div>
+                                                <p className="text-sm text-gray-600 leading-relaxed">
+                                                    Your skills will appear here once you start recording your actions as a Solve Ninja
+                                                </p>
                                             </div>
-                                        )) || (
-                                                <div className="col-span-3 text-center text-gray-500 py-4">
-                                                    No skills demonstrated yet
-                                                </div>
-                                            )}
+                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -532,61 +541,69 @@ export default function Portfolio() {
                             {activeTab === 'overview' ? (
                                 <>
                                     {/* Actionable Personality Summary */}
-                                    <div className="mb-8 bg-gradient-to-br from-blue-50 via-green-50 to-orange-50 rounded-xl p-6 border border-gray-100">
-                                        <div className="flex items-start gap-4">
-                                            <div className="flex-shrink-0">
-                                                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-green-500 rounded-full flex items-center justify-center">
-                                                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                                                    </svg>
+                                    {userProfile?.highlight && (
+                                        <div className="mb-8 bg-gradient-to-br from-blue-50 via-green-50 to-orange-50 rounded-xl p-6 border border-gray-100">
+                                            <div className="flex items-center gap-4">
+                                                <div className="flex-shrink-0">
+                                                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-green-500 rounded-full flex items-center justify-center">
+                                                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                                        </svg>
+                                                    </div>
+                                                </div>
+                                                <div className="flex-1">
+                                                    <p className="text-gray-700 leading-relaxed">
+                                                        {userProfile.highlight}
+                                                    </p>
                                                 </div>
                                             </div>
-                                            <div className="flex-1">
-                                                {/* <h2 className="text-xl font-bold text-gray-900 mb-3">Action-Driven Systems Builder</h2> */}
-                                                <p className="text-gray-700 mb-4 leading-relaxed">
-                                                    Through {allActions.length} civic actions totaling {allActions.reduce((sum, action) => sum + (action.hours || 0), 0)} hours, Kuppendra has proven himself as a strategic changemaker who tackles complex community challenges. His standout strength is Community Collaboration (demonstrated in 8 actions), showing he excels at uniting diverse stakeholders for lasting impact.
-                                                </p>
-                                                {/* <div className="flex flex-wrap gap-2 mb-4">
-                                                    <div className="flex items-center gap-2 bg-white border border-green-200 px-3 py-1.5 rounded-lg">
-                                                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                                                        <span className="text-sm font-medium text-gray-700">Systems Thinking: Environment → Social Impact</span>
-                                                    </div>
-                                                    <div className="flex items-center gap-2 bg-white border border-blue-200 px-3 py-1.5 rounded-lg">
-                                                        <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                                                        <span className="text-sm font-medium text-gray-700">Hands-On: 4 practical projects</span>
-                                                    </div>
-                                                    <div className="flex items-center gap-2 bg-white border border-orange-200 px-3 py-1.5 rounded-lg">
-                                                        <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                                                        <span className="text-sm font-medium text-gray-700">Cross-sector Bridge: Government ↔ Community</span>
-                                                    </div>
-                                                </div> */}
-
-                                            </div>
                                         </div>
-                                    </div>
+                                    )}
 
                                     {/* Pinned Actions */}
                                     <div className="mb-8">
                                         <div className="flex items-center justify-between mb-4">
                                             <h2 className="text-lg font-semibold text-gray-900">Top Actions</h2>
-                                            <button
-                                                onClick={() => setIsCustomizeModalOpen(true)}
-                                                className="text-sm text-blue-600 hover:underline cursor-pointer"
-                                            >
-                                                Customize your top actions
-                                            </button>
+                                            {currentTopActions.length > 0 && (
+                                                <button
+                                                    onClick={() => setIsCustomizeModalOpen(true)}
+                                                    className="text-sm text-blue-600 hover:underline cursor-pointer"
+                                                >
+                                                    Customize your top actions
+                                                </button>
+                                            )}
                                         </div>
 
-                                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                                            {currentTopActions.map(action => (
-                                                <ActionCard
-                                                    key={action.id}
-                                                    action={action}
-                                                    onActionClick={(a) => setSelectedAction(a)}
-                                                    variant="compact"
-                                                />
-                                            ))}
-                                        </div>
+                                        {currentTopActions.length > 0 ? (
+                                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                                                {currentTopActions.map(action => (
+                                                    <ActionCard
+                                                        key={action.id}
+                                                        action={action}
+                                                        onActionClick={(a) => setSelectedAction(a)}
+                                                        variant="compact"
+                                                    />
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200">
+                                                <div className="text-gray-400 mb-4">
+                                                    <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                                    </svg>
+                                                </div>
+                                                <h3 className="text-lg font-medium text-gray-900 mb-2">Ready to make an impact?</h3>
+                                                <p className="text-gray-600 max-w-md mx-auto leading-relaxed">
+                                                    Start your journey as a Solve Ninja by recording your first action. Your top actions will be showcased here to inspire others!
+                                                </p>
+                                                <button
+                                                    onClick={() => window.location.href = '/'}
+                                                    className="mt-4 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors cursor-pointer font-medium"
+                                                >
+                                                    Record your first action
+                                                </button>
+                                            </div>
+                                        )}
                                     </div>
 
                                     {/* Expert Reviews */}
@@ -624,16 +641,48 @@ export default function Portfolio() {
                             ) : activeTab === 'actions' ? (
                                 /* Actions Tab Content */
                                 <div className="space-y-6">
-                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                                        {allActions.map(action => (
-                                            <ActionCard
-                                                key={action.id}
-                                                action={action}
-                                                onActionClick={(a) => setSelectedAction(a)}
-                                                variant="compact"
-                                            />
-                                        ))}
-                                    </div>
+                                    {allActions.length > 0 ? (
+                                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                                            {allActions.map(action => (
+                                                <ActionCard
+                                                    key={action.id}
+                                                    action={action}
+                                                    onActionClick={(a) => setSelectedAction(a)}
+                                                    variant="compact"
+                                                />
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="text-center py-16">
+                                            <div className="text-gray-400 mb-6">
+                                                <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                </svg>
+                                            </div>
+                                            <h3 className="text-xl font-semibold text-gray-900 mb-3">Your action portfolio awaits!</h3>
+                                            <p className="text-gray-600 max-w-lg mx-auto leading-relaxed mb-6">
+                                                Every great changemaker starts with a single action. Record your actions to build your portfolio and inspire your community. Whether it's organizing a cleanup drive, advocating for local policy, or leading an environmental project - your actions matter!
+                                            </p>
+                                            <div className="flex flex-wrap justify-center gap-3 text-sm text-gray-500">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                                    <span>Discover local issues</span>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                                                    <span>Investigate solutions</span>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                                                    <span>Solve problems</span>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                                                    <span>Share your impact</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             ) : (
                                 /* Communities Tab Content */

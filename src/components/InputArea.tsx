@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, forwardRef, useImperativeHandle } from "react";
 import { Mic, Square, Play, Pause, Send, Trash2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -40,14 +40,24 @@ const Waveform = ({ audioData }: { audioData: number[] }) => {
     );
 };
 
-export default function InputArea({
+// Add interface for the ref methods
+interface InputAreaRef {
+    focus: () => void;
+}
+
+// Update the component to use forwardRef and export the interface
+export interface InputAreaHandle {
+    focus: () => void;
+}
+
+export default forwardRef<InputAreaHandle, InputAreaProps>(function InputArea({
     placeholder,
     value,
     onChange,
     onSubmit,
     disabled = false,
     isLoading = false
-}: InputAreaProps) {
+}, ref) {
     const [isRecording, setIsRecording] = useState(false);
     const [isPlaying, setIsPlaying] = useState(false);
     const [recordedBlob, setRecordedBlob] = useState<Blob | null>(null);
@@ -507,6 +517,15 @@ export default function InputArea({
         };
     }, [stopAudioAnalysis, stopPlaybackAnalysis]);
 
+    // Expose focus method to parent component
+    useImperativeHandle(ref, () => ({
+        focus: () => {
+            if (inputRef.current && !isRecording && !recordedBlob) {
+                inputRef.current.focus();
+            }
+        }
+    }), [isRecording, recordedBlob]);
+
     return (
         <div className="w-full">
             <div className="relative flex items-center">
@@ -615,4 +634,4 @@ export default function InputArea({
             </p>
         </div>
     );
-} 
+}); 

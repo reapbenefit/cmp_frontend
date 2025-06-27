@@ -5,7 +5,7 @@ import { useRouter, useParams } from "next/navigation";
 import { Loader2, Trophy, Star } from "lucide-react";
 import { ChatMessage, ChatSession, StreamingResponse, SkillExtractionResponse } from "@/types";
 import ChatSidebar, { SidebarToggle } from "@/components/ChatSidebar";
-import InputArea from "@/components/InputArea";
+import InputArea, { InputAreaHandle } from "@/components/InputArea";
 import AuthWrapper from "@/components/AuthWrapper";
 
 // Chat API function
@@ -166,6 +166,7 @@ const MessageBubble = ({ message, isStreaming }: { message: ChatMessage; isStrea
                                     </div>
                                 ))}
                             </div>
+                            <span className="text-sm font-medium text-gray-600">Your portfolio has been updated with your new action. Go check it out!</span>
                         </div>
                     )}
                 </div>
@@ -240,6 +241,7 @@ export default function ChatPage() {
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const apiCallInProgressRef = useRef<boolean>(false);
     const analysisSentRef = useRef<boolean>(false);
+    const inputAreaRef = useRef<InputAreaHandle>(null);
 
     // Handle streaming response
     const handleStreamingResponse = useCallback(async (stream: ReadableStream<Uint8Array>, session: ChatSession | null, sessions: ChatSession[], messageCount: number, userMessage?: ChatMessage) => {
@@ -289,6 +291,11 @@ export default function ChatPage() {
         } finally {
             setIsStreaming(false);
             setIsLoading(false);
+
+            // Focus the input area after AI response is complete
+            setTimeout(() => {
+                inputAreaRef.current?.focus();
+            }, 100);
 
             // Send messages to backend
             // For first exchange (messageCount <= 1), send only AI response
@@ -381,6 +388,9 @@ export default function ChatPage() {
 
                                     await updateAction(chatId, actionData);
                                     console.log('Action created/updated successfully');
+
+
+
                                 } catch (error) {
                                     console.error('Error creating/updating action:', error);
                                 }
@@ -587,6 +597,7 @@ export default function ChatPage() {
                     {!isConversationOver && (
                         <div className="p-4 max-w-4xl mx-auto w-full px-8 pb-8">
                             <InputArea
+                                ref={inputAreaRef}
                                 placeholder="Continue the conversation"
                                 value={input}
                                 onChange={setInput}

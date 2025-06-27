@@ -153,4 +153,5 @@ export interface UserProfile {
     communities: Community[];
     actions: Action[];
     skills: ApiSkill[];
+    highlight: string | null;
 }
