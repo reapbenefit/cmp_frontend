@@ -40,11 +40,6 @@ const Waveform = ({ audioData }: { audioData: number[] }) => {
     );
 };
 
-// Add interface for the ref methods
-interface InputAreaRef {
-    focus: () => void;
-}
-
 // Update the component to use forwardRef and export the interface
 export interface InputAreaHandle {
     focus: () => void;

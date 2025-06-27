@@ -661,7 +661,7 @@ export default function Portfolio() {
                                             </div>
                                             <h3 className="text-xl font-semibold text-gray-900 mb-3">Your action portfolio awaits!</h3>
                                             <p className="text-gray-600 max-w-lg mx-auto leading-relaxed mb-6">
-                                                Every great changemaker starts with a single action. Record your actions to build your portfolio and inspire your community. Whether it's organizing a cleanup drive, advocating for local policy, or leading an environmental project - your actions matter!
+                                                Every great changemaker starts with a single action. Record your actions to build your portfolio and inspire your community. Whether it is organizing a cleanup drive, advocating for local policy, or leading an environmental project - your actions matter!
                                             </p>
                                             <div className="flex flex-wrap justify-center gap-3 text-sm text-gray-500">
                                                 <div className="flex items-center gap-2">
