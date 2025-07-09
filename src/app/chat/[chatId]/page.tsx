@@ -56,7 +56,6 @@ async function extractSkills(messages: ChatMessage[]): Promise<SkillExtractionRe
 
 // Send chat message to backend API function
 async function sendChatMessageToBackend(chatId: string, messages: ChatMessage[]): Promise<void> {
-    console.log('asasdasd')
     const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/chat_messages/${chatId}`, {
         method: 'POST',
         headers: {
