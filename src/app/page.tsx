@@ -20,7 +20,7 @@ const ExampleActions = ({ onExampleClick }: { onExampleClick: (text: string) => 
   ];
 
   return (
-    <div className="w-full max-w-4xl mx-auto mb-8">
+    <div className="w-full max-w-4xl mx-auto mb-6 md:mb-8">
       <p className="text-center text-gray-600 mb-4 text-sm font-medium">
         💡 Examples to get you started
       </p>
@@ -31,11 +31,11 @@ const ExampleActions = ({ onExampleClick }: { onExampleClick: (text: string) => 
             <div
               key={index}
               onClick={() => onExampleClick(example.starter)}
-              className="bg-white/60 backdrop-blur-sm rounded-lg p-3 shadow-sm border border-gray-200/50 hover:bg-white/80 transition-all duration-200 cursor-pointer group"
+              className="bg-white/60 backdrop-blur-sm rounded-lg p-1 md:p-3 shadow-sm border border-gray-200/50 hover:bg-white/80 transition-all duration-200 cursor-pointer group h-16 flex items-center justify-center"
             >
               <div className="flex items-center gap-2">
-                <Icon className={`h-4 w-4 ${example.color} group-hover:scale-110 transition-transform duration-200`} />
-                <span className="text-sm text-gray-700 font-medium">{example.text}</span>
+                <Icon className={`h-4 w-4 ${example.color} group-hover:scale-110 transition-transform duration-200 flex-shrink-0`} />
+                <span className="text-sm text-gray-700 font-medium leading-tight">{example.text}</span>
               </div>
             </div>
           );
@@ -154,13 +154,13 @@ export default function Home() {
         {/* Main content */}
         <div className="flex-1 flex flex-col w-full">
           {/* Header */}
-          <div className="p-4 flex items-center gap-3 h-16">
+          <div className="p-4 flex items-center gap-3 h-16 flex-shrink-0">
             <SidebarToggle isOpen={isSidebarOpen} onToggle={toggleSidebar} />
           </div>
 
-          {/* Main content */}
-          <div className="flex-1 overflow-y-auto">
-            <div className="min-h-full bg-gradient-to-br from-green-50 via-white to-blue-50 relative overflow-hidden">
+          {/* Main content - Mobile: flex layout with sticky input, Desktop: centered layout */}
+          <div className="flex-1 overflow-hidden md:overflow-y-auto">
+            <div className="h-full bg-gradient-to-br from-green-50 via-white to-blue-50 relative overflow-hidden">
               {/* Background decoration */}
               <div className="absolute inset-0 opacity-5">
                 <div className="absolute top-20 left-10 w-32 h-32 bg-green-400 rounded-full blur-3xl"></div>
@@ -168,8 +168,48 @@ export default function Home() {
                 <div className="absolute bottom-40 left-1/4 w-40 h-40 bg-orange-400 rounded-full blur-3xl"></div>
               </div>
 
-              {/* Main content */}
-              <div className="relative z-10 px-4 py-16">
+              {/* Mobile Layout: Flex column with sticky input */}
+              <div className="relative z-10 h-full flex flex-col md:hidden">
+                {/* Content area - scrollable */}
+                <div className="flex-1 overflow-y-auto px-4 pt-4 pb-2">
+                  <div className="max-w-4xl mx-auto">
+                    {/* Hero section */}
+                    <div className="text-center mb-6 max-w-2xl mx-auto">
+                      <div className="mb-4">
+                        <h1 className="text-3xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent mb-2">
+                          Solve Ninja Movement
+                        </h1>
+                        <p className="text-lg text-gray-700 mb-4">
+                          India&apos;s Largest Changemaker Community
+                        </p>
+                        <p className="text-base text-gray-600 mb-6">
+                          Share your latest community action and inspire others to join the movement
+                        </p>
+                      </div>
+
+                      {/* Example Actions */}
+                      <ExampleActions onExampleClick={handleExampleClick} />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Input area - sticky to bottom on mobile */}
+                <div className="flex-shrink-0 p-4 pt-2 bg-gradient-to-t from-white/80 to-transparent backdrop-blur-sm">
+                  <div className="w-full max-w-2xl mx-auto">
+                    <InputArea
+                      placeholder="What action did you take today?"
+                      value={action}
+                      onChange={setAction}
+                      onSubmit={handleInputSubmit}
+                      disabled={isSubmitting}
+                      isLoading={isSubmitting}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Desktop Layout: Centered layout */}
+              <div className="relative z-10 px-4 py-8 md:py-16 hidden md:block">
                 <div className="max-w-4xl mx-auto">
                   <div className="flex flex-col items-center justify-center min-h-[calc(100vh-8rem)]">
                     {/* Hero section */}
@@ -190,7 +230,7 @@ export default function Home() {
                       <ExampleActions onExampleClick={handleExampleClick} />
                     </div>
 
-                    {/* Input area - now using the InputArea component */}
+                    {/* Input area - centered on desktop */}
                     <div className="w-full max-w-2xl">
                       <InputArea
                         placeholder="What action did you take today?"
