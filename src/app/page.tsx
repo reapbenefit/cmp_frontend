@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { TreePine, Users, Recycle, Heart, Sprout, BookOpen } from "lucide-react";
 import ChatSidebar, { SidebarToggle } from "@/components/ChatSidebar";
@@ -49,16 +49,29 @@ export default function Home() {
   const router = useRouter();
   const [action, setAction] = useState("");
 
-  // Initialize sidebar state based on screen size - closed on mobile, open on desktop
-  const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return window.innerWidth >= 768; // 768px is md breakpoint in Tailwind
-    }
-    return false; // Default to closed during SSR
-  });
+  // Initialize sidebar state - always closed on mobile, open on desktop
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { userId } = useAuth();
+
+  // Set initial sidebar state based on screen size after component mounts
+  useEffect(() => {
+    const checkScreenSize = () => {
+      const isMobile = window.innerWidth < 768; // 768px is md breakpoint in Tailwind
+      setIsSidebarOpen(!isMobile); // Only open on desktop (>= 768px)
+    };
+
+    // Set initial state
+    checkScreenSize();
+
+    // Optional: Listen for window resize to handle orientation changes
+    window.addEventListener('resize', checkScreenSize);
+
+    return () => {
+      window.removeEventListener('resize', checkScreenSize);
+    };
+  }, []);
 
   const handleExampleClick = (text: string) => {
     setAction(text);
