@@ -56,7 +56,6 @@ export default function AuthContainer() {
     return (
         <LoginForm
             onLogin={login}
-            onSwitchToSignup={handleSwitchToSignup}
             isLoading={isLoading}
             error={error || undefined}
         />

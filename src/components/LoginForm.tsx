@@ -5,12 +5,11 @@ import { Button } from "@/components/ui/button";
 
 interface LoginFormProps {
     onLogin: (email: string, password: string) => Promise<void>;
-    onSwitchToSignup: () => void;
     isLoading?: boolean;
     error?: string;
 }
 
-export default function LoginForm({ onLogin, onSwitchToSignup, isLoading = false, error }: LoginFormProps) {
+export default function LoginForm({ onLogin, isLoading = false, error }: LoginFormProps) {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
 
