@@ -528,8 +528,8 @@ export default forwardRef<InputAreaHandle, InputAreaProps>(function InputArea({
                 {isRecording ? (
                     <div className="w-full border-2 border-red-400 rounded-2xl bg-gradient-to-r from-red-50 to-orange-50 shadow-lg min-h-[60px] flex items-center justify-center relative z-10">
                         <Waveform audioData={audioData} />
-                        <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-red-600 font-medium text-sm flex items-center gap-2">
-                            <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+                        <div className="absolute left-3 md:left-4 top-1/2 transform -translate-y-1/2 text-red-600 font-medium text-xs md:text-sm flex items-center gap-2">
+                            <div className="w-2 md:w-3 h-2 md:h-3 bg-red-500 rounded-full animate-pulse"></div>
                             Recording {formatDuration(recordingDuration)}
                         </div>
                     </div>
@@ -541,19 +541,19 @@ export default forwardRef<InputAreaHandle, InputAreaProps>(function InputArea({
                                 size="sm"
                                 variant="outline"
                                 onClick={isPlaying ? pausePlayback : playRecording}
-                                className="rounded-full w-10 h-10 p-0 bg-blue-500 hover:bg-blue-600 text-white hover:text-white border-blue-500 cursor-pointer"
+                                className="rounded-full w-8 h-8 md:w-10 md:h-10 p-0 bg-blue-500 hover:bg-blue-600 text-white hover:text-white border-blue-500 cursor-pointer"
                             >
-                                {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                                {isPlaying ? <Pause className="h-3 w-3 md:h-4 md:w-4" /> : <Play className="h-3 w-3 md:h-4 md:w-4" />}
                             </Button>
                         </div>
 
                         {/* Current playback time */}
-                        <div className="absolute left-16 top-1/2 transform -translate-y-1/2 text-xs font-medium text-blue-700">
+                        <div className="absolute left-12 md:left-16 top-1/2 transform -translate-y-1/2 text-xs font-medium text-blue-700">
                             {formatDuration(currentPlaybackTime)} / {formatDuration(recordingDuration)}
                         </div>
 
                         {/* Waveform in the middle */}
-                        <div className="flex-1 mx-16">
+                        <div className="flex-1 mx-12 md:mx-16">
                             <Waveform audioData={isPlaying ? playbackAudioData : Array(20).fill(0.1)} />
                         </div>
                     </div>
@@ -565,13 +565,13 @@ export default forwardRef<InputAreaHandle, InputAreaProps>(function InputArea({
                         onKeyDown={handleKeyDown}
                         placeholder={placeholder}
                         disabled={disabled || isLoading}
-                        className={`w-full p-4 pr-28 border-2 border-gray-200 rounded-2xl resize-none focus:outline-none transition-all duration-200 shadow-lg placeholder-gray-500 text-gray-700 min-h-[60px] relative z-10 overflow-y-auto bg-white/80 backdrop-blur-sm`}
+                        className={`w-full p-3 md:p-4 pr-20 md:pr-28 border-2 border-gray-200 rounded-2xl resize-none focus:outline-none transition-all duration-200 shadow-lg placeholder-gray-500 text-gray-700 min-h-[60px] relative z-10 overflow-y-auto bg-white/80 backdrop-blur-sm text-sm md:text-base`}
                         rows={1}
                     />
                 )}
 
                 {/* Action buttons - positioned absolutely but relative to the flex container */}
-                <div className="absolute right-3 flex items-center gap-2 z-20 h-full">
+                <div className="absolute right-2 md:right-3 flex items-center gap-1 md:gap-2 z-20 h-full">
                     {recordedBlob ? (
                         <Button
                             type="button"
@@ -579,9 +579,9 @@ export default forwardRef<InputAreaHandle, InputAreaProps>(function InputArea({
                             variant="outline"
                             onClick={deleteRecording}
                             disabled={disabled || isLoading}
-                            className="rounded-full w-10 h-10 p-0 text-red-500 hover:text-red-600 border-red-300 hover:border-red-400 transition-all duration-200 cursor-pointer flex items-center justify-center"
+                            className="rounded-full w-8 h-8 md:w-10 md:h-10 p-0 text-red-500 hover:text-red-600 border-red-300 hover:border-red-400 transition-all duration-200 cursor-pointer flex items-center justify-center"
                         >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="h-3 w-3 md:h-4 md:w-4" />
                         </Button>
                     ) : (
                         <Button
@@ -591,7 +591,7 @@ export default forwardRef<InputAreaHandle, InputAreaProps>(function InputArea({
                             variant={isRecording ? "default" : "outline"}
                             onClick={isRecording ? stopRecording : startRecording}
                             disabled={disabled || isLoading || (isRecording && recordingDuration < 1)}
-                            className={`rounded-full w-10 h-10 p-0 transition-all duration-200 cursor-pointer flex items-center justify-center ${isRecording
+                            className={`rounded-full w-8 h-8 md:w-10 md:h-10 p-0 transition-all duration-200 cursor-pointer flex items-center justify-center ${isRecording
                                 ? recordingDuration < 1
                                     ? "bg-gray-400 cursor-not-allowed text-white"
                                     : "bg-red-500 hover:bg-red-600 text-white"
@@ -599,9 +599,9 @@ export default forwardRef<InputAreaHandle, InputAreaProps>(function InputArea({
                                 }`}
                         >
                             {isRecording ? (
-                                <Square className="h-4 w-4" />
+                                <Square className="h-3 w-3 md:h-4 md:w-4" />
                             ) : (
-                                <Mic className="h-4 w-4" />
+                                <Mic className="h-3 w-3 md:h-4 md:w-4" />
                             )}
                         </Button>
                     )}
@@ -611,9 +611,9 @@ export default forwardRef<InputAreaHandle, InputAreaProps>(function InputArea({
                         size="sm"
                         onClick={handleSubmit}
                         disabled={disabled || isLoading || (!value.trim() && !recordedBlob)}
-                        className="rounded-full w-10 h-10 p-0 bg-green-500 hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all duration-200 cursor-pointer flex items-center justify-center"
+                        className="rounded-full w-8 h-8 md:w-10 md:h-10 p-0 bg-green-500 hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all duration-200 cursor-pointer flex items-center justify-center"
                     >
-                        {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                        {isLoading ? <Loader2 className="h-3 w-3 md:h-4 md:w-4 animate-spin" /> : <Send className="h-3 w-3 md:h-4 md:w-4" />}
                     </Button>
                 </div>
             </div>
