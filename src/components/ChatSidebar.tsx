@@ -73,7 +73,7 @@ export default function ChatSidebar({ currentChatId, onNewChat, onChatSelect, is
     if (!isOpen) return null;
 
     return (
-        <div className="w-64 bg-white border-r border-gray-200 h-screen flex flex-col shadow-lg">
+        <div className="fixed md:relative w-[80%] md:w-64 bg-white border-r border-gray-200 h-screen flex flex-col shadow-lg z-50 md:z-auto">
             <div className="p-4 border-b border-gray-200">
                 <div className="flex gap-2 items-center">
                     <Button

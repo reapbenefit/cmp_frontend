@@ -235,7 +235,14 @@ export default function ChatPage() {
     const [isConversationOver, setIsConversationOver] = useState(false);
     const [isExtractingSkills, setIsExtractingSkills] = useState(false);
     const [currentSession, setCurrentSession] = useState<ChatSession | null>(null);
-    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
+    // Initialize sidebar state based on screen size - closed on mobile, open on desktop
+    const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
+        if (typeof window !== 'undefined') {
+            return window.innerWidth >= 768; // 768px is md breakpoint in Tailwind
+        }
+        return false; // Default to closed during SSR
+    });
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const apiCallInProgressRef = useRef<boolean>(false);
@@ -549,7 +556,15 @@ export default function ChatPage() {
 
     return (
         <AuthWrapper>
-            <div className="flex h-screen bg-gray-50">
+            <div className="relative flex h-screen bg-gray-50">
+                {/* Mobile backdrop overlay */}
+                {isSidebarOpen && (
+                    <div
+                        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 md:hidden"
+                        onClick={closeSidebar}
+                    />
+                )}
+
                 <ChatSidebar
                     currentChatId={chatId}
                     onNewChat={handleNewChat}

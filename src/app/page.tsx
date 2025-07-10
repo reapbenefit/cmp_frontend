@@ -48,7 +48,15 @@ const ExampleActions = ({ onExampleClick }: { onExampleClick: (text: string) => 
 export default function Home() {
   const router = useRouter();
   const [action, setAction] = useState("");
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
+  // Initialize sidebar state based on screen size - closed on mobile, open on desktop
+  const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth >= 768; // 768px is md breakpoint in Tailwind
+    }
+    return false; // Default to closed during SSR
+  });
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { userId } = useAuth();
 
@@ -125,7 +133,16 @@ export default function Home() {
 
   return (
     <AuthWrapper>
-      <div className="flex h-screen bg-gray-50">
+      <div className="relative flex h-screen bg-gray-50">
+        {/* Mobile backdrop overlay */}
+        {isSidebarOpen && (
+          <div
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 md:hidden"
+            onClick={closeSidebar}
+          />
+        )}
+
+        {/* Sidebar */}
         <ChatSidebar
           currentChatId=""
           onNewChat={handleNewChat}
@@ -134,7 +151,8 @@ export default function Home() {
           onClose={closeSidebar}
         />
 
-        <div className="flex-1 flex flex-col">
+        {/* Main content */}
+        <div className="flex-1 flex flex-col w-full">
           {/* Header */}
           <div className="p-4 flex items-center gap-3 h-16">
             <SidebarToggle isOpen={isSidebarOpen} onToggle={toggleSidebar} />
