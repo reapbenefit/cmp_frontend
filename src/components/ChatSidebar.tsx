@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, X, PanelLeft, User, LogOut, FileUser } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { Plus, X, PanelLeft, User, LogOut } from "lucide-react";
+// import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ChatSession } from "@/types";
 import { useAuth } from "@/lib/auth";
@@ -42,7 +42,7 @@ interface ChatSidebarProps {
 
 export default function ChatSidebar({ currentChatId, onNewChat, onChatSelect, isOpen, onClose }: ChatSidebarProps) {
     const { userEmail, userId, logout } = useAuth();
-    const router = useRouter();
+    // const router = useRouter();
     const [chatSessions, setChatSessions] = useState<ChatSession[]>([]);
     const [isLoading, setIsLoading] = useState(false);
 
@@ -66,9 +66,9 @@ export default function ChatSidebar({ currentChatId, onNewChat, onChatSelect, is
         loadChatSessions();
     }, [userId]);
 
-    const handlePortfolioClick = () => {
-        router.push("/portfolio");
-    };
+    // const handlePortfolioClick = () => {
+    //     router.push("/portfolio");
+    // };
 
     if (!isOpen) return null;
 
