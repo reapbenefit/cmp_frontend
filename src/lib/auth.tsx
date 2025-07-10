@@ -13,6 +13,7 @@ interface AuthContextType {
     userId: string | null;
     userEmail: string | null;
     username: string | null;
+    getAuthHeaders: () => { [key: string]: string };
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -30,6 +31,26 @@ interface AuthProviderProps {
     backendUrl?: string;
 }
 
+// Helper function to set cookie
+const setCookie = (name: string, value: string, days: number = 7) => {
+    const expires = new Date();
+    expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
+    document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;SameSite=Strict`;
+};
+
+// Helper function to get cookie
+const getCookie = (name: string): string | null => {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop()?.split(';').shift() || null;
+    return null;
+};
+
+// Helper function to delete cookie
+const deleteCookie = (name: string) => {
+    document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;`;
+};
+
 export function AuthProvider({ children, backendUrl }: AuthProviderProps) {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
@@ -42,11 +63,10 @@ export function AuthProvider({ children, backendUrl }: AuthProviderProps) {
     useEffect(() => {
         const storedUserId = localStorage.getItem("userId");
         const storedUserEmail = localStorage.getItem("userEmail");
-        const storedUsername = localStorage.getItem("username");
+        const sessionToken = getCookie("sid");
 
-        if (storedUserId && storedUsername) {
+        if (storedUserId && sessionToken) {
             setUserId(storedUserId);
-            setUsername(storedUsername);
             setUserEmail(storedUserEmail);
             setIsAuthenticated(true);
         }
@@ -79,15 +99,14 @@ export function AuthProvider({ children, backendUrl }: AuthProviderProps) {
                 setUserId(data.id);
             }
 
-            // Store username if provided by backend
-            if (data.username) {
-                localStorage.setItem("username", data.username);
-                setUsername(data.username);
-            }
-
             // Store the email used for login
             localStorage.setItem("userEmail", email);
             setUserEmail(email);
+
+            // Store the session token (sid) in cookies
+            if (data.sid) {
+                setCookie("sid", data.sid, 7); // Store for 7 days
+            }
 
             setIsAuthenticated(true);
             setError(null);
@@ -135,18 +154,13 @@ export function AuthProvider({ children, backendUrl }: AuthProviderProps) {
                 setUserId(responseData.id);
             }
 
-            // Store username from response, or use the submitted username as fallback
-            if (responseData.username) {
-                localStorage.setItem("username", responseData.username);
-                setUsername(responseData.username);
-            } else {
-                // Fallback: use the username from form data
-                localStorage.setItem("username", data.username);
-                setUsername(data.username);
-            }
-
             localStorage.setItem("userEmail", data.email);
             setUserEmail(data.email);
+
+            // Store the session token (sid) in cookies if provided
+            if (responseData.sid) {
+                setCookie("sid", responseData.sid, 7); // Store for 7 days
+            }
 
             setIsAuthenticated(true);
             setError(null);
@@ -165,12 +179,26 @@ export function AuthProvider({ children, backendUrl }: AuthProviderProps) {
     const logout = () => {
         localStorage.removeItem("userId");
         localStorage.removeItem("userEmail");
-        localStorage.removeItem("username");
+        deleteCookie("sid");
         setUserId(null);
         setUserEmail(null);
         setUsername(null);
         setIsAuthenticated(false);
         setError(null);
+    };
+
+    // Helper function to get authentication headers for API requests
+    const getAuthHeaders = () => {
+        const sessionToken = getCookie("sid");
+        const headers: { [key: string]: string } = {
+            "Content-Type": "application/json",
+        };
+
+        if (sessionToken) {
+            headers["Authorization"] = `Bearer ${sessionToken}`;
+        }
+
+        return headers;
     };
 
     const value = {
@@ -183,6 +211,7 @@ export function AuthProvider({ children, backendUrl }: AuthProviderProps) {
         userId,
         userEmail,
         username,
+        getAuthHeaders,
     };
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -152,13 +152,13 @@ export default function ChatSidebar({ currentChatId, onNewChat, onChatSelect, is
 
                 <div className="space-y-2">
                     {/* Portfolio Button */}
-                    <button
+                    {/* <button
                         onClick={handlePortfolioClick}
                         className="w-full flex items-center gap-3 px-3 py-2 text-left rounded-lg hover:bg-blue-50 text-blue-600 hover:text-blue-700 transition-colors cursor-pointer"
                     >
                         <FileUser className="w-4 h-4" />
                         <span className="text-sm font-medium">View Portfolio</span>
-                    </button>
+                    </button> */}
 
                     {/* Logout Button */}
                     <button

@@ -129,6 +129,7 @@ export interface SignupResponse {
     email: string;
     username: string;
     message: string;
+    sid?: string;
 }
 
 export interface SignupError {
