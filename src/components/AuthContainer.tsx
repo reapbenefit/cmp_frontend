@@ -16,13 +16,6 @@ export default function AuthContainer() {
     });
     const { login, signup, isLoading, error } = useAuth();
 
-    const handleSwitchToSignup = () => {
-        setIsSignUp(true);
-        if (typeof window !== "undefined") {
-            localStorage.setItem("authMode", "signup");
-        }
-    };
-
     const handleSwitchToLogin = () => {
         setIsSignUp(false);
         if (typeof window !== "undefined") {
