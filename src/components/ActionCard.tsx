@@ -109,7 +109,7 @@ export default function ActionCard({
                             {action.skills.map((skill, index) => (
                                 <Tooltip
                                     key={index}
-                                    content={skill.summary}
+                                    content={skill.relevance}
                                     position="bottom"
                                     width="w-64"
                                 >

@@ -62,7 +62,7 @@ export default function ActionModal({ action, onClose }: ActionModalProps) {
                                 {action.skills.map((skill, index) => (
                                     <Tooltip
                                         key={index}
-                                        content={skill.summary}
+                                        content={skill.relevance}
                                         position="top"
                                         width="w-64"
                                     >
