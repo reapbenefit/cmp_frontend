@@ -48,7 +48,7 @@ export interface Action {
         id: number;
         name: string;
         label: string;
-        summary: string;
+        relevance: string;
     }>;
 }
 

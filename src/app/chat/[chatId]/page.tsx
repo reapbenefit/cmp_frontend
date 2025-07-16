@@ -85,7 +85,7 @@ async function updateAction(actionUuid: string, actionData: {
         id: string;
         name: string;
         label: string;
-        summary: string;
+        relevance: string;
     }>;
 }): Promise<void> {
     const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/actions/${actionUuid}`, {
@@ -321,96 +321,98 @@ export default function ChatPage() {
             }
 
             // Final message update
+            let conversationMessages: ChatMessage[] = [];
             setMessages(prev => {
                 const finalMessages = [...prev.slice(0, -1), assistantMessage];
-
-                if (!session) {
-                    throw new Error('Session not found');
-                }
-                const updatedSession = {
-                    ...session,
-                    messages: finalMessages,
-                    updatedAt: new Date()
-                };
-                setCurrentSession(updatedSession);
-
-                if (isConversationComplete) {
-                    setIsConversationOver(true)
-
-                    // Trigger skill extraction after saving - will use the latest function reference
-                    setTimeout(async () => {
-                        setIsExtractingSkills(true);
-
-                        try {
-                            console.log('Extracting skills from conversation...');
-                            const skillResponse = await extractSkills(finalMessages);
-
-                            if (skillResponse.skills && skillResponse.skills.length > 0) {
-                                const analysisMessage: ChatMessage = {
-                                    role: 'analysis',
-                                    timestamp: new Date(),
-                                    content: skillResponse.skills
-                                };
-
-                                const analysisMessages = [...finalMessages, analysisMessage];
-                                setMessages(analysisMessages);
-
-                                // Update session with analysis
-                                const finalSessionUpdate = {
-                                    ...updatedSession,
-                                    messages: analysisMessages,
-                                    updatedAt: new Date()
-                                };
-                                setCurrentSession(finalSessionUpdate);
-
-                                // Send analysis message to backend for persistence (only once)
-                                if (!analysisSentRef.current) {
-                                    analysisSentRef.current = true;
-                                    try {
-                                        await sendChatMessageToBackend(chatId, [analysisMessage]);
-                                        console.log('Analysis message sent to backend successfully');
-                                    } catch (error) {
-                                        console.error('Error sending analysis message to backend:', error);
-                                        // Reset flag on error so it can be retried
-                                        analysisSentRef.current = false;
-                                    }
-                                }
-
-                                // Create/update action with extracted data
-                                try {
-                                    const actionData = {
-                                        title: skillResponse.action_title,
-                                        description: skillResponse.action_description,
-                                        status: 'published',
-                                        category: skillResponse.action_category,
-                                        type: skillResponse.action_type,
-                                        skills: skillResponse.skills.map((skill: { id: string; name: string; label: string; relevance: string; response: string }) => ({
-                                            id: skill.id,
-                                            name: skill.name,
-                                            label: skill.label,
-                                            summary: skill.relevance
-                                        }))
-                                    };
-
-                                    await updateAction(chatId, actionData);
-                                    console.log('Action created/updated successfully');
-
-
-
-                                } catch (error) {
-                                    console.error('Error creating/updating action:', error);
-                                }
-                            }
-                        } catch (error) {
-                            console.error('Error extracting skills:', error);
-                        } finally {
-                            setIsExtractingSkills(false);
-                        }
-                    }, 500);
-                }
-
+                conversationMessages = finalMessages; // Store for use in skill extraction
                 return finalMessages;
             });
+
+            // Update session
+            if (!session) {
+                throw new Error('Session not found');
+            }
+            const updatedSession = {
+                ...session,
+                messages: conversationMessages,
+                updatedAt: new Date()
+            };
+            setCurrentSession(updatedSession);
+
+            // Handle skill extraction outside of setMessages to prevent double execution
+            if (isConversationComplete) {
+                setIsConversationOver(true)
+
+                // Trigger skill extraction after saving - will use the latest function reference
+                setTimeout(async () => {
+                    if (isExtractingSkills) return; // Prevent multiple extractions
+                    setIsExtractingSkills(true);
+
+                    try {
+                        console.log('Extracting skills from conversation...');
+                        const skillResponse = await extractSkills(conversationMessages);
+
+                        if (skillResponse.skills && skillResponse.skills.length > 0) {
+                            const analysisMessage: ChatMessage = {
+                                role: 'analysis',
+                                timestamp: new Date(),
+                                content: skillResponse.skills
+                            };
+
+                            const analysisMessages = [...conversationMessages, analysisMessage];
+                            setMessages(analysisMessages);
+
+                            // Update session with analysis
+                            const finalSessionUpdate = {
+                                ...updatedSession,
+                                messages: analysisMessages,
+                                updatedAt: new Date()
+                            };
+                            setCurrentSession(finalSessionUpdate);
+
+                            // Send analysis message to backend for persistence (only once)
+                            if (!analysisSentRef.current) {
+                                analysisSentRef.current = true;
+                                try {
+                                    await sendChatMessageToBackend(chatId, [analysisMessage]);
+                                    console.log('Analysis message sent to backend successfully');
+                                } catch (error) {
+                                    console.error('Error sending analysis message to backend:', error);
+                                    // Reset flag on error so it can be retried
+                                    analysisSentRef.current = false;
+                                }
+                            }
+
+                            // Create/update action with extracted data
+                            try {
+                                const actionData = {
+                                    title: skillResponse.action_title,
+                                    description: skillResponse.action_description,
+                                    status: 'published',
+                                    category: skillResponse.action_category,
+                                    type: skillResponse.action_type,
+                                    skills: skillResponse.skills.map((skill: { id: string; name: string; label: string; relevance: string; response: string }) => ({
+                                        id: skill.id,
+                                        name: skill.name,
+                                        label: skill.label,
+                                        relevance: skill.relevance
+                                    }))
+                                };
+
+                                await updateAction(chatId, actionData);
+                                console.log('Action created/updated successfully');
+
+                            } catch (error) {
+                                console.error('Error creating/updating action:', error);
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Error extracting skills:', error);
+                    } finally {
+                        setIsExtractingSkills(false);
+                    }
+                }, 500);
+            }
         }
     }, [chatId]);
 
