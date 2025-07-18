@@ -778,7 +778,7 @@ const profile = {
     // followers: 469,
     // following: 2,
     isVerified: true,
-    avatar: "/api/placeholder/260/260",
+    avatar: "/demo-profile.jpeg",
 };
 
 // Skills data using actual badge images
