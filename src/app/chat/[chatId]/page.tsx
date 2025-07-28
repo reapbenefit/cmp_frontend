@@ -33,6 +33,43 @@ async function sendChatMessage(messages: ChatMessage[]): Promise<ReadableStream<
     return response.body;
 }
 
+// Detail Chat API function for follow-up questions
+async function sendDetailChatMessage(messages: ChatMessage[]): Promise<ReadableStream<Uint8Array>> {
+    // Find the index of the first analysis message
+    const analysisIndex = messages.findIndex(m => m.role === 'analysis');
+
+    // Process messages to add mode information
+    const processedMessages = messages.map((msg, index) => {
+        if (index < analysisIndex) {
+            return {
+                content: msg.content,
+                role: msg.role,
+                mode: "basic"
+            }
+        }
+        return msg;
+    }).filter(msg => msg.role !== 'analysis');
+
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/ai/detail_action_chat`, {
+        method: 'POST',
+        headers: {
+            'accept': 'application/json',
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(processedMessages)
+    });
+
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    if (!response.body) {
+        throw new Error('No response body');
+    }
+
+    return response.body;
+}
+
 // Skill extraction API function
 async function extractSkills(messages: ChatMessage[]): Promise<SkillExtractionResponse> {
     const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/ai/extract_action_metadata`, {
@@ -235,6 +272,7 @@ export default function ChatPage() {
     const [isConversationOver, setIsConversationOver] = useState(false);
     const [isExtractingSkills, setIsExtractingSkills] = useState(false);
     const [currentSession, setCurrentSession] = useState<ChatSession | null>(null);
+    const [isDetailChatMode, setIsDetailChatMode] = useState(false);
 
     // Initialize sidebar state based on screen size - closed on mobile, open on desktop
     const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
@@ -250,7 +288,7 @@ export default function ChatPage() {
     const inputAreaRef = useRef<InputAreaHandle>(null);
 
     // Handle streaming response
-    const handleStreamingResponse = useCallback(async (stream: ReadableStream<Uint8Array>, session: ChatSession | null, sessions: ChatSession[], messageCount: number, userMessage?: ChatMessage) => {
+    const handleStreamingResponse = useCallback(async (stream: ReadableStream<Uint8Array>, session: ChatSession | null, sessions: ChatSession[], messageCount: number, userMessage?: ChatMessage, isFromDetailChat: boolean = false) => {
         const reader = stream.getReader();
         const decoder = new TextDecoder();
         let isConversationComplete = false;
@@ -286,7 +324,7 @@ export default function ChatPage() {
                             });
 
                             if (!isConversationComplete && data.is_done) {
-                                isConversationComplete = true
+                                isConversationComplete = true;
                             }
                         } catch (e) {
                             console.error('Error parsing JSON:', e);
@@ -339,9 +377,17 @@ export default function ChatPage() {
             };
             setCurrentSession(updatedSession);
 
-            // Handle skill extraction outside of setMessages to prevent double execution
+            // Handle conversation completion
+            setIsConversationOver(true);
             if (isConversationComplete) {
                 setIsConversationOver(true)
+                if (isFromDetailChat) {
+                    // If this is from detail chat, just close the conversation
+                    return;
+                }
+
+                // If this is from basic chat, proceed with skill extraction
+                setIsConversationOver(true);
 
                 // Trigger skill extraction after saving - will use the latest function reference
                 setTimeout(async () => {
@@ -404,6 +450,37 @@ export default function ChatPage() {
                                 await updateAction(chatId, actionData);
                                 console.log('Action created/updated successfully');
 
+                                // After successful action update, continue the conversation
+                                setIsConversationOver(false);
+                                setIsDetailChatMode(true);
+
+                                // Create a new AI message asking if they want to continue
+                                const continueMessage: ChatMessage = {
+                                    role: 'assistant',
+                                    content: "Great! I've updated your portfolio with this action and the skills you've demonstrated. Would you like me to ask you some more questions about this action to help enhance your portfolio even further? I can help you reflect on the impact, challenges, and learnings from your experience.",
+                                    timestamp: new Date()
+                                };
+
+                                // Add the message to the conversation
+                                setMessages(prev => [...prev, continueMessage]);
+
+                                // Update session with the new message
+                                const messagesWithContinue = [...analysisMessages, continueMessage];
+                                const sessionWithContinue = {
+                                    ...finalSessionUpdate,
+                                    messages: messagesWithContinue,
+                                    updatedAt: new Date()
+                                };
+                                setCurrentSession(sessionWithContinue);
+
+                                // Send the continue message to backend
+                                try {
+                                    await sendChatMessageToBackend(chatId, [continueMessage]);
+                                    console.log('Continue message sent to backend successfully');
+                                } catch (error) {
+                                    console.error('Error sending continue message to backend:', error);
+                                }
+
                             } catch (error) {
                                 console.error('Error creating/updating action:', error);
                             }
@@ -419,7 +496,7 @@ export default function ChatPage() {
     }, [chatId]);
 
     // Combined method to send chat message and handle streaming response
-    const sendChatAndHandleStream = useCallback(async (messagesToSend: ChatMessage[], session: ChatSession | null) => {
+    const sendChatAndHandleStream = useCallback(async (messagesToSend: ChatMessage[], session: ChatSession | null, isDetailChatMode: boolean) => {
         if (apiCallInProgressRef.current) {
             return;
         }
@@ -428,10 +505,13 @@ export default function ChatPage() {
         setIsLoading(true);
 
         try {
-            const stream = await sendChatMessage(messagesToSend);
+            // Use appropriate API based on chat mode
+            const stream = isDetailChatMode
+                ? await sendDetailChatMessage(messagesToSend)
+                : await sendChatMessage(messagesToSend);
             const lastUserMessage = messagesToSend[messagesToSend.length - 1];
             const userMessage = lastUserMessage?.role === 'user' ? lastUserMessage : undefined;
-            await handleStreamingResponse(stream, session, [], messagesToSend.length, userMessage);
+            await handleStreamingResponse(stream, session, [], messagesToSend.length, userMessage, isDetailChatMode);
         } catch (error) {
             console.error('Error in chat communication:', error);
             setIsLoading(false);
@@ -439,7 +519,7 @@ export default function ChatPage() {
         } finally {
             apiCallInProgressRef.current = false;
         }
-    }, [handleStreamingResponse]);
+    }, [handleStreamingResponse, isDetailChatMode]);
 
     // Load chat history from API
     useEffect(() => {
@@ -470,19 +550,20 @@ export default function ChatPage() {
 
                 // Check if conversation is already over (has analysis message)
                 const hasAnalysis = chatHistory.some((msg: ChatMessage) => msg.role === 'analysis');
+
                 if (hasAnalysis) {
-                    setIsConversationOver(true);
+                    setIsDetailChatMode(true);
                 }
 
                 // Check if we need to get AI response
-                // This handles both new chats and failed responses
                 const needsAIResponse = chatHistory.length > 0 &&
-                    chatHistory[chatHistory.length - 1].role === 'user' &&
-                    !hasAnalysis;
+                    chatHistory[chatHistory.length - 1].role === 'user';
 
                 if (needsAIResponse) {
                     // There are user messages but no AI response - trigger API call
-                    sendChatAndHandleStream(chatHistory, currentChatSession);
+                    setTimeout(() => {
+                        sendChatAndHandleStream(chatHistory, currentChatSession, hasAnalysis);
+                    }, 100);
                 }
             } catch (error) {
                 console.error('Error loading chat history:', error);
@@ -500,7 +581,7 @@ export default function ChatPage() {
         };
 
         loadChatHistory();
-    }, [chatId, sendChatAndHandleStream]);
+    }, [chatId]); // Remove sendChatAndHandleStream from dependencies to prevent re-runs
 
     // Auto-scroll to bottom
     useEffect(() => {
@@ -533,7 +614,7 @@ export default function ChatPage() {
                 setCurrentSession(updatedSession);
 
                 // Send the complete chat history to AI
-                sendChatAndHandleStream(newMessages, updatedSession);
+                sendChatAndHandleStream(newMessages, updatedSession, isDetailChatMode);
             }
         }
         // Reset input
