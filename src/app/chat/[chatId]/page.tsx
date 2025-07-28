@@ -378,7 +378,6 @@ export default function ChatPage() {
             setCurrentSession(updatedSession);
 
             // Handle conversation completion
-            setIsConversationOver(true);
             if (isConversationComplete) {
                 setIsConversationOver(true)
                 if (isFromDetailChat) {
