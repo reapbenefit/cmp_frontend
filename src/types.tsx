@@ -112,6 +112,8 @@ export interface SkillExtractionResponse {
     action_description: string;
     action_type: string;
     action_category: string;
+    action_subcategory: string;
+    action_subtype: string;
 }
 
 // Authentication types

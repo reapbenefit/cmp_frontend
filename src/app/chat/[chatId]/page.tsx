@@ -10,7 +10,7 @@ import AuthWrapper from "@/components/AuthWrapper";
 
 // Chat API function
 async function sendChatMessage(messages: ChatMessage[]): Promise<ReadableStream<Uint8Array>> {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/ai/chat`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/ai/basic_action_chat`, {
         method: 'POST',
         headers: {
             'accept': 'application/json',
@@ -35,7 +35,7 @@ async function sendChatMessage(messages: ChatMessage[]): Promise<ReadableStream<
 
 // Skill extraction API function
 async function extractSkills(messages: ChatMessage[]): Promise<SkillExtractionResponse> {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/ai/extract`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/ai/extract_action_metadata`, {
         method: 'POST',
         headers: {
             'accept': 'application/json',
@@ -390,6 +390,8 @@ export default function ChatPage() {
                                     description: skillResponse.action_description,
                                     status: 'published',
                                     category: skillResponse.action_category,
+                                    subcategory: skillResponse.action_subcategory,
+                                    subtype: skillResponse.action_subtype,
                                     type: skillResponse.action_type,
                                     skills: skillResponse.skills.map((skill: { id: string; name: string; label: string; relevance: string; response: string }) => ({
                                         id: skill.id,
