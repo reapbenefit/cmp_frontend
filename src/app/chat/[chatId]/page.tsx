@@ -196,7 +196,7 @@ const MessageBubble = ({ message, isStreaming }: { message: ChatMessage; isStrea
                                         />
                                         <div className="flex-1">
                                             <span className="text-sm text-gray-700">
-                                                {skill.response}
+                                                <span className="font-bold">{skill.label}:</span> {skill.response}
                                             </span>
                                         </div>
                                     </div>

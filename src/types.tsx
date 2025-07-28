@@ -89,7 +89,7 @@ export interface ChatHistoryMessage {
 
 export interface ChatMessage {
     role: 'user' | 'assistant' | 'analysis';
-    content: string | Array<{ id: string; name: string; relevance: string, response: string }>;
+    content: string | Array<{ id: string; name: string; label: string, relevance: string, response: string }>;
     timestamp: Date;
 }
 

@@ -100,12 +100,12 @@ function ActionCard({
     actionDetails = {
         category: "Waste",
         actionType: "Hands-on",
-        skillsCovered: ["Problem Solving", "Community Collaboration", "Hands-On", "Digital + Data Citizenship"],
+        skillsCovered: ["Problem Solving", "Community Collaboration", "Hands on", "Data Orientation"],
         skillExplanations: {
             "Problem Solving": "Identified complex waste segregation challenges and systematically developed a Materials Recovery Facility solution to address multiple stakeholder needs.",
             "Community Collaboration": "Successfully coordinated with BBMP, CMC, TMC, local GPs, and 45+ community members to establish sustainable waste management practices.",
-            "Hands-On": "Physically set up the Materials Recovery Facility infrastructure and directly trained community members in waste segregation techniques.",
-            "Digital + Data Citizenship": "Tracked and measured 2.5 tons of diverted plastic waste, monitored facility efficiency, and documented community engagement metrics."
+            "Hands on": "Physically set up the Materials Recovery Facility infrastructure and directly trained community members in waste segregation techniques.",
+            "Data Orientation": "Tracked and measured 2.5 tons of diverted plastic waste, monitored facility efficiency, and documented community engagement metrics."
         }
     }
 }: ActionCardProps) {
@@ -850,8 +850,8 @@ const skills: Skill[] = [
         ]
     },
     {
-        name: "Digital + Data Citizenship",
-        image: "/badges/data_digital_citizenship.png",
+        name: "Data Orientation",
+        image: "/badges/data_orientation.png",
         count: 1,
         description: "Using data and evidence to drive decision-making and measure impact",
         actions: [
@@ -898,7 +898,7 @@ const skills: Skill[] = [
         ]
     },
     {
-        name: "Hands-On",
+        name: "Hands on",
         image: "/badges/hands_on.png",
         count: 4,
         description: "Direct, practical involvement in implementing solutions",
@@ -958,12 +958,12 @@ const pinnedActions: Action[] = [
         verified: true,
         details: {
             actionType: "Hands-on",
-            skillsCovered: ["Problem Solving", "Community Collaboration", "Hands-On", "Digital + Data Citizenship"],
+            skillsCovered: ["Problem Solving", "Community Collaboration", "Hands on", "Data Orientation"],
             skillExplanations: {
                 "Problem Solving": "Identified complex waste segregation challenges and systematically developed a Materials Recovery Facility solution to address multiple stakeholder needs.",
                 "Community Collaboration": "Successfully coordinated with BBMP, CMC, TMC, local GPs, and 45+ community members to establish sustainable waste management practices.",
-                "Hands-On": "Physically set up the Materials Recovery Facility infrastructure and directly trained community members in waste segregation techniques.",
-                "Digital + Data Citizenship": "Tracked and measured 2.5 tons of diverted plastic waste, monitored facility efficiency, and documented community engagement metrics."
+                "Hands on": "Physically set up the Materials Recovery Facility infrastructure and directly trained community members in waste segregation techniques.",
+                "Data Orientation": "Tracked and measured 2.5 tons of diverted plastic waste, monitored facility efficiency, and documented community engagement metrics."
             },
             summary: {
                 overview: "Comprehensive plastic waste management initiative aimed at diverting waste from landfills into sustainable recycling and repurposing channels.",
@@ -1199,10 +1199,10 @@ const pinnedActions: Action[] = [
         verified: false,
         details: {
             actionType: "Environmental Action",
-            skillsCovered: ["Community Collaboration", "Hands-On", "Applied Empathy"],
+            skillsCovered: ["Community Collaboration", "Hands on", "Applied Empathy"],
             skillExplanations: {
                 "Community Collaboration": "Successfully mobilized 25+ volunteers and coordinated with multiple stakeholders including residents, forest department, and schools.",
-                "Hands-On": "Physically planted 150+ native trees and set up maintenance systems, directly involved in all implementation aspects.",
+                "Hands on": "Physically planted 150+ native trees and set up maintenance systems, directly involved in all implementation aspects.",
                 "Applied Empathy": "Understood community needs for green spaces and involved residents in selecting plantation sites and species."
             },
             summary: {
@@ -1984,7 +1984,7 @@ export default function Portfolio() {
                                                 </div>
                                                 <div className="flex items-center gap-2 bg-white border border-blue-200 px-3 py-1.5 rounded-lg">
                                                     <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                                                    <span className="text-sm font-medium text-gray-700">Hands-On: 4 practical projects</span>
+                                                    <span className="text-sm font-medium text-gray-700">Hands on: 4 practical projects</span>
                                                 </div>
                                                 <div className="flex items-center gap-2 bg-white border border-orange-200 px-3 py-1.5 rounded-lg">
                                                     <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
