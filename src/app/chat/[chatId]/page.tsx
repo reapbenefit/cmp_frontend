@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { Loader2, Trophy, Star } from "lucide-react";
-import { ChatMessage, ChatSession, StreamingResponse, SkillExtractionResponse } from "@/types";
+import { ChatMessage, ChatSession, StreamingResponse, SkillExtractionResponse, UpdateActionMetadataResponse, SkillMessage } from "@/types";
 import ChatSidebar, { SidebarToggle } from "@/components/ChatSidebar";
 import InputArea, { InputAreaHandle } from "@/components/InputArea";
 import AuthWrapper from "@/components/AuthWrapper";
@@ -71,8 +71,8 @@ async function sendDetailChatMessage(messages: ChatMessage[]): Promise<ReadableS
 }
 
 // Skill extraction API function
-async function extractSkills(messages: ChatMessage[]): Promise<SkillExtractionResponse> {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/ai/extract_action_metadata`, {
+async function extractActionMetadata(messages: ChatMessage[], chatId: string): Promise<SkillExtractionResponse> {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/ai/extract_action_metadata?action_uuid=${encodeURIComponent(chatId)}`, {
         method: 'POST',
         headers: {
             'accept': 'application/json',
@@ -101,7 +101,7 @@ async function sendChatMessageToBackend(chatId: string, messages: ChatMessage[])
         },
         body: JSON.stringify(messages.map(message => ({
             role: message.role,
-            content: Array.isArray(message.content) ? JSON.stringify(message.content) : message.content,
+            content: typeof message.content === 'object' ? JSON.stringify(message.content) : message.content,
             response_type: "text"
         })))
     });
@@ -111,32 +111,29 @@ async function sendChatMessageToBackend(chatId: string, messages: ChatMessage[])
     }
 }
 
-// Create/update action API function
-async function updateAction(actionUuid: string, actionData: {
-    title: string;
-    description: string;
-    status: string;
-    category: string;
-    type: string;
-    skills: Array<{
-        id: string;
-        name: string;
-        label: string;
-        relevance: string;
-    }>;
-}): Promise<void> {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/actions/${actionUuid}`, {
-        method: 'PUT',
+
+// Update action metadata API function for detail chat
+async function updateActionMetadata(messages: ChatMessage[], chatId: string): Promise<UpdateActionMetadataResponse> {
+    // Filter out analysis messages from the chat history
+    const filteredMessages = messages.filter(msg => msg.role !== 'analysis');
+
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/ai/update_action_metadata?action_uuid=${encodeURIComponent(chatId)}`, {
+        method: 'POST',
         headers: {
             'accept': 'application/json',
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify(actionData)
+        body: JSON.stringify(filteredMessages.map((msg: ChatMessage) => ({
+            content: msg.content,
+            role: msg.role
+        })))
     });
 
     if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
     }
+
+    return response.json();
 }
 
 // Chat history API function
@@ -168,22 +165,28 @@ const MessageBubble = ({ message, isStreaming }: { message: ChatMessage; isStrea
     const isAnalysis = message.role === 'analysis';
 
     if (isAnalysis) {
+        if (typeof message.content === 'object' && 'has_changed' in message.content && !message.content.has_changed) {
+            return null;
+        }
+
         return (
             <div className="flex justify-center mb-6">
                 <div className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-xl p-6 max-w-2xl w-full">
                     <div className="flex items-center gap-2 mb-4">
                         <Trophy className="h-6 w-6 text-green-600" />
-                        <h3 className="text-lg font-semibold text-gray-800">Skills Unlocked!</h3>
+                        <h3 className="text-lg font-semibold text-gray-800">
+                            {typeof message.content === 'object' && 'has_changed' in message.content && message.content.has_changed ? 'Skills Updated' : 'Skills Unlocked'}
+                        </h3>
                     </div>
 
-                    {message.content && Array.isArray(message.content) && message.content.length > 0 && (
+                    {message.content && typeof message.content === 'object' && 'skills' in message.content && Array.isArray(message.content.skills) && message.content.skills.length > 0 && (
                         <div className="space-y-3">
                             <div className="flex items-center gap-2">
                                 <Star className="h-4 w-4 text-orange-500" />
                                 <span className="text-sm font-medium text-gray-600">You have shown these skills through your action!</span>
                             </div>
                             <div className="space-y-3">
-                                {message.content.map((skill, index) => (
+                                {message.content.skills.map((skill: SkillMessage, index: number) => (
                                     <div key={index} className="flex items-center gap-4 p-3 bg-white rounded-lg border shadow-sm hover:shadow-md transition-shadow cursor-pointer">
                                         <img
                                             src={`/badges/${skill.name}.png`}
@@ -202,7 +205,12 @@ const MessageBubble = ({ message, isStreaming }: { message: ChatMessage; isStrea
                                     </div>
                                 ))}
                             </div>
-                            <span className="text-sm font-medium text-gray-600">Your portfolio has been updated with your new action. Go check it out!</span>
+                            <span className="text-sm font-medium text-gray-600">
+                                {typeof message.content === 'object' && 'has_changed' in message.content && message.content.has_changed
+                                    ? 'The action details have been updated on your portfolio. Go check it out!'
+                                    : 'Your portfolio has been updated with your new action. Go check it out!'
+                                }
+                            </span>
                         </div>
                     )}
                 </div>
@@ -260,6 +268,37 @@ const SkillExtractionLoader = () => {
     );
 };
 
+// Action Update Loading Component
+const ActionUpdateLoader = () => {
+    const [currentMessage, setCurrentMessage] = useState(0);
+    const messages = [
+        "Updating your action details",
+        "Enhancing your portfolio",
+        "Processing your insights",
+        "Finalizing your impact story"
+    ];
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setCurrentMessage(prev => (prev + 1) % messages.length);
+        }, 2000);
+        return () => clearInterval(interval);
+    }, [messages.length]);
+
+    return (
+        <div className="flex justify-center mb-6">
+            <div className="bg-white border border-gray-200 rounded-2xl px-6 py-4 flex items-center gap-3 shadow-sm">
+                <div className="flex space-x-1">
+                    <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"></div>
+                    <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                    <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                </div>
+                <span className="text-sm text-gray-600">{messages[currentMessage]}</span>
+            </div>
+        </div>
+    );
+};
+
 export default function ChatPage() {
     const router = useRouter();
     const params = useParams();
@@ -271,6 +310,7 @@ export default function ChatPage() {
     const [isStreaming, setIsStreaming] = useState(false);
     const [isConversationOver, setIsConversationOver] = useState(false);
     const [isExtractingSkills, setIsExtractingSkills] = useState(false);
+    const [isUpdatingAction, setIsUpdatingAction] = useState(false);
     const [currentSession, setCurrentSession] = useState<ChatSession | null>(null);
     const [isDetailChatMode, setIsDetailChatMode] = useState(false);
 
@@ -381,7 +421,81 @@ export default function ChatPage() {
             if (isConversationComplete) {
                 setIsConversationOver(true)
                 if (isFromDetailChat) {
-                    // If this is from detail chat, just close the conversation
+                    // Handle detail chat completion with action metadata update
+                    setTimeout(async () => {
+                        try {
+                            setIsUpdatingAction(true);
+                            console.log('Updating action metadata from detail chat...');
+                            const actionMetadata = await updateActionMetadata(conversationMessages, chatId);
+
+                            if (actionMetadata.has_changed && actionMetadata.skills && actionMetadata.skills.length > 0) {
+                                // Skills have changed - show new analysis message
+                                const analysisMessage: ChatMessage = {
+                                    role: 'analysis',
+                                    timestamp: new Date(),
+                                    content: {
+                                        has_changed: true,
+                                        skills: actionMetadata.skills
+                                    }
+                                };
+
+                                const analysisMessages = [...conversationMessages, analysisMessage];
+                                setMessages(analysisMessages);
+
+                                // Update session with analysis
+                                const finalSessionUpdate = {
+                                    ...updatedSession,
+                                    messages: analysisMessages,
+                                    updatedAt: new Date()
+                                };
+                                setCurrentSession(finalSessionUpdate);
+
+                                // Send analysis message to backend for persistence
+                                try {
+                                    await sendChatMessageToBackend(chatId, [analysisMessage]);
+                                    console.log('Updated analysis message sent to backend successfully');
+                                } catch (error) {
+                                    console.error('Error sending updated analysis message to backend:', error);
+                                }
+                            } else {
+                                // No skills changed - show simple update message
+                                const updateMessage: ChatMessage = {
+                                    role: 'analysis',
+                                    content: JSON.stringify({
+                                        has_changed: false
+                                    }),
+                                    timestamp: new Date()
+                                };
+
+                                // const messagesWithUpdate = [...conversationMessages, updateMessage];
+                                // setMessages(messagesWithUpdate);
+
+                                // // Update session with the update message
+                                // const sessionWithUpdate = {
+                                //     ...updatedSession,
+                                //     messages: messagesWithUpdate,
+                                //     updatedAt: new Date()
+                                // };
+                                // setCurrentSession(sessionWithUpdate);
+
+                                // Send the update message to backend
+                                try {
+                                    await sendChatMessageToBackend(chatId, [updateMessage]);
+                                    console.log('Update message sent to backend successfully');
+                                } catch (error) {
+                                    console.error('Error sending update message to backend:', error);
+                                }
+                            }
+
+                            // Mark conversation as over in both cases
+                            setIsConversationOver(true);
+                        } catch (error) {
+                            console.error('Error updating action metadata:', error);
+                            setIsConversationOver(true);
+                        } finally {
+                            setIsUpdatingAction(false);
+                        }
+                    }, 500);
                     return;
                 }
 
@@ -395,13 +509,15 @@ export default function ChatPage() {
 
                     try {
                         console.log('Extracting skills from conversation...');
-                        const skillResponse = await extractSkills(conversationMessages);
+                        const actionMetadata = await extractActionMetadata(conversationMessages, chatId);
 
-                        if (skillResponse.skills && skillResponse.skills.length > 0) {
+                        if (actionMetadata.skills && actionMetadata.skills.length > 0) {
                             const analysisMessage: ChatMessage = {
                                 role: 'analysis',
                                 timestamp: new Date(),
-                                content: skillResponse.skills
+                                content: {
+                                    skills: actionMetadata.skills
+                                }
                             };
 
                             const analysisMessages = [...conversationMessages, analysisMessage];
@@ -430,26 +546,6 @@ export default function ChatPage() {
 
                             // Create/update action with extracted data
                             try {
-                                const actionData = {
-                                    title: skillResponse.action_title,
-                                    description: skillResponse.action_description,
-                                    status: 'published',
-                                    category: skillResponse.action_category,
-                                    subcategory: skillResponse.action_subcategory,
-                                    subtype: skillResponse.action_subtype,
-                                    type: skillResponse.action_type,
-                                    skills: skillResponse.skills.map((skill: { id: string; name: string; label: string; relevance: string; response: string }) => ({
-                                        id: skill.id,
-                                        name: skill.name,
-                                        label: skill.label,
-                                        relevance: skill.relevance
-                                    }))
-                                };
-
-                                await updateAction(chatId, actionData);
-                                console.log('Action created/updated successfully');
-
-                                // After successful action update, continue the conversation
                                 setIsConversationOver(false);
                                 setIsDetailChatMode(true);
 
@@ -549,9 +645,16 @@ export default function ChatPage() {
 
                 // Check if conversation is already over (has analysis message)
                 const hasAnalysis = chatHistory.some((msg: ChatMessage) => msg.role === 'analysis');
+                const latestAnalysisMessage = [...chatHistory].reverse().find((msg: ChatMessage) => msg.role === 'analysis');
+                const latestAnalysisMessageContent = latestAnalysisMessage?.content;
 
                 if (hasAnalysis) {
-                    setIsDetailChatMode(true);
+                    if (latestAnalysisMessageContent && typeof latestAnalysisMessageContent === 'object' && 'has_changed' in latestAnalysisMessageContent) {
+                        setIsConversationOver(true);
+                        return;
+                    } else {
+                        setIsDetailChatMode(true);
+                    }
                 }
 
                 // Check if we need to get AI response
@@ -688,6 +791,8 @@ export default function ChatPage() {
 
                         {/* Skill Extraction Loading Animation */}
                         {isExtractingSkills && <SkillExtractionLoader />}
+                        {/* Action Update Loading Animation */}
+                        {isUpdatingAction && <ActionUpdateLoader />}
                         <div ref={messagesEndRef} />
                     </div>
 

@@ -87,9 +87,22 @@ export interface ChatHistoryMessage {
     created_at: string;
 }
 
+export interface SkillMessage {
+    id: string;
+    name: string;
+    label: string;
+    relevance: string;
+    response: string;
+}
+
+export interface AnalysisMessageContent {
+    has_changed?: boolean;
+    skills: Array<SkillMessage>;
+}
+
 export interface ChatMessage {
     role: 'user' | 'assistant' | 'analysis';
-    content: string | Array<{ id: string; name: string; label: string, relevance: string, response: string }>;
+    content: string | AnalysisMessageContent;
     timestamp: Date;
 }
 
@@ -114,6 +127,10 @@ export interface SkillExtractionResponse {
     action_category: string;
     action_subcategory: string;
     action_subtype: string;
+}
+
+export interface UpdateActionMetadataResponse extends SkillExtractionResponse {
+    has_changed: boolean;
 }
 
 // Authentication types
