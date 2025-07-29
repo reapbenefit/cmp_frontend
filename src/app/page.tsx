@@ -53,7 +53,7 @@ export default function Home() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { userId, userEmail } = useAuth();
+  const { userEmail } = useAuth();
 
   // Set initial sidebar state based on screen size after component mounts
   useEffect(() => {
