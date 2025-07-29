@@ -9,17 +9,17 @@ import InputArea, { InputAreaHandle } from "@/components/InputArea";
 import AuthWrapper from "@/components/AuthWrapper";
 
 // Chat API function
-async function sendChatMessage(messages: ChatMessage[]): Promise<ReadableStream<Uint8Array>> {
+async function sendChatMessage(message: string, chatId: string): Promise<ReadableStream<Uint8Array>> {
     const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/ai/basic_action_chat`, {
         method: 'POST',
         headers: {
             'accept': 'application/json',
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify(messages.map(msg => ({
-            content: msg.content,
-            role: msg.role
-        })))
+        body: JSON.stringify({
+            last_user_message: message,
+            action_uuid: chatId
+        })
     });
 
     if (!response.ok) {
@@ -34,29 +34,17 @@ async function sendChatMessage(messages: ChatMessage[]): Promise<ReadableStream<
 }
 
 // Detail Chat API function for follow-up questions
-async function sendDetailChatMessage(messages: ChatMessage[]): Promise<ReadableStream<Uint8Array>> {
-    // Find the index of the first analysis message
-    const analysisIndex = messages.findIndex(m => m.role === 'analysis');
-
-    // Process messages to add mode information
-    const processedMessages = messages.map((msg, index) => {
-        if (index < analysisIndex) {
-            return {
-                content: msg.content,
-                role: msg.role,
-                mode: "basic"
-            }
-        }
-        return msg;
-    }).filter(msg => msg.role !== 'analysis');
-
+async function sendDetailChatMessage(content: string, chatId: string): Promise<ReadableStream<Uint8Array>> {
     const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/ai/detail_action_chat`, {
         method: 'POST',
         headers: {
             'accept': 'application/json',
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify(processedMessages)
+        body: JSON.stringify({
+            last_user_message: content,
+            action_uuid: chatId
+        })
     });
 
     if (!response.ok) {
@@ -78,10 +66,6 @@ async function extractActionMetadata(messages: ChatMessage[], chatId: string): P
             'accept': 'application/json',
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify(messages.map((msg: ChatMessage) => ({
-            content: msg.content,
-            role: msg.role
-        })))
     });
 
     if (!response.ok) {
@@ -114,19 +98,12 @@ async function sendChatMessageToBackend(chatId: string, messages: ChatMessage[])
 
 // Update action metadata API function for detail chat
 async function updateActionMetadata(messages: ChatMessage[], chatId: string): Promise<UpdateActionMetadataResponse> {
-    // Filter out analysis messages from the chat history
-    const filteredMessages = messages.filter(msg => msg.role !== 'analysis');
-
     const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/ai/update_action_metadata?action_uuid=${encodeURIComponent(chatId)}`, {
         method: 'POST',
         headers: {
             'accept': 'application/json',
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify(filteredMessages.map((msg: ChatMessage) => ({
-            content: msg.content,
-            role: msg.role
-        })))
     });
 
     if (!response.ok) {
@@ -154,7 +131,7 @@ async function fetchChatHistory(chatId: string): Promise<ChatMessage[]> {
     // Transform API response to ChatMessage format
     return historyData.map((item: { role: string; content: string; created_at: string }) => ({
         role: item.role as 'user' | 'assistant' | 'analysis',
-        content: item.role === 'analysis' ? JSON.parse(item.content) : item.content,
+        content: ['analysis', 'assistant'].includes(item.role) ? JSON.parse(item.content) : item.content,
         timestamp: new Date(item.created_at)
     }));
 }
@@ -162,6 +139,7 @@ async function fetchChatHistory(chatId: string): Promise<ChatMessage[]> {
 // Message component
 const MessageBubble = ({ message, isStreaming }: { message: ChatMessage; isStreaming?: boolean }) => {
     const isUser = message.role === 'user';
+    const isAssistant = message.role === 'assistant';
     const isAnalysis = message.role === 'analysis';
 
     if (isAnalysis) {
@@ -227,7 +205,8 @@ const MessageBubble = ({ message, isStreaming }: { message: ChatMessage; isStrea
                     }`}
             >
                 <div className="text-sm whitespace-pre-wrap">
-                    {typeof message.content === 'string' ? message.content : ''}
+                    {isAssistant && typeof message.content === 'object' && 'response' in message.content ? message.content.response : ''}
+                    {isUser && typeof message.content === 'string' ? message.content : ''}
                     {isStreaming && (
                         <span className="inline-block w-2 h-4 bg-gray-400 ml-1 animate-pulse" />
                     )}
@@ -237,8 +216,8 @@ const MessageBubble = ({ message, isStreaming }: { message: ChatMessage; isStrea
     );
 };
 
-// Skill Extraction Loading Component
-const SkillExtractionLoader = () => {
+// Action Metadata Extraction Loading Component
+const ActionMetadataExtractionLoader = () => {
     const [currentMessage, setCurrentMessage] = useState(0);
     const messages = [
         "Analyzing your ninja moves",
@@ -269,7 +248,7 @@ const SkillExtractionLoader = () => {
 };
 
 // Action Update Loading Component
-const ActionUpdateLoader = () => {
+const ActionMetadataUpdateLoader = () => {
     const [currentMessage, setCurrentMessage] = useState(0);
     const messages = [
         "Updating your action details",
@@ -309,8 +288,8 @@ export default function ChatPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [isStreaming, setIsStreaming] = useState(false);
     const [isConversationOver, setIsConversationOver] = useState(false);
-    const [isExtractingSkills, setIsExtractingSkills] = useState(false);
-    const [isUpdatingAction, setIsUpdatingAction] = useState(false);
+    const [isExtractingActionMetadata, setIsExtractingActionMetadata] = useState(false);
+    const [isUpdatingActionMetadata, setIsUpdatingActionMetadata] = useState(false);
     const [currentSession, setCurrentSession] = useState<ChatSession | null>(null);
     const [isDetailChatMode, setIsDetailChatMode] = useState(false);
 
@@ -327,11 +306,169 @@ export default function ChatPage() {
     const analysisSentRef = useRef<boolean>(false);
     const inputAreaRef = useRef<InputAreaHandle>(null);
 
+    // Shared function for handling action metadata extraction
+    const handleExtractActionMetadata = useCallback(async (conversationMessages: ChatMessage[], updatedSession: ChatSession) => {
+        if (isExtractingActionMetadata) return;
+        setIsExtractingActionMetadata(true);
+
+        try {
+            console.log('Extracting skills from conversation...');
+            const actionMetadata = await extractActionMetadata(conversationMessages, chatId);
+
+            if (actionMetadata.skills && actionMetadata.skills.length > 0) {
+                const analysisMessage: ChatMessage = {
+                    role: 'analysis',
+                    timestamp: new Date(),
+                    content: {
+                        skills: actionMetadata.skills
+                    }
+                };
+
+                const analysisMessages = [...conversationMessages, analysisMessage];
+                setMessages(analysisMessages);
+
+                // Update session with analysis
+                const finalSessionUpdate = {
+                    ...updatedSession,
+                    messages: analysisMessages,
+                    updatedAt: new Date()
+                };
+                setCurrentSession(finalSessionUpdate);
+
+                // Send analysis message to backend for persistence
+                if (!analysisSentRef.current) {
+                    analysisSentRef.current = true;
+                    try {
+                        await sendChatMessageToBackend(chatId, [analysisMessage]);
+                        console.log('Analysis message sent to backend successfully');
+                    } catch (error) {
+                        console.error('Error sending analysis message to backend:', error);
+                        analysisSentRef.current = false;
+                    }
+                }
+
+                // Create/update action with extracted data
+                try {
+                    setIsConversationOver(false);
+                    setIsDetailChatMode(true);
+
+                    // Create a new AI message asking if they want to continue
+                    const continueMessage: ChatMessage = {
+                        role: 'assistant',
+                        content: {
+                            response: "Great! I've updated your portfolio with this action and the skills you've demonstrated. Would you like me to ask you some more questions about this action to help enhance your portfolio even further? I can help you reflect on the impact, challenges, and learnings from your experience.",
+                        },
+                        timestamp: new Date()
+                    };
+
+                    // Add the message to the conversation
+                    setMessages(prev => [...prev, continueMessage]);
+
+                    // Update session with the new message
+                    const messagesWithContinue = [...analysisMessages, continueMessage];
+                    const sessionWithContinue = {
+                        ...finalSessionUpdate,
+                        messages: messagesWithContinue,
+                        updatedAt: new Date()
+                    };
+                    setCurrentSession(sessionWithContinue);
+
+                    // Send the continue message to backend
+                    try {
+                        await sendChatMessageToBackend(chatId, [continueMessage]);
+                        console.log('Continue message sent to backend successfully');
+                    } catch (error) {
+                        console.error('Error sending continue message to backend:', error);
+                    }
+
+                } catch (error) {
+                    console.error('Error creating/updating action:', error);
+                }
+            }
+        } catch (error) {
+            console.error('Error extracting skills:', error);
+        } finally {
+            setIsExtractingActionMetadata(false);
+        }
+    }, [chatId, isExtractingActionMetadata]);
+
+    // Shared function for handling action metadata updates
+    const handleActionMetadataUpdate = useCallback(async (conversationMessages: ChatMessage[], updatedSession: ChatSession) => {
+        setIsUpdatingActionMetadata(true);
+
+        try {
+            console.log('Updating action metadata...');
+            const actionMetadata = await updateActionMetadata(conversationMessages, chatId);
+
+            if (actionMetadata.has_changed && actionMetadata.skills && actionMetadata.skills.length > 0) {
+                // Skills have changed - show new analysis message
+                const analysisMessage: ChatMessage = {
+                    role: 'analysis',
+                    timestamp: new Date(),
+                    content: {
+                        has_changed: true,
+                        skills: actionMetadata.skills
+                    }
+                };
+
+                const analysisMessages = [...conversationMessages, analysisMessage];
+                setMessages(analysisMessages);
+
+                // Update session with analysis
+                const finalSessionUpdate = {
+                    ...updatedSession,
+                    messages: analysisMessages,
+                    updatedAt: new Date()
+                };
+                setCurrentSession(finalSessionUpdate);
+
+                // Send analysis message to backend for persistence
+                try {
+                    await sendChatMessageToBackend(chatId, [analysisMessage]);
+                    console.log('Updated analysis message sent to backend successfully');
+                } catch (error) {
+                    console.error('Error sending updated analysis message to backend:', error);
+                }
+            } else {
+                // No skills changed - show simple update message
+                const updateMessage: ChatMessage = {
+                    role: 'analysis',
+                    content: JSON.stringify({
+                        has_changed: false
+                    }),
+                    timestamp: new Date()
+                };
+
+                // Send the update message to backend
+                try {
+                    await sendChatMessageToBackend(chatId, [updateMessage]);
+                    console.log('Update message sent to backend successfully');
+                } catch (error) {
+                    console.error('Error sending update message to backend:', error);
+                }
+            }
+
+            // Mark conversation as over in both cases
+            setIsConversationOver(true);
+        } catch (error) {
+            console.error('Error updating action metadata:', error);
+            setIsConversationOver(true);
+        } finally {
+            setIsUpdatingActionMetadata(false);
+        }
+    }, [chatId]);
+
     // Handle streaming response
-    const handleStreamingResponse = useCallback(async (stream: ReadableStream<Uint8Array>, session: ChatSession | null, sessions: ChatSession[], messageCount: number, userMessage?: ChatMessage, isFromDetailChat: boolean = false) => {
+    const handleStreamingResponse = useCallback(async (stream: ReadableStream<Uint8Array>, session: ChatSession | null, sessions: ChatSession[], userMessageContent: string, isFromDetailChat: boolean = false) => {
         const reader = stream.getReader();
         const decoder = new TextDecoder();
         let isConversationComplete = false;
+
+        const userMessage: ChatMessage = {
+            role: 'user',
+            content: userMessageContent,
+            timestamp: new Date()
+        };
 
         const assistantMessage: ChatMessage = {
             role: 'assistant',
@@ -355,7 +492,10 @@ export default function ChatPage() {
                     if (line.trim()) {
                         try {
                             const data: StreamingResponse = JSON.parse(line);
-                            assistantMessage.content = data.response;
+                            assistantMessage.content = {
+                                response: data.response,
+                                is_done: data.is_done || false
+                            };
 
                             setMessages(prev => {
                                 const newMessages = [...prev];
@@ -382,16 +522,7 @@ export default function ChatPage() {
             }, 100);
 
             // Send messages to backend
-            // For first exchange (messageCount <= 1), send only AI response
-            // For subsequent exchanges, send both user message and AI response together
-            const isFirstExchange = messageCount <= 1;
-
-            if (isFirstExchange) {
-                // First exchange - send only AI response
-                sendChatMessageToBackend(chatId, [assistantMessage]).catch(error => {
-                    console.error('Error sending AI message to backend:', error);
-                });
-            } else if (userMessage) {
+            if (userMessage) {
                 // Subsequent exchange - send both user message and AI response
                 sendChatMessageToBackend(chatId, [userMessage, assistantMessage]).catch(error => {
                     console.error('Error sending messages to backend:', error);
@@ -423,78 +554,7 @@ export default function ChatPage() {
                 if (isFromDetailChat) {
                     // Handle detail chat completion with action metadata update
                     setTimeout(async () => {
-                        try {
-                            setIsUpdatingAction(true);
-                            console.log('Updating action metadata from detail chat...');
-                            const actionMetadata = await updateActionMetadata(conversationMessages, chatId);
-
-                            if (actionMetadata.has_changed && actionMetadata.skills && actionMetadata.skills.length > 0) {
-                                // Skills have changed - show new analysis message
-                                const analysisMessage: ChatMessage = {
-                                    role: 'analysis',
-                                    timestamp: new Date(),
-                                    content: {
-                                        has_changed: true,
-                                        skills: actionMetadata.skills
-                                    }
-                                };
-
-                                const analysisMessages = [...conversationMessages, analysisMessage];
-                                setMessages(analysisMessages);
-
-                                // Update session with analysis
-                                const finalSessionUpdate = {
-                                    ...updatedSession,
-                                    messages: analysisMessages,
-                                    updatedAt: new Date()
-                                };
-                                setCurrentSession(finalSessionUpdate);
-
-                                // Send analysis message to backend for persistence
-                                try {
-                                    await sendChatMessageToBackend(chatId, [analysisMessage]);
-                                    console.log('Updated analysis message sent to backend successfully');
-                                } catch (error) {
-                                    console.error('Error sending updated analysis message to backend:', error);
-                                }
-                            } else {
-                                // No skills changed - show simple update message
-                                const updateMessage: ChatMessage = {
-                                    role: 'analysis',
-                                    content: JSON.stringify({
-                                        has_changed: false
-                                    }),
-                                    timestamp: new Date()
-                                };
-
-                                // const messagesWithUpdate = [...conversationMessages, updateMessage];
-                                // setMessages(messagesWithUpdate);
-
-                                // // Update session with the update message
-                                // const sessionWithUpdate = {
-                                //     ...updatedSession,
-                                //     messages: messagesWithUpdate,
-                                //     updatedAt: new Date()
-                                // };
-                                // setCurrentSession(sessionWithUpdate);
-
-                                // Send the update message to backend
-                                try {
-                                    await sendChatMessageToBackend(chatId, [updateMessage]);
-                                    console.log('Update message sent to backend successfully');
-                                } catch (error) {
-                                    console.error('Error sending update message to backend:', error);
-                                }
-                            }
-
-                            // Mark conversation as over in both cases
-                            setIsConversationOver(true);
-                        } catch (error) {
-                            console.error('Error updating action metadata:', error);
-                            setIsConversationOver(true);
-                        } finally {
-                            setIsUpdatingAction(false);
-                        }
+                        await handleActionMetadataUpdate(conversationMessages, updatedSession);
                     }, 500);
                     return;
                 }
@@ -502,96 +562,16 @@ export default function ChatPage() {
                 // If this is from basic chat, proceed with skill extraction
                 setIsConversationOver(true);
 
-                // Trigger skill extraction after saving - will use the latest function reference
+                // Trigger action metadata extraction after saving
                 setTimeout(async () => {
-                    if (isExtractingSkills) return; // Prevent multiple extractions
-                    setIsExtractingSkills(true);
-
-                    try {
-                        console.log('Extracting skills from conversation...');
-                        const actionMetadata = await extractActionMetadata(conversationMessages, chatId);
-
-                        if (actionMetadata.skills && actionMetadata.skills.length > 0) {
-                            const analysisMessage: ChatMessage = {
-                                role: 'analysis',
-                                timestamp: new Date(),
-                                content: {
-                                    skills: actionMetadata.skills
-                                }
-                            };
-
-                            const analysisMessages = [...conversationMessages, analysisMessage];
-                            setMessages(analysisMessages);
-
-                            // Update session with analysis
-                            const finalSessionUpdate = {
-                                ...updatedSession,
-                                messages: analysisMessages,
-                                updatedAt: new Date()
-                            };
-                            setCurrentSession(finalSessionUpdate);
-
-                            // Send analysis message to backend for persistence (only once)
-                            if (!analysisSentRef.current) {
-                                analysisSentRef.current = true;
-                                try {
-                                    await sendChatMessageToBackend(chatId, [analysisMessage]);
-                                    console.log('Analysis message sent to backend successfully');
-                                } catch (error) {
-                                    console.error('Error sending analysis message to backend:', error);
-                                    // Reset flag on error so it can be retried
-                                    analysisSentRef.current = false;
-                                }
-                            }
-
-                            // Create/update action with extracted data
-                            try {
-                                setIsConversationOver(false);
-                                setIsDetailChatMode(true);
-
-                                // Create a new AI message asking if they want to continue
-                                const continueMessage: ChatMessage = {
-                                    role: 'assistant',
-                                    content: "Great! I've updated your portfolio with this action and the skills you've demonstrated. Would you like me to ask you some more questions about this action to help enhance your portfolio even further? I can help you reflect on the impact, challenges, and learnings from your experience.",
-                                    timestamp: new Date()
-                                };
-
-                                // Add the message to the conversation
-                                setMessages(prev => [...prev, continueMessage]);
-
-                                // Update session with the new message
-                                const messagesWithContinue = [...analysisMessages, continueMessage];
-                                const sessionWithContinue = {
-                                    ...finalSessionUpdate,
-                                    messages: messagesWithContinue,
-                                    updatedAt: new Date()
-                                };
-                                setCurrentSession(sessionWithContinue);
-
-                                // Send the continue message to backend
-                                try {
-                                    await sendChatMessageToBackend(chatId, [continueMessage]);
-                                    console.log('Continue message sent to backend successfully');
-                                } catch (error) {
-                                    console.error('Error sending continue message to backend:', error);
-                                }
-
-                            } catch (error) {
-                                console.error('Error creating/updating action:', error);
-                            }
-                        }
-                    } catch (error) {
-                        console.error('Error extracting skills:', error);
-                    } finally {
-                        setIsExtractingSkills(false);
-                    }
+                    await handleExtractActionMetadata(conversationMessages, updatedSession);
                 }, 500);
             }
         }
-    }, [chatId]);
+    }, [chatId, handleExtractActionMetadata, handleActionMetadataUpdate]);
 
     // Combined method to send chat message and handle streaming response
-    const sendChatAndHandleStream = useCallback(async (messagesToSend: ChatMessage[], session: ChatSession | null, isDetailChatMode: boolean) => {
+    const sendChatAndHandleStream = useCallback(async (content: string, chatId: string, session: ChatSession | null, isDetailChatMode: boolean) => {
         if (apiCallInProgressRef.current) {
             return;
         }
@@ -602,11 +582,9 @@ export default function ChatPage() {
         try {
             // Use appropriate API based on chat mode
             const stream = isDetailChatMode
-                ? await sendDetailChatMessage(messagesToSend)
-                : await sendChatMessage(messagesToSend);
-            const lastUserMessage = messagesToSend[messagesToSend.length - 1];
-            const userMessage = lastUserMessage?.role === 'user' ? lastUserMessage : undefined;
-            await handleStreamingResponse(stream, session, [], messagesToSend.length, userMessage, isDetailChatMode);
+                ? await sendDetailChatMessage(content, chatId)
+                : await sendChatMessage(content, chatId);
+            await handleStreamingResponse(stream, session, [], content, isDetailChatMode);
         } catch (error) {
             console.error('Error in chat communication:', error);
             setIsLoading(false);
@@ -648,6 +626,14 @@ export default function ChatPage() {
                 const latestAnalysisMessage = [...chatHistory].reverse().find((msg: ChatMessage) => msg.role === 'analysis');
                 const latestAnalysisMessageContent = latestAnalysisMessage?.content;
 
+                // Check if last message was a completed assistant message
+                const lastMessage = chatHistory[chatHistory.length - 1];
+                const isLastMessageCompletedAssistant = lastMessage &&
+                    lastMessage.role === 'assistant' &&
+                    typeof lastMessage.content === 'object' &&
+                    'is_done' in lastMessage.content &&
+                    lastMessage.content.is_done;
+
                 if (hasAnalysis) {
                     if (latestAnalysisMessageContent && typeof latestAnalysisMessageContent === 'object' && 'has_changed' in latestAnalysisMessageContent) {
                         setIsConversationOver(true);
@@ -657,16 +643,32 @@ export default function ChatPage() {
                     }
                 }
 
-                // Check if we need to get AI response
-                const needsAIResponse = chatHistory.length > 0 &&
-                    chatHistory[chatHistory.length - 1].role === 'user';
-
-                if (needsAIResponse) {
-                    // There are user messages but no AI response - trigger API call
-                    setTimeout(() => {
-                        sendChatAndHandleStream(chatHistory, currentChatSession, hasAnalysis);
-                    }, 100);
+                if (isLastMessageCompletedAssistant) {
+                    if (!hasAnalysis) {
+                        // Last message was completed assistant message but no analysis exists
+                        // Trigger skill extraction
+                        setTimeout(async () => {
+                            await handleExtractActionMetadata(chatHistory, currentChatSession);
+                        }, 500);
+                    } else {
+                        // We're in detail chat mode and last assistant message was completed
+                        // Trigger action metadata update
+                        setTimeout(async () => {
+                            await handleActionMetadataUpdate(chatHistory, currentChatSession);
+                        }, 500);
+                    }
                 }
+
+                // Check if we need to get AI response
+                // const needsAIResponse = chatHistory.length > 0 &&
+                //     chatHistory[chatHistory.length - 1].role === 'user';
+
+                // if (needsAIResponse) {
+                //     // There are user messages but no AI response - trigger API call
+                //     setTimeout(() => {
+                //         sendChatAndHandleStream(chatHistory[chatHistory.length - 1].content, chatId, currentChatSession, hasAnalysis);
+                //     }, 100);
+                // }
             } catch (error) {
                 console.error('Error loading chat history:', error);
                 // Fallback to empty chat if API fails
@@ -683,7 +685,7 @@ export default function ChatPage() {
         };
 
         loadChatHistory();
-    }, [chatId]); // Remove sendChatAndHandleStream from dependencies to prevent re-runs
+    }, [chatId]);
 
     // Auto-scroll to bottom
     useEffect(() => {
@@ -716,7 +718,7 @@ export default function ChatPage() {
                 setCurrentSession(updatedSession);
 
                 // Send the complete chat history to AI
-                sendChatAndHandleStream(newMessages, updatedSession, isDetailChatMode);
+                sendChatAndHandleStream(content, chatId, updatedSession, isDetailChatMode);
             }
         }
         // Reset input
@@ -789,10 +791,10 @@ export default function ChatPage() {
                             </div>
                         )}
 
-                        {/* Skill Extraction Loading Animation */}
-                        {isExtractingSkills && <SkillExtractionLoader />}
+                        {/* Action Metadata Extraction Loading Animation */}
+                        {isExtractingActionMetadata && <ActionMetadataExtractionLoader />}
                         {/* Action Update Loading Animation */}
-                        {isUpdatingAction && <ActionUpdateLoader />}
+                        {isUpdatingActionMetadata && <ActionMetadataUpdateLoader />}
                         <div ref={messagesEndRef} />
                     </div>
 

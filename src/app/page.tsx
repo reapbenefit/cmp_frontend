@@ -108,7 +108,8 @@ export default function Home() {
           throw new Error('Failed to create action');
         }
 
-        const actionData = await response.json();
+        const responseData = await response.json();
+        const actionData = responseData.action;
 
         // Navigate to chat page
         router.push(`/chat/${actionData.uuid}`);

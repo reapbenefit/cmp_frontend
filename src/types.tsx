@@ -100,9 +100,14 @@ export interface AnalysisMessageContent {
     skills: Array<SkillMessage>;
 }
 
+export interface AIMessageContent {
+    response: string;
+    is_done?: boolean;
+}
+
 export interface ChatMessage {
     role: 'user' | 'assistant' | 'analysis';
-    content: string | AnalysisMessageContent;
+    content: string | AnalysisMessageContent | AIMessageContent;
     timestamp: Date;
 }
 
