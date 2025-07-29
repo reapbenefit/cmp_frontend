@@ -53,7 +53,7 @@ export default function Home() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { userId } = useAuth();
+  const { userId, userEmail } = useAuth();
 
   // Set initial sidebar state based on screen size after component mounts
   useEffect(() => {
@@ -78,7 +78,7 @@ export default function Home() {
   };
 
   const handleInputSubmit = async (type: 'text' | 'audio', content: string | Blob) => {
-    if (!userId) {
+    if (!userEmail) {
       alert('Please login to submit an action');
       return;
     }
@@ -101,7 +101,7 @@ export default function Home() {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ user_id: parseInt(userId), title: "New Action", user_message: content }),
+          body: JSON.stringify({ user_email: userEmail, user_message: content }),
         });
 
         if (!response.ok) {
