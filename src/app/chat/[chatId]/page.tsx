@@ -10,7 +10,7 @@ import AuthWrapper from "@/components/AuthWrapper";
 
 // Chat API function
 async function sendChatMessage(message: string, chatId: string): Promise<ReadableStream<Uint8Array>> {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/ai/basic_action_chat`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/ai/basic_action_chat_stream`, {
         method: 'POST',
         headers: {
             'accept': 'application/json',
@@ -35,7 +35,7 @@ async function sendChatMessage(message: string, chatId: string): Promise<Readabl
 
 // Detail Chat API function for follow-up questions
 async function sendDetailChatMessage(content: string, chatId: string): Promise<ReadableStream<Uint8Array>> {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/ai/detail_action_chat`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/ai/detail_action_chat_stream`, {
         method: 'POST',
         headers: {
             'accept': 'application/json',
