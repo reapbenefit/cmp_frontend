@@ -147,15 +147,15 @@ const MessageBubble = ({ message, isStreaming, username }: { message: ChatMessag
         if (typeof message.content === 'object' && 'has_changed' in message.content && !message.content.has_changed) {
             return (
                 <div className="flex justify-center mb-6">
-                    <div className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-xl p-6 max-w-2xl w-full">
-                        <div className="flex items-center gap-2 mb-4">
+                    <div className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-xl p-4 md:p-6 max-w-2xl w-full">
+                        <div className="flex items-center gap-2 mb-2 md:mb-4">
                             <Trophy className="h-6 w-6 text-green-600" />
-                            <h3 className="text-lg font-semibold text-gray-800">Portfolio Updated</h3>
+                            <h3 className="text-base md:text-lg font-semibold text-gray-800">Portfolio Updated</h3>
                         </div>
-                        <div className="flex flex-col space-y-2">
+                        <div className="flex flex-col space-y-2 md:space-y-3">
                             <div className="flex items-center gap-2">
                                 <Star className="h-4 w-4 text-orange-500" />
-                                <span className="text-sm font-medium text-gray-600">Your portfolio has been updated. Go check it out!</span>
+                                <span className="text-xs md:text-sm font-medium text-gray-600">Your portfolio has been updated. Go check it out!</span>
                             </div>
                             {username && (
                                 <div>
@@ -163,7 +163,7 @@ const MessageBubble = ({ message, isStreaming, username }: { message: ChatMessag
                                         href={`${process.env.NEXT_PUBLIC_PORTFOLIO_BASE_URL}/user-profile/${username}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors cursor-pointer"
+                                        className="inline-flex items-center gap-2 mt-2 px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors cursor-pointer"
                                     >
                                         Open your portfolio
                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -180,10 +180,10 @@ const MessageBubble = ({ message, isStreaming, username }: { message: ChatMessag
 
         return (
             <div className="flex justify-center mb-6">
-                <div className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-xl p-6 max-w-2xl w-full">
-                    <div className="flex items-center gap-2 mb-4">
+                <div className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-xl p-4 md:p-6 max-w-2xl w-full">
+                    <div className="flex items-center gap-2 mb-2 md:mb-4">
                         <Trophy className="h-6 w-6 text-green-600" />
-                        <h3 className="text-lg font-semibold text-gray-800">
+                        <h3 className="text-base md:text-lg font-semibold text-gray-800">
                             {typeof message.content === 'object' && 'has_changed' in message.content && message.content.has_changed ? 'Skills Updated' : 'Skills Unlocked'}
                         </h3>
                     </div>
@@ -192,46 +192,48 @@ const MessageBubble = ({ message, isStreaming, username }: { message: ChatMessag
                         <div className="space-y-3">
                             <div className="flex items-center gap-2">
                                 <Star className="h-4 w-4 text-orange-500" />
-                                <span className="text-sm font-medium text-gray-600">You have shown these skills through your action!</span>
+                                <span className="text-xs md:text-sm font-medium text-gray-600">You have shown these skills through your action!</span>
                             </div>
-                            <div className="space-y-3">
+                            <div className="space-y-2 md:space-y-3">
                                 {message.content.skills.map((skill: SkillMessage, index: number) => (
-                                    <div key={index} className="flex items-center gap-4 p-3 bg-white rounded-lg border shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+                                    <div key={index} className="flex items-start gap-2 md:gap-4 p-2 md:p-3 bg-white rounded-lg border shadow-sm hover:shadow-md transition-shadow cursor-pointer">
                                         <img
                                             src={`/badges/${skill.name}.png`}
                                             alt={skill.name}
-                                            className="w-12 h-12 object-contain flex-shrink-0"
+                                            className="w-8 h-8 md:w-12 md:h-12 object-contain flex-shrink-0 mt-0.5"
                                             onError={(e) => {
                                                 const target = e.target as HTMLImageElement;
                                                 target.style.display = 'none';
                                             }}
                                         />
-                                        <div className="flex-1">
-                                            <span className="text-sm text-gray-700">
-                                                <span className="font-bold">{skill.label}:</span> {skill.response}
+                                        <div className="flex-1 min-w-0">
+                                            <span className="text-xs md:text-sm text-gray-700 leading-1">
+                                                <span className="font-bold">{skill.label}:</span> <span className="text-xs md:text-sm">{skill.response}</span>
                                             </span>
                                         </div>
                                     </div>
                                 ))}
                             </div>
-                            <span className="text-sm font-medium text-gray-600">
+                            <span className="text-xs md:text-sm font-medium text-gray-600 leading-1">
                                 {typeof message.content === 'object' && 'has_changed' in message.content && message.content.has_changed
                                     ? 'The action details have been updated on your portfolio. Go check it out!'
                                     : 'Your portfolio has been updated with your new action and skills. Go check it out!'
                                 }
                             </span>
                             {username && (
-                                <a
-                                    href={`${process.env.NEXT_PUBLIC_PORTFOLIO_BASE_URL}/user-profile/${username}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-2 mt-2 px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors cursor-pointer"
-                                >
-                                    Open your portfolio
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                                    </svg>
-                                </a>
+                                <div>
+                                    <a
+                                        href={`${process.env.NEXT_PUBLIC_PORTFOLIO_BASE_URL}/user-profile/${username}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="inline-flex items-center gap-2 mt-2 px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors cursor-pointer"
+                                    >
+                                        Open your portfolio
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                        </svg>
+                                    </a>
+                                </div>
                             )}
                         </div>
                     )}
@@ -854,7 +856,7 @@ export default function ChatPage() {
                     </div>
 
                     {/* Messages */}
-                    <div className="flex-1 overflow-y-auto p-4 space-y-4 max-w-4xl mx-auto w-full px-8">
+                    <div className="flex-1 overflow-y-auto p-4 space-y-4 max-w-4xl mx-auto w-full px-4 md:px-8">
                         {messages.map((message, index) => (
                             <MessageBubble
                                 key={index}
@@ -881,7 +883,7 @@ export default function ChatPage() {
 
                     {/* Input */}
                     {!isConversationOver && (
-                        <div className="p-4 max-w-4xl mx-auto w-full px-8 pb-8">
+                        <div className="p-4 max-w-4xl mx-auto w-full px-4 md:px-8 pb-8">
                             <InputArea
                                 ref={inputAreaRef}
                                 placeholder="Continue the conversation"
