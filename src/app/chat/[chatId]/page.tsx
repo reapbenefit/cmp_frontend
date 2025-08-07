@@ -137,14 +137,45 @@ async function fetchChatHistory(chatId: string): Promise<ChatMessage[]> {
 }
 
 // Message component
-const MessageBubble = ({ message, isStreaming }: { message: ChatMessage; isStreaming?: boolean }) => {
+const MessageBubble = ({ message, isStreaming, username }: { message: ChatMessage; isStreaming?: boolean; username?: string | null }) => {
     const isUser = message.role === 'user';
     const isAssistant = message.role === 'assistant';
     const isAnalysis = message.role === 'analysis';
 
     if (isAnalysis) {
+        // Handle case where no skills changed but we still want to show portfolio update
         if (typeof message.content === 'object' && 'has_changed' in message.content && !message.content.has_changed) {
-            return null;
+            return (
+                <div className="flex justify-center mb-6">
+                    <div className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-xl p-6 max-w-2xl w-full">
+                        <div className="flex items-center gap-2 mb-4">
+                            <Trophy className="h-6 w-6 text-green-600" />
+                            <h3 className="text-lg font-semibold text-gray-800">Portfolio Updated</h3>
+                        </div>
+                        <div className="flex flex-col space-y-2">
+                            <div className="flex items-center gap-2">
+                                <Star className="h-4 w-4 text-orange-500" />
+                                <span className="text-sm font-medium text-gray-600">Your portfolio has been updated. Go check it out!</span>
+                            </div>
+                            {username && (
+                                <div>
+                                    <a
+                                        href={`${process.env.NEXT_PUBLIC_PORTFOLIO_BASE_URL}/user-profile/${username}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors cursor-pointer"
+                                    >
+                                        Open your portfolio
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                        </svg>
+                                    </a>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
         }
 
         return (
@@ -186,9 +217,22 @@ const MessageBubble = ({ message, isStreaming }: { message: ChatMessage; isStrea
                             <span className="text-sm font-medium text-gray-600">
                                 {typeof message.content === 'object' && 'has_changed' in message.content && message.content.has_changed
                                     ? 'The action details have been updated on your portfolio. Go check it out!'
-                                    : 'Your portfolio has been updated with your new action. Go check it out!'
+                                    : 'Your portfolio has been updated with your new action and skills. Go check it out!'
                                 }
                             </span>
+                            {username && (
+                                <a
+                                    href={`${process.env.NEXT_PUBLIC_PORTFOLIO_BASE_URL}/user-profile/${username}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-2 mt-2 px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors cursor-pointer"
+                                >
+                                    Open your portfolio
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                    </svg>
+                                </a>
+                            )}
                         </div>
                     )}
                 </div>
@@ -292,6 +336,7 @@ export default function ChatPage() {
     const [isUpdatingActionMetadata, setIsUpdatingActionMetadata] = useState(false);
     const [currentSession, setCurrentSession] = useState<ChatSession | null>(null);
     const [isDetailChatMode, setIsDetailChatMode] = useState(false);
+    const [username, setUsername] = useState<string | null>(null);
 
     // Initialize sidebar state based on screen size - closed on mobile, open on desktop
     const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
@@ -305,6 +350,41 @@ export default function ChatPage() {
     const apiCallInProgressRef = useRef<boolean>(false);
     const analysisSentRef = useRef<boolean>(false);
     const inputAreaRef = useRef<InputAreaHandle>(null);
+
+    // Check and fetch username if needed
+    useEffect(() => {
+        const checkAndFetchUsername = async () => {
+            const storedUsername = localStorage.getItem("username");
+            const userEmail = localStorage.getItem("userEmail");
+
+            if (storedUsername) {
+                // Username already exists in localStorage
+                setUsername(storedUsername);
+                return;
+            }
+
+            // If username is not stored but we have an email, fetch it
+            if (userEmail) {
+                try {
+                    const usernameResponse = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/users/${userEmail}/username`, {
+                        method: "GET"
+                    });
+
+                    if (usernameResponse.ok) {
+                        const fetchedUsername = await usernameResponse.json();
+                        if (fetchedUsername) {
+                            localStorage.setItem("username", fetchedUsername);
+                            setUsername(fetchedUsername);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error fetching username:', error);
+                }
+            }
+        };
+
+        checkAndFetchUsername();
+    }, []);
 
     // Shared function for handling action metadata extraction
     const handleExtractActionMetadata = useCallback(async (conversationMessages: ChatMessage[], updatedSession: ChatSession) => {
@@ -356,7 +436,7 @@ export default function ChatPage() {
                     const continueMessage: ChatMessage = {
                         role: 'assistant',
                         content: {
-                            response: "Great! I've updated your portfolio with this action and the skills you've demonstrated. Would you like me to ask you some more questions about this action to help enhance your portfolio even further? I can help you reflect on the impact, challenges, and learnings from your experience.",
+                            response: "Would you like me to ask you some more questions about this action to help enhance your portfolio even further? I can help you reflect on the impact, challenges, and learnings from your experience.",
                         },
                         timestamp: new Date()
                     };
@@ -780,6 +860,7 @@ export default function ChatPage() {
                                 key={index}
                                 message={message}
                                 isStreaming={isStreaming && index === messages.length - 1 && message.role === 'assistant'}
+                                username={username}
                             />
                         ))}
 

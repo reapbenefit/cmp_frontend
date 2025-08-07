@@ -103,6 +103,19 @@ export function AuthProvider({ children, backendUrl }: AuthProviderProps) {
             localStorage.setItem("userEmail", email);
             setUserEmail(email);
 
+            // Make an API call to get the username for the user and store it
+            const usernameResponse = await fetch(`${backendUrl}/users/${email}/username`, {
+                method: "GET"
+            });
+
+            if (usernameResponse.ok) {
+                const username = await usernameResponse.json();
+                if (username) {
+                    localStorage.setItem("username", username);
+                    setUsername(username);
+                }
+            }
+
             // Store the session token (sid) in cookies
             if (data.sid) {
                 setCookie("sid", data.sid, 7); // Store for 7 days
