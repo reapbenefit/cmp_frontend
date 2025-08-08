@@ -9,9 +9,8 @@ interface AuthWrapperProps {
 }
 
 export default function AuthWrapper({ children }: AuthWrapperProps) {
-    const { isAuthenticated, isLoading, authenticateWithSSO, error } = useAuth();
+    const { isAuthenticated, isLoading, authenticateWithSSO } = useAuth();
     const [ssoLoading, setSsoLoading] = useState(false);
-    const [ssoError, setSsoError] = useState<string | null>(null);
 
     // Handle SSO flow when component mounts
     useEffect(() => {
@@ -22,14 +21,12 @@ export default function AuthWrapper({ children }: AuthWrapperProps) {
             const ssoCode = getUrlParameter("code");
             if (ssoCode) {
                 setSsoLoading(true);
-                setSsoError(null);
 
                 try {
                     await authenticateWithSSO(ssoCode);
                     // Clean up URL after successful authentication
                     removeUrlParameter("code");
                 } catch (err) {
-                    setSsoError(err instanceof Error ? err.message : "SSO authentication failed");
                     // Clean up URL even on failure to prevent retry loops
                     removeUrlParameter("code");
                 } finally {
