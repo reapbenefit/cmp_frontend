@@ -161,13 +161,13 @@ export default function ChatSidebar({ currentChatId, onNewChat, onChatSelect, is
                     </button> */}
 
                     {/* Logout Button */}
-                    <button
+                    {/* <button
                         onClick={logout}
                         className="w-full flex items-center gap-3 px-3 py-2 text-left rounded-lg hover:bg-red-50 text-red-600 hover:text-red-700 transition-colors cursor-pointer"
                     >
                         <LogOut className="w-4 h-4" />
                         <span className="text-sm font-medium">Sign out</span>
-                    </button>
+                    </button> */}
                 </div>
             </div>
         </div>
