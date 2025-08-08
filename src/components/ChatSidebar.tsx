@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, X, PanelLeft, User, LogOut } from "lucide-react";
+import { Plus, X, PanelLeft, User } from "lucide-react";
 // import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ChatSession } from "@/types";
@@ -41,7 +41,7 @@ interface ChatSidebarProps {
 }
 
 export default function ChatSidebar({ currentChatId, onNewChat, onChatSelect, isOpen, onClose }: ChatSidebarProps) {
-    const { userEmail, userId, logout } = useAuth();
+    const { userEmail, userId } = useAuth();
     // const router = useRouter();
     const [chatSessions, setChatSessions] = useState<ChatSession[]>([]);
     const [isLoading, setIsLoading] = useState(false);
