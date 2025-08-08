@@ -27,6 +27,7 @@ export default function AuthWrapper({ children }: AuthWrapperProps) {
                     // Clean up URL after successful authentication
                     removeUrlParameter("code");
                 } catch (err) {
+                    console.error("SSO authentication failed", err);
                     // Clean up URL even on failure to prevent retry loops
                     removeUrlParameter("code");
                 } finally {
