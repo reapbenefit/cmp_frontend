@@ -8,6 +8,7 @@ interface AuthContextType {
     isLoading: boolean;
     login: (email: string, password: string) => Promise<void>;
     signup: (data: SignupData) => Promise<void>;
+    authenticateWithSSO: (code: string) => Promise<void>;
     logout: () => void;
     error: string | null;
     userId: string | null;
@@ -32,7 +33,7 @@ interface AuthProviderProps {
 }
 
 // Helper function to set cookie
-const setCookie = (name: string, value: string, days: number = 7) => {
+const setCookie = (name: string, value: string, days: number = 3650) => {
     const expires = new Date();
     expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
     document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;SameSite=Strict`;
@@ -51,6 +52,21 @@ const deleteCookie = (name: string) => {
     document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;`;
 };
 
+// Helper function to get URL search parameter
+export const getUrlParameter = (name: string): string | null => {
+    if (typeof window === 'undefined') return null;
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get(name);
+};
+
+// Helper function to remove URL parameter
+export const removeUrlParameter = (paramName: string) => {
+    if (typeof window === 'undefined') return;
+    const url = new URL(window.location.href);
+    url.searchParams.delete(paramName);
+    window.history.replaceState({}, document.title, url.toString());
+};
+
 export function AuthProvider({ children, backendUrl }: AuthProviderProps) {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
@@ -63,11 +79,13 @@ export function AuthProvider({ children, backendUrl }: AuthProviderProps) {
     useEffect(() => {
         const storedUserId = localStorage.getItem("userId");
         const storedUserEmail = localStorage.getItem("userEmail");
+        const storedUsername = localStorage.getItem("username");
         const sessionToken = getCookie("sid");
 
         if (storedUserId && sessionToken) {
             setUserId(storedUserId);
             setUserEmail(storedUserEmail);
+            setUsername(storedUsername);
             setIsAuthenticated(true);
         }
         setIsLoading(false);
@@ -104,7 +122,7 @@ export function AuthProvider({ children, backendUrl }: AuthProviderProps) {
             setUserEmail(email);
 
             // Make an API call to get the username for the user and store it
-            const usernameResponse = await fetch(`${backendUrl}/users/${email}/username`, {
+            const usernameResponse = await fetch(`${backendUrl}/users/${data.sid}/username`, {
                 method: "GET"
             });
 
@@ -118,7 +136,7 @@ export function AuthProvider({ children, backendUrl }: AuthProviderProps) {
 
             // Store the session token (sid) in cookies
             if (data.sid) {
-                setCookie("sid", data.sid, 7); // Store for 7 days
+                setCookie("sid", data.sid)
             }
 
             setIsAuthenticated(true);
@@ -172,7 +190,7 @@ export function AuthProvider({ children, backendUrl }: AuthProviderProps) {
 
             // Store the session token (sid) in cookies if provided
             if (responseData.sid) {
-                setCookie("sid", responseData.sid, 7); // Store for 7 days
+                setCookie("sid", responseData.sid)
             }
 
             setIsAuthenticated(true);
@@ -189,9 +207,68 @@ export function AuthProvider({ children, backendUrl }: AuthProviderProps) {
         }
     };
 
+    const authenticateWithSSO = async (code: string) => {
+        setIsLoading(true);
+        setError(null);
+
+        try {
+            const tokenUrl = `${backendUrl}/login_with_sso`;
+
+            // Construct the payload as a URL-encoded string
+            const payload = {
+                code: code,
+            }
+
+            const headers: Record<string, string> = {
+                "Content-Type": "application/json",
+            };
+
+            const response = await fetch(tokenUrl, {
+                method: "POST",
+                headers,
+                body: JSON.stringify(payload),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ message: "SSO authentication failed" }));
+                throw new Error(errorData.message || "SSO authentication failed");
+            }
+
+            const data = await response.json();
+
+            // Store user ID if provided by backend
+            if (data.id) {
+                localStorage.setItem("userId", data.id);
+                setUserId(data.id);
+            }
+
+            // Store the email used for login
+            localStorage.setItem("userEmail", data.email);
+            setUserEmail(data.email);
+
+            localStorage.setItem("username", data.username);
+            setUsername(data.username);
+
+            // Store the session token (sid) in cookies
+            if (data.sid) {
+                setCookie("sid", data.sid);
+            }
+
+            setIsAuthenticated(true);
+            setError(null);
+
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "SSO authentication failed");
+            throw err;
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     const logout = () => {
         localStorage.removeItem("userId");
         localStorage.removeItem("userEmail");
+        localStorage.removeItem("username");
         deleteCookie("sid");
         setUserId(null);
         setUserEmail(null);
@@ -219,6 +296,7 @@ export function AuthProvider({ children, backendUrl }: AuthProviderProps) {
         isLoading,
         login,
         signup,
+        authenticateWithSSO,
         logout,
         error,
         userId,

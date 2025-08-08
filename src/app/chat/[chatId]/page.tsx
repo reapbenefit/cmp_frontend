@@ -353,39 +353,10 @@ export default function ChatPage() {
     const analysisSentRef = useRef<boolean>(false);
     const inputAreaRef = useRef<InputAreaHandle>(null);
 
-    // Check and fetch username if needed
+    // Read username from localStorage
     useEffect(() => {
-        const checkAndFetchUsername = async () => {
-            const storedUsername = localStorage.getItem("username");
-            const userEmail = localStorage.getItem("userEmail");
-
-            if (storedUsername) {
-                // Username already exists in localStorage
-                setUsername(storedUsername);
-                return;
-            }
-
-            // If username is not stored but we have an email, fetch it
-            if (userEmail) {
-                try {
-                    const usernameResponse = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/users/${userEmail}/username`, {
-                        method: "GET"
-                    });
-
-                    if (usernameResponse.ok) {
-                        const fetchedUsername = await usernameResponse.json();
-                        if (fetchedUsername) {
-                            localStorage.setItem("username", fetchedUsername);
-                            setUsername(fetchedUsername);
-                        }
-                    }
-                } catch (error) {
-                    console.error('Error fetching username:', error);
-                }
-            }
-        };
-
-        checkAndFetchUsername();
+        const storedUsername = localStorage.getItem("username");
+        setUsername(storedUsername);
     }, []);
 
     // Shared function for handling action metadata extraction
