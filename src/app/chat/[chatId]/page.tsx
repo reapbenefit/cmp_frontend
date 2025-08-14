@@ -95,6 +95,25 @@ async function sendChatMessageToBackend(chatId: string, messages: ChatMessage[])
     }
 }
 
+// Send time invested to backend API function
+async function sendTimeInvested(chatId: string, timeValue: number, timeUnit: 'hours' | 'minutes'): Promise<void> {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/actions/${chatId}/hours_invested`, {
+        method: 'PUT',
+        headers: {
+            'accept': 'application/json',
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            time_invested_value: timeValue,
+            time_invested_unit: timeUnit
+        })
+    });
+
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+    }
+}
+
 
 // Update action metadata API function for detail chat
 async function updateActionMetadata(messages: ChatMessage[], chatId: string): Promise<UpdateActionMetadataResponse> {
@@ -340,6 +359,12 @@ export default function ChatPage() {
     const [isDetailChatMode, setIsDetailChatMode] = useState(false);
     const [username, setUsername] = useState<string | null>(null);
 
+    // Time investment states
+    const [isAskingTimeInvestment, setIsAskingTimeInvestment] = useState(false);
+    const [timeInvestedValue, setTimeInvestedValue] = useState<string>("");
+    const [timeInvestedUnit, setTimeInvestedUnit] = useState<'hours' | 'minutes'>('hours');
+    const [isSendingTimeInvestment, setIsSendingTimeInvestment] = useState(false);
+
     // Initialize sidebar state based on screen size - closed on mobile, open on desktop
     const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
         if (typeof window !== 'undefined') {
@@ -358,6 +383,71 @@ export default function ChatPage() {
         const storedUsername = localStorage.getItem("username");
         setUsername(storedUsername);
     }, []);
+
+    // Function to handle time investment submission
+    const handleTimeInvestmentSubmit = useCallback(async () => {
+        if (!timeInvestedValue || isNaN(parseFloat(timeInvestedValue)) || parseFloat(timeInvestedValue) <= 0) {
+            alert('Please enter a valid time value');
+            return;
+        }
+
+        setIsSendingTimeInvestment(true);
+
+        try {
+            // Send time investment to backend
+            await sendTimeInvested(chatId, parseFloat(timeInvestedValue), timeInvestedUnit);
+
+            // Create user message for the time investment answer
+            const timeAnswerMessage: ChatMessage = {
+                role: 'user',
+                content: `${timeInvestedValue} ${timeInvestedUnit}`,
+                timestamp: new Date()
+            };
+
+            // Create AI response acknowledging the time investment and asking about reflective questions
+            const continueMessage: ChatMessage = {
+                role: 'assistant',
+                content: {
+                    response: "Thank you for sharing that! Would you like me to ask you some more questions about this action to help enhance your portfolio even further? I can help you reflect on the impact, challenges, and learnings from your experience.",
+                },
+                timestamp: new Date()
+            };
+
+            // Add both messages to the conversation
+            const newMessages = [...messages, timeAnswerMessage, continueMessage];
+            setMessages(newMessages);
+
+            // Update session
+            if (currentSession) {
+                const updatedSession = {
+                    ...currentSession,
+                    messages: newMessages,
+                    updatedAt: new Date()
+                };
+                setCurrentSession(updatedSession);
+
+                // Send both messages to backend
+                try {
+                    await sendChatMessageToBackend(chatId, [timeAnswerMessage, continueMessage]);
+                    console.log('Time investment messages sent to backend successfully');
+                } catch (error) {
+                    console.error('Error sending time investment messages to backend:', error);
+                }
+            }
+
+            // Reset time investment state and show regular input again
+            setIsAskingTimeInvestment(false);
+            setTimeInvestedValue("");
+            setTimeInvestedUnit('hours');
+            setIsDetailChatMode(true);
+
+        } catch (error) {
+            console.error('Error sending time investment:', error);
+            alert('Failed to save time investment. Please try again.');
+        } finally {
+            setIsSendingTimeInvestment(false);
+        }
+    }, [timeInvestedValue, timeInvestedUnit, chatId, messages, currentSession]);
 
     // Shared function for handling action metadata extraction
     const handleExtractActionMetadata = useCallback(async (conversationMessages: ChatMessage[], updatedSession: ChatSession) => {
@@ -403,36 +493,38 @@ export default function ChatPage() {
                 // Create/update action with extracted data
                 try {
                     setIsConversationOver(false);
-                    setIsDetailChatMode(true);
 
-                    // Create a new AI message asking if they want to continue
-                    const continueMessage: ChatMessage = {
+                    // Create a new AI message asking for time investment
+                    const timeInvestmentMessage: ChatMessage = {
                         role: 'assistant',
                         content: {
-                            response: "Would you like me to ask you some more questions about this action to help enhance your portfolio even further? I can help you reflect on the impact, challenges, and learnings from your experience.",
+                            response: "Great! To complete your action documentation, could you tell me how much time you invested in this action?",
                         },
                         timestamp: new Date()
                     };
 
                     // Add the message to the conversation
-                    setMessages(prev => [...prev, continueMessage]);
+                    setMessages(prev => [...prev, timeInvestmentMessage]);
 
                     // Update session with the new message
-                    const messagesWithContinue = [...analysisMessages, continueMessage];
-                    const sessionWithContinue = {
+                    const messagesWithTimeQuestion = [...analysisMessages, timeInvestmentMessage];
+                    const sessionWithTimeQuestion = {
                         ...finalSessionUpdate,
-                        messages: messagesWithContinue,
+                        messages: messagesWithTimeQuestion,
                         updatedAt: new Date()
                     };
-                    setCurrentSession(sessionWithContinue);
+                    setCurrentSession(sessionWithTimeQuestion);
 
-                    // Send the continue message to backend
+                    // Send the time investment message to backend
                     try {
-                        await sendChatMessageToBackend(chatId, [continueMessage]);
-                        console.log('Continue message sent to backend successfully');
+                        await sendChatMessageToBackend(chatId, [timeInvestmentMessage]);
+                        console.log('Time investment message sent to backend successfully');
                     } catch (error) {
-                        console.error('Error sending continue message to backend:', error);
+                        console.error('Error sending time investment message to backend:', error);
                     }
+
+                    // Set state to show time investment input
+                    setIsAskingTimeInvestment(true);
 
                 } catch (error) {
                     console.error('Error creating/updating action:', error);
@@ -692,7 +784,21 @@ export default function ChatPage() {
                         setIsConversationOver(true);
                         return;
                     } else {
-                        setIsDetailChatMode(true);
+                        // Check if the last message was asking about time investment
+                        const lastAssistantMessage = [...chatHistory].reverse().find(msg => msg.role === 'assistant');
+                        const isTimeInvestmentQuestion = lastAssistantMessage &&
+                            typeof lastAssistantMessage.content === 'object' &&
+                            'response' in lastAssistantMessage.content &&
+                            typeof lastAssistantMessage.content.response === 'string' &&
+                            lastAssistantMessage.content.response.includes('Great! To complete your action documentation, could you tell me how much time you invested in this action?');
+
+                        if (isTimeInvestmentQuestion) {
+                            // We're waiting for time investment answer
+                            setIsAskingTimeInvestment(true);
+                        } else {
+                            // We're in detail chat mode
+                            setIsDetailChatMode(true);
+                        }
                     }
                 }
 
@@ -852,8 +958,90 @@ export default function ChatPage() {
                         <div ref={messagesEndRef} />
                     </div>
 
-                    {/* Input */}
-                    {!isConversationOver && (
+                    {/* Time Investment Input */}
+                    {isAskingTimeInvestment && !isConversationOver && (
+                        <div className="p-4 max-w-4xl mx-auto w-full px-4 md:px-8 pb-8">
+                            <div className="flex flex-col space-y-4">
+                                <div className="flex flex-col max-[450px]:gap-3">
+                                    {/* Input row */}
+                                    <div className="flex gap-2 items-center">
+                                        <div className="flex-1">
+                                            <input
+                                                type="number"
+                                                step="0.5"
+                                                min="0.1"
+                                                placeholder="Enter time value"
+                                                value={timeInvestedValue}
+                                                onChange={(e) => setTimeInvestedValue(e.target.value)}
+                                                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-lg"
+                                                disabled={isSendingTimeInvestment}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === 'Enter' && !e.shiftKey) {
+                                                        e.preventDefault();
+                                                        handleTimeInvestmentSubmit();
+                                                    }
+                                                }}
+                                            />
+                                        </div>
+                                        <div className="flex-shrink-0 relative">
+                                            <select
+                                                value={timeInvestedUnit}
+                                                onChange={(e) => setTimeInvestedUnit(e.target.value as 'hours' | 'minutes')}
+                                                className="px-4 py-3 pr-12 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-lg cursor-pointer appearance-none bg-white"
+                                                disabled={isSendingTimeInvestment}
+                                            >
+                                                <option value="hours">Hours</option>
+                                                <option value="minutes">Minutes</option>
+                                            </select>
+                                            {/* Custom dropdown arrow */}
+                                            <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none">
+                                                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                                </svg>
+                                            </div>
+                                        </div>
+                                        {/* Submit button - stays in same row for screens >= 450px */}
+                                        <div className="flex-shrink-0 min-[450px]:block max-[450px]:hidden">
+                                            <button
+                                                onClick={handleTimeInvestmentSubmit}
+                                                disabled={isSendingTimeInvestment || !timeInvestedValue}
+                                                className="px-6 py-4 bg-green-600 text-white rounded-xl hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                                            >
+                                                {isSendingTimeInvestment ? (
+                                                    <div className="flex items-center justify-center gap-2">
+                                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                                        <span>Saving...</span>
+                                                    </div>
+                                                ) : (
+                                                    'Submit'
+                                                )}
+                                            </button>
+                                        </div>
+                                    </div>
+                                    {/* Submit button for small screens - full width on next line for screens < 450px */}
+                                    <div className="min-[450px]:hidden max-[450px]:block">
+                                        <button
+                                            onClick={handleTimeInvestmentSubmit}
+                                            disabled={isSendingTimeInvestment || !timeInvestedValue}
+                                            className="w-full px-6 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                                        >
+                                            {isSendingTimeInvestment ? (
+                                                <div className="flex items-center justify-center gap-2">
+                                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                                    <span>Saving...</span>
+                                                </div>
+                                            ) : (
+                                                'Submit'
+                                            )}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Regular Input */}
+                    {!isConversationOver && !isAskingTimeInvestment && (
                         <div className="p-4 max-w-4xl mx-auto w-full px-4 md:px-8 pb-8">
                             <InputArea
                                 ref={inputAreaRef}
