@@ -32,8 +32,8 @@ const scrollAnimation = `
   }
 `;
 
-export default function Portfolio() {
-    const { username, isLoading: authLoading } = useAuth();
+export default function Portfolio({ username, viewOnly }: { username: string, viewOnly: boolean }) {
+    const { isLoading: authLoading } = useAuth();
     const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -87,11 +87,11 @@ export default function Portfolio() {
                 if (userData.actions) {
                     const pinnedActions = userData.actions.filter(action => action.is_pinned);
                     if (pinnedActions.length > 0) {
-                        setTopActionIds(pinnedActions.map(action => action.id.toString()));
+                        setTopActionIds(pinnedActions.map(action => action['uuid']));
                     } else {
                         // Use top 4 actions if none are pinned
                         const top4Actions = userData.actions.slice(0, 4);
-                        setTopActionIds(top4Actions.map(action => action.id.toString()));
+                        setTopActionIds(top4Actions.map(action => action['uuid']));
                     }
                 }
             } catch (err) {
@@ -106,7 +106,7 @@ export default function Portfolio() {
     }, [username, authLoading]);
 
     // Get current top actions based on selected IDs
-    const currentTopActions = (userProfile?.actions || []).filter(action => topActionIds.includes(action.id.toString()));
+    const currentTopActions = (userProfile?.actions || []).filter(action => topActionIds.includes(action['uuid']));
 
     // All actions from API
     const allActions = userProfile?.actions || [];
@@ -276,17 +276,19 @@ export default function Portfolio() {
 
                 <div className="max-w-7xl mx-auto p-6">
                     {/* Back to Home Button */}
-                    <div className="mb-6">
-                        <button
-                            onClick={() => window.location.href = '/'}
+                    {!viewOnly && (
+                        <div className="mb-6">
+                            <button
+                                onClick={() => window.location.href = '/'}
                             className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
                         >
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                             </svg>
-                            <span className="text-sm font-medium">Back to home</span>
-                        </button>
-                    </div>
+                                <span className="text-sm font-medium">Back to home</span>
+                            </button>
+                        </div>
+                    )}
 
                     <div className="flex gap-20">
                         {/* Left sidebar - Profile */}
@@ -402,7 +404,7 @@ export default function Portfolio() {
                                 )}
 
                                 {/* Edit Profile Button */}
-                                {!isEditingProfile && (
+                                {!isEditingProfile && !viewOnly && (
                                     <div className="mb-4">
                                         <button
                                             onClick={handleEditProfile}
@@ -417,15 +419,17 @@ export default function Portfolio() {
                                 )}
 
                                 {/* Share Profile Button */}
-                                <div className="mb-4">
-                                    <button
-                                        onClick={handleShareProfile}
+                                {!viewOnly && (
+                                    <div className="mb-4">
+                                        <button
+                                            onClick={handleShareProfile}
                                         className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium cursor-pointer w-full justify-center"
                                     >
                                         <Share2 className="w-4 h-4" />
-                                        Share profile
-                                    </button>
-                                </div>
+                                            Share profile
+                                        </button>
+                                    </div>
+                                )}
 
                                 {/* Skills */}
                                 <div className="mb-6">
@@ -564,7 +568,7 @@ export default function Portfolio() {
                                     <div className="mb-8">
                                         <div className="flex items-center justify-between mb-4">
                                             <h2 className="text-lg font-semibold text-gray-900">Top Actions</h2>
-                                            {currentTopActions.length > 0 && (
+                                            {currentTopActions.length > 0 && !viewOnly && (
                                                 <button
                                                     onClick={() => setIsCustomizeModalOpen(true)}
                                                     className="text-sm text-blue-600 hover:underline cursor-pointer"
@@ -578,10 +582,11 @@ export default function Portfolio() {
                                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                                                 {currentTopActions.map(action => (
                                                     <ActionCard
-                                                        key={action.id}
+                                                        key={action['uuid']}
                                                         action={action}
                                                         onActionClick={(a) => setSelectedAction(a)}
                                                         variant="compact"
+                                                        viewOnly={viewOnly}
                                                     />
                                                 ))}
                                             </div>
@@ -645,10 +650,11 @@ export default function Portfolio() {
                                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                                             {allActions.map(action => (
                                                 <ActionCard
-                                                    key={action.id}
+                                                    key={action['uuid']}
                                                     action={action}
                                                     onActionClick={(a) => setSelectedAction(a)}
                                                     variant="compact"
+                                                    viewOnly={viewOnly}
                                                 />
                                             ))}
                                         </div>

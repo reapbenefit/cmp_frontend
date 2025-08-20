@@ -82,6 +82,8 @@ export function AuthProvider({ children, backendUrl }: AuthProviderProps) {
         const storedUsername = localStorage.getItem("username");
         const sessionToken = getCookie("sid");
 
+        console.log(storedUserId, storedUserEmail, storedUsername, sessionToken)
+
         if (storedUserId && sessionToken) {
             setUserId(storedUserId);
             setUserEmail(storedUserEmail);

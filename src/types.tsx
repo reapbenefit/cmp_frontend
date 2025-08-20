@@ -32,15 +32,17 @@ export interface ActionDetails {
 }
 
 export interface Action {
-    id: string;
+    uuid: string;
     title: string;
     description: string;
     category: string;
     type: string;
     is_verified: boolean;
     is_pinned: boolean;
-    isPublic: boolean;
-    hours: number;
+    status?: string | null;
+    created_at: string;
+    isPublic?: boolean;
+    hours?: number;
     verified?: boolean;
     details?: ActionDetails;
     chat_history?: ChatHistoryMessage[];
@@ -49,6 +51,7 @@ export interface Action {
         name: string;
         label: string;
         relevance: string;
+        response?: string | null;
     }>;
 }
 
@@ -58,7 +61,7 @@ export interface Skill {
     count: number;
     description: string;
     actions: Array<{
-        id: string;
+        uuid: string;
         title: string;
         date: string;
         explanation: string;

@@ -1,14 +1,5 @@
 import { useState, useEffect } from 'react';
-
-interface Action {
-    id: string;
-    title: string;
-    description: string;
-    category: string;
-    isPublic: boolean;
-    hours: number;
-    verified?: boolean;
-}
+import { Action } from '@/types';
 
 interface CustomizeTopActionsModalProps {
     isOpen: boolean;
@@ -53,8 +44,8 @@ export default function CustomizeTopActionsModal({
 
     // Sort actions to show currently selected ones at the top
     const sortedActions = [...allActions].sort((a, b) => {
-        const aIsSelected = selectedActionIds.includes(a.id);
-        const bIsSelected = selectedActionIds.includes(b.id);
+        const aIsSelected = selectedActionIds.includes(a['uuid']);
+        const bIsSelected = selectedActionIds.includes(b['uuid']);
 
         if (aIsSelected && !bIsSelected) return -1;
         if (!aIsSelected && bIsSelected) return 1;
@@ -84,12 +75,12 @@ export default function CustomizeTopActionsModal({
                     {/* Actions List */}
                     <div className="max-h-96 overflow-y-auto space-y-3">
                         {sortedActions.map((action) => {
-                            const isSelected = selectedActionIds.includes(action.id);
+                            const isSelected = selectedActionIds.includes(action['uuid']);
                             const isDisabled = !isSelected && selectedActionIds.length >= 4;
 
                             return (
                                 <div
-                                    key={action.id}
+                                    key={action['uuid']}
                                     className={`flex items-start gap-3 p-3 rounded-lg border transition-all ${isSelected
                                         ? 'border-blue-300 bg-blue-50'
                                         : isDisabled
@@ -102,7 +93,7 @@ export default function CustomizeTopActionsModal({
                                             type="checkbox"
                                             checked={isSelected}
                                             disabled={isDisabled}
-                                            onChange={() => handleToggleAction(action.id)}
+                                            onChange={() => handleToggleAction(action['uuid'])}
                                             className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
                                         />
                                         <div className="flex-1">
@@ -122,8 +113,8 @@ export default function CustomizeTopActionsModal({
                                                 <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">
                                                     {action.category}
                                                 </span>
-                                                <span className="bg-orange-100 text-orange-800 px-2 py-1 rounded text-xs">
-                                                    {action.hours}h
+                                                <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">
+                                                    {action.type}
                                                 </span>
                                             </div>
                                         </div>
