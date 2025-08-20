@@ -1,7 +1,6 @@
 "use client";
 
 import { useAuth, getUrlParameter, removeUrlParameter } from "@/lib/auth";
-import AuthContainer from "@/components/AuthContainer";
 import { useState, useEffect } from "react";
 
 interface AuthWrapperProps {
