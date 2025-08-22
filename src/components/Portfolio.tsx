@@ -5,8 +5,8 @@ import { MapPin, Users, CheckCircle, Plus, Share2, Copy, Check } from "lucide-re
 import ActionCard from "@/components/ActionCard";
 import SkillModal from "@/components/SkillModal";
 import ActionModal from "@/components/ActionModal";
-import CommunityCard, { Community } from "@/components/CommunityCard";
-import AddCommunityModal from "@/components/AddCommunityModal";
+// import CommunityCard, { Community } from "@/components/CommunityCard";
+// import AddCommunityModal from "@/components/AddCommunityModal";
 import CustomizeTopActionsModal from "@/components/CustomizeTopActionsModal";
 import AuthWrapper from "@/components/AuthWrapper";
 import { useAuth } from "@/lib/auth";
@@ -39,9 +39,9 @@ export default function Portfolio({ username, viewOnly }: { username: string, vi
     const [error, setError] = useState<string | null>(null);
     const [selectedSkill, setSelectedSkill] = useState<ApiSkill | null>(null);
     const [selectedAction, setSelectedAction] = useState<Action | null>(null);
-    const [activeTab, setActiveTab] = useState<'overview' | 'actions' | 'communities'>('overview');
-    const [userCommunities, setUserCommunities] = useState<Community[]>([]);
-    const [isAddCommunityModalOpen, setIsAddCommunityModalOpen] = useState(false);
+    const [activeTab, setActiveTab] = useState<'overview' | 'actions'>('overview');
+    // const [userCommunities, setUserCommunities] = useState<Community[]>([]);
+    // const [isAddCommunityModalOpen, setIsAddCommunityModalOpen] = useState(false);
     const [isCustomizeModalOpen, setIsCustomizeModalOpen] = useState(false);
     const [topActionIds, setTopActionIds] = useState<string[]>([]);
     const [isShareModalOpen, setIsShareModalOpen] = useState(false);
@@ -81,7 +81,7 @@ export default function Portfolio({ username, viewOnly }: { username: string, vi
                 const userData: UserProfile = await response.json();
                 setUserProfile(userData);
                 // Set user communities from API response
-                setUserCommunities(userData.communities || []);
+                // setUserCommunities(userData.communities || []);
 
                 // Set pinned actions - if none are pinned, use top 4
                 if (userData.actions) {
@@ -111,10 +111,10 @@ export default function Portfolio({ username, viewOnly }: { username: string, vi
     // All actions from API
     const allActions = userProfile?.actions || [];
 
-    const handleAddCommunity = (newCommunity: Community) => {
-        // Add the new community at the top of the list
-        setUserCommunities(prev => [newCommunity, ...prev]);
-    };
+    // const handleAddCommunity = (newCommunity: Community) => {
+    //     // Add the new community at the top of the list
+    //     setUserCommunities(prev => [newCommunity, ...prev]);
+    // };
 
     const handleSaveTopActions = (selectedActionIds: string[]) => {
         setTopActionIds(selectedActionIds);
@@ -521,7 +521,7 @@ export default function Portfolio({ username, viewOnly }: { username: string, vi
                                         </div>
                                     </button>
 
-                                    <button
+                                    {/* <button
                                         onClick={() => setActiveTab('communities')}
                                         className={`pb-3 px-1 border-b-2 font-medium text-sm cursor-pointer transition-colors ${activeTab === 'communities'
                                             ? 'border-orange-500 text-gray-900'
@@ -537,7 +537,7 @@ export default function Portfolio({ username, viewOnly }: { username: string, vi
                                                 {userCommunities.length}
                                             </span>
                                         </div>
-                                    </button>
+                                    </button> */}
                                 </nav>
                             </div>
 
@@ -690,9 +690,9 @@ export default function Portfolio({ username, viewOnly }: { username: string, vi
                                         </div>
                                     )}
                                 </div>
-                            ) : (
-                                /* Communities Tab Content */
-                                <div className="space-y-6">
+                            ) : null}
+                                {/* Communities Tab Content */}
+                                {/* <div className="space-y-6">
                                     {userCommunities.length > 0 && (
                                         <div className="flex items-center justify-between">
                                             <button
@@ -730,8 +730,7 @@ export default function Portfolio({ username, viewOnly }: { username: string, vi
                                             </button>
                                         </div>
                                     )}
-                                </div>
-                            )}
+                                </div> */}
                         </div>
                     </div>
                 </div>
@@ -799,12 +798,12 @@ export default function Portfolio({ username, viewOnly }: { username: string, vi
             )}
 
             {/* Add Community Modal */}
-            <AddCommunityModal
+            {/* <AddCommunityModal
                 isOpen={isAddCommunityModalOpen}
                 onClose={() => setIsAddCommunityModalOpen(false)}
                 onAdd={handleAddCommunity}
                 username={username}
-            />
+            /> */}
 
             {/* Customize Top Actions Modal */}
             <CustomizeTopActionsModal
