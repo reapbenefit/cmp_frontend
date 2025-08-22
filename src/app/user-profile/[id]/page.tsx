@@ -1,5 +1,6 @@
 import Portfolio from '@/components/Portfolio';
 
-export default function PortfolioPage({ params }: { params: { id: string } }) {
-    return <Portfolio username={params.id} viewOnly={true} />;
+export default async function PortfolioPage({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = await params;
+    return <Portfolio username={id} viewOnly={true} />;
 }

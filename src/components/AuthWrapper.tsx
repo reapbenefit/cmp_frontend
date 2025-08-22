@@ -2,7 +2,7 @@
 
 import { useAuth, getUrlParameter, removeUrlParameter } from "@/lib/auth";
 import { useState, useEffect } from "react";
-import AuthContainer from "./AuthContainer";
+// import AuthContainer from "./AuthContainer";
 
 interface AuthWrapperProps {
     children: React.ReactNode;
