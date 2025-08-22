@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { MapPin, Users, CheckCircle, Plus, Share2, Copy, Check } from "lucide-react";
+import { MapPin, CheckCircle, Share2, Copy, Check } from "lucide-react";
 import ActionCard from "@/components/ActionCard";
 import SkillModal from "@/components/SkillModal";
 import ActionModal from "@/components/ActionModal";
