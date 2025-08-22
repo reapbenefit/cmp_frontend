@@ -45,6 +45,11 @@ export default function Tooltip({
         }
     };
 
+    // Don't render tooltip if content is null
+    if (!content) {
+        return <>{children}</>;
+    }
+
     return (
         <div className="relative group cursor-pointer">
             {children}
