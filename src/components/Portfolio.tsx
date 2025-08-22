@@ -33,9 +33,9 @@ const scrollAnimation = `
 `;
 
 export default function Portfolio({ username, viewOnly }: { username: string, viewOnly: boolean }) {
-    // Only use auth when not in viewOnly mode
-    const authHook = viewOnly ? { isLoading: false } : useAuth();
-    const { isLoading: authLoading } = authHook;
+    // Always call useAuth hook but ignore its values in viewOnly mode
+    const authHook = useAuth();
+    const { isLoading: authLoading } = viewOnly ? { isLoading: false } : authHook;
     const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
