@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, X, PanelLeft, User } from "lucide-react";
+import { Plus, X, PanelLeft, User, LogOut } from "lucide-react";
 // import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ChatSession } from "@/types";
@@ -41,7 +41,7 @@ interface ChatSidebarProps {
 }
 
 export default function ChatSidebar({ currentChatId, onNewChat, onChatSelect, isOpen, onClose }: ChatSidebarProps) {
-    const { userEmail, userId } = useAuth();
+    const { userEmail, userId, logout } = useAuth();
     // const router = useRouter();
     const [chatSessions, setChatSessions] = useState<ChatSession[]>([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -161,13 +161,13 @@ export default function ChatSidebar({ currentChatId, onNewChat, onChatSelect, is
                     </button> */}
 
                     {/* Logout Button */}
-                    {/* <button
+                    <button
                         onClick={logout}
                         className="w-full flex items-center gap-3 px-3 py-2 text-left rounded-lg hover:bg-red-50 text-red-600 hover:text-red-700 transition-colors cursor-pointer"
                     >
                         <LogOut className="w-4 h-4" />
                         <span className="text-sm font-medium">Sign out</span>
-                    </button> */}
+                    </button>
                 </div>
             </div>
         </div>

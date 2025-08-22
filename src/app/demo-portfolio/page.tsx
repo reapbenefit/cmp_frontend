@@ -41,12 +41,17 @@ interface ActionDetails {
 
 
 interface Action {
-    id: string;
+    uuid: string;
     title: string;
     description: string;
     category: string;
-    isPublic: boolean;
-    hours: number;
+    type: string;
+    is_verified: boolean;
+    is_pinned: boolean;
+    status?: string | null;
+    created_at: string;
+    isPublic?: boolean;
+    hours?: number;
     verified?: boolean;
     details?: ActionDetails;
 }
@@ -57,7 +62,7 @@ interface Skill {
     count: number;
     description: string;
     actions: Array<{
-        id: string;
+        uuid: string;
         title: string;
         date: string;
         explanation: string;
@@ -234,7 +239,7 @@ function ActionCard({
 
 
 interface SkillAction {
-    id: string;
+    uuid: string;
     date: string;
     title: string;
     explanation: string;
@@ -295,7 +300,7 @@ const SkillModal = ({ skill, onClose }: SkillModalProps) => {
 
                     <div className="space-y-4">
                         {skill.actions.map((action, index) => (
-                            <div key={action.id} className="flex gap-4">
+                            <div key={action.uuid} className="flex gap-4">
                                 <div className="flex flex-col items-center">
                                     <div className="flex items-center h-6">
                                         <div className="w-3 h-3 bg-blue-500 rounded-full flex-shrink-0"></div>
@@ -790,13 +795,13 @@ const skills: Skill[] = [
         description: "Ability to identify complex issues and develop systematic solutions",
         actions: [
             {
-                id: "1",
+                uuid: "1",
                 title: "plastic-waste-management",
                 date: "2025-02-03",
                 explanation: "Identified and addressed the complex issue of plastic waste management through systematic sorting and facility setup"
             },
             {
-                id: "3",
+                uuid: "3",
                 title: "tree-plantation-drive",
                 date: "2024-01-15",
                 explanation: "Solved logistical challenges of coordinating volunteers and securing plantation permissions"
@@ -810,19 +815,19 @@ const skills: Skill[] = [
         description: "Analytical approach to understanding social and environmental issues",
         actions: [
             {
-                id: "2",
+                uuid: "2",
                 title: "youth-rights-workshop",
                 date: "2024-02-14",
                 explanation: "Analyzed youth rights issues and policy gaps in Karnataka state governance"
             },
             {
-                id: "1",
+                uuid: "1",
                 title: "plastic-waste-management",
                 date: "2025-02-03",
                 explanation: "Critically evaluated waste management systems and identified improvement opportunities"
             },
             {
-                id: "4",
+                uuid: "4",
                 title: "labor-welfare-awareness",
                 date: "2024-03-20",
                 explanation: "Analyzed gaps in government welfare scheme awareness among laborers"
@@ -836,13 +841,13 @@ const skills: Skill[] = [
         description: "Effective verbal and written communication with diverse stakeholders",
         actions: [
             {
-                id: "2",
+                uuid: "2",
                 title: "youth-rights-workshop",
                 date: "2024-02-14",
                 explanation: "Presented findings to workshop participants and engaged in advocacy discussions"
             },
             {
-                id: "4",
+                uuid: "4",
                 title: "labor-welfare-awareness",
                 date: "2024-03-20",
                 explanation: "Effectively communicated complex government schemes to laborers in simple terms"
@@ -856,7 +861,7 @@ const skills: Skill[] = [
         description: "Using data and evidence to drive decision-making and measure impact",
         actions: [
             {
-                id: "1",
+                uuid: "1",
                 title: "plastic-waste-management",
                 date: "2025-02-03",
                 explanation: "Analyzed waste segregation patterns and tracked materials through different recovery facilities"
@@ -870,7 +875,7 @@ const skills: Skill[] = [
         description: "Active participation in democratic processes and civic engagement",
         actions: [
             {
-                id: "2",
+                uuid: "2",
                 title: "youth-rights-workshop",
                 date: "2024-02-14",
                 explanation: "Actively participated in democratic processes by demanding youth commission formalization"
@@ -884,13 +889,13 @@ const skills: Skill[] = [
         description: "Exceptional ability to bring diverse groups together for common causes",
         actions: [
             {
-                id: "1",
+                uuid: "1",
                 title: "plastic-waste-management",
                 date: "2025-02-03",
                 explanation: "Worked with multiple stakeholders including BBMP, CMC, TMC and GP to implement waste collection"
             },
             {
-                id: "3",
+                uuid: "3",
                 title: "tree-plantation-drive",
                 date: "2024-01-15",
                 explanation: "Mobilized 25+ volunteers and coordinated with local authorities for plantation permissions"
@@ -904,13 +909,13 @@ const skills: Skill[] = [
         description: "Direct, practical involvement in implementing solutions",
         actions: [
             {
-                id: "3",
+                uuid: "3",
                 title: "tree-plantation-drive",
                 date: "2024-01-15",
                 explanation: "Physically planted 50+ saplings and set up watering systems for maintenance"
             },
             {
-                id: "1",
+                uuid: "1",
                 title: "plastic-waste-management",
                 date: "2025-02-03",
                 explanation: "Hands-on involvement in setting up Materials Recovery Facility and waste sorting processes"
@@ -924,7 +929,7 @@ const skills: Skill[] = [
         description: "Persistence and passion for long-term goals despite obstacles",
         actions: [
             {
-                id: "4",
+                uuid: "4",
                 title: "labor-welfare-awareness",
                 date: "2024-03-20",
                 explanation: "Persisted in creating awareness despite initial resistance and bureaucratic challenges"
@@ -938,7 +943,7 @@ const skills: Skill[] = [
         description: "Understanding and addressing the needs and perspectives of others",
         actions: [
             {
-                id: "3",
+                uuid: "3",
                 title: "tree-plantation-drive",
                 date: "2024-01-15",
                 explanation: "Understood community needs for green spaces and involved residents in selecting plantation sites"
@@ -949,10 +954,15 @@ const skills: Skill[] = [
 
 const pinnedActions: Action[] = [
     {
-        id: "1",
+        uuid: "1",
         title: "plastic-waste-management",
         description: "Working with Saahas Waste Management on diverting plastics from landfills into repurpose & recycling. Materials Recovery Facility implementation.",
         category: "Environment",
+        type: "hands-on",
+        is_verified: true,
+        is_pinned: true,
+        status: null,
+        created_at: "2024-01-15T10:30:00Z",
         isPublic: true,
         hours: 4,
         verified: true,
@@ -1036,10 +1046,15 @@ const pinnedActions: Action[] = [
         }
     },
     {
-        id: "2",
+        uuid: "2",
         title: "youth-rights-workshop",
         description: "4 days residential workshop in Mangalore 2022. Learnings about youth rights, demanding formalization of youth commission in Karnataka.",
         category: "Social Justice",
+        type: "advocacy",
+        is_verified: true,
+        is_pinned: true,
+        status: null,
+        created_at: "2024-02-14T09:00:00Z",
         isPublic: true,
         hours: 10,
         verified: true,
@@ -1113,10 +1128,15 @@ const pinnedActions: Action[] = [
         }
     },
     {
-        id: "3",
+        uuid: "3",
         title: "labor-welfare-awareness",
         description: "Creating awareness about government schemes and Labour Identity Cards. Providing free labour cards to workers who weren't aware of benefits.",
         category: "Social Impact",
+        type: "awareness-campaign",
+        is_verified: false,
+        is_pinned: true,
+        status: null,
+        created_at: "2024-03-20T14:15:00Z",
         isPublic: true,
         hours: 8,
         verified: false,
@@ -1190,10 +1210,15 @@ const pinnedActions: Action[] = [
         }
     },
     {
-        id: "4",
+        uuid: "4",
         title: "tree-plantation-drive",
         description: "Community tree plantation focusing on native species. Coordinated with local authorities and mobilized 25+ volunteers.",
         category: "Environment",
+        type: "hands-on",
+        is_verified: false,
+        is_pinned: true,
+        status: null,
+        created_at: "2024-01-15T08:00:00Z",
         isPublic: true,
         hours: 2,
         verified: false,
@@ -1269,73 +1294,113 @@ const pinnedActions: Action[] = [
 const allActions: Action[] = [
     ...pinnedActions,
     {
-        id: "5",
+        uuid: "5",
         title: "water-conservation-campaign",
         description: "Implemented rainwater harvesting systems in 15 residential buildings. Educated residents about water conservation techniques and monitored usage patterns.",
         category: "Environment",
+        type: "hands-on",
+        is_verified: true,
+        is_pinned: false,
+        status: null,
+        created_at: "2024-05-10T11:00:00Z",
         isPublic: true,
         hours: 12,
         verified: true,
     },
     {
-        id: "6",
+        uuid: "6",
         title: "digital-literacy-program",
         description: "Taught basic digital skills to 50+ senior citizens in the community. Covered smartphone usage, online banking safety, and digital government services.",
         category: "Education",
+        type: "awareness-campaign",
+        is_verified: true,
+        is_pinned: false,
+        status: null,
+        created_at: "2024-06-15T14:30:00Z",
         isPublic: true,
         hours: 6,
         verified: true,
     },
     {
-        id: "7",
+        uuid: "7",
         title: "street-vendor-support",
         description: "Organized legal aid workshops for street vendors. Helped 30+ vendors obtain proper licenses and understand their rights under new policies.",
         category: "Social Justice",
+        type: "advocacy",
+        is_verified: false,
+        is_pinned: false,
+        status: null,
+        created_at: "2024-07-20T16:00:00Z",
         isPublic: true,
         hours: 8,
         verified: false,
     },
     {
-        id: "8",
+        uuid: "8",
         title: "air-quality-monitoring",
         description: "Set up community-based air quality monitoring stations. Collected data for 6 months and presented findings to local authorities for policy changes.",
         category: "Environment",
+        type: "data-collection",
+        is_verified: false,
+        is_pinned: false,
+        status: null,
+        created_at: "2024-08-01T12:00:00Z",
         isPublic: true,
         hours: 15,
         verified: true,
     },
     {
-        id: "9",
+        uuid: "9",
         title: "youth-mental-health-awareness",
         description: "Conducted mental health awareness sessions in 3 schools. Trained peer counselors and established support groups for adolescent mental health.",
         category: "Health",
+        type: "awareness-campaign",
+        is_verified: false,
+        is_pinned: false,
+        status: null,
+        created_at: "2024-09-05T10:00:00Z",
         isPublic: true,
         hours: 10,
         verified: false,
     },
     {
-        id: "10",
+        uuid: "10",
         title: "local-food-security-initiative",
         description: "Started community kitchen gardens and food distribution network. Collaborated with local farmers to ensure fresh produce access in underserved areas.",
         category: "Social Impact",
+        type: "hands-on",
+        is_verified: true,
+        is_pinned: false,
+        status: null,
+        created_at: "2024-10-12T13:30:00Z",
         isPublic: true,
         hours: 20,
         verified: true,
     },
     {
-        id: "11",
+        uuid: "11",
         title: "cycling-infrastructure-advocacy",
         description: "Advocated for better cycling infrastructure in the city. Organized community rides and presented proposals to city planning committee.",
         category: "Urban Planning",
+        type: "advocacy",
+        is_verified: false,
+        is_pinned: false,
+        status: null,
+        created_at: "2024-11-20T15:45:00Z",
         isPublic: true,
         hours: 7,
         verified: false,
     },
     {
-        id: "12",
+        uuid: "12",
         title: "elderly-care-network",
         description: "Created a volunteer network to support elderly residents. Organized regular health check-ups, social activities, and emergency support systems.",
         category: "Social Impact",
+        type: "community-service",
+        is_verified: true,
+        is_pinned: false,
+        status: null,
+        created_at: "2024-12-01T09:15:00Z",
         isPublic: true,
         hours: 14,
         verified: true,
@@ -1762,12 +1827,12 @@ export default function Portfolio() {
     const [userCommunities, setUserCommunities] = useState<Community[]>(communities);
     const [isAddCommunityModalOpen, setIsAddCommunityModalOpen] = useState(false);
     const [isCustomizeModalOpen, setIsCustomizeModalOpen] = useState(false);
-    const [topActionIds, setTopActionIds] = useState<string[]>(pinnedActions.map(action => action.id));
+    const [topActionIds, setTopActionIds] = useState<string[]>(pinnedActions.map(action => action.uuid));
     const [isShareModalOpen, setIsShareModalOpen] = useState(false);
     const [copied, setCopied] = useState(false);
 
     // Get current top actions based on selected IDs
-    const currentTopActions = allActions.filter(action => topActionIds.includes(action.id));
+    const currentTopActions = allActions.filter(action => topActionIds.includes(action.uuid));
 
     const handleAddCommunity = (newCommunityData: Omit<Community, 'id'>) => {
         const newCommunity: Community = {
@@ -1975,7 +2040,7 @@ export default function Portfolio() {
                                         <div className="flex-1">
                                             <h2 className="text-xl font-bold text-gray-900 mb-3">Action-Driven Systems Builder</h2>
                                             <p className="text-gray-700 mb-4 leading-relaxed">
-                                                <span className="font-semibold">Through {allActions.length} civic actions totaling {allActions.reduce((sum, action) => sum + action.hours, 0)} hours</span>, Kuppendra has proven himself as a strategic changemaker who tackles complex community challenges. His standout strength is <span className="font-semibold">Community Collaboration</span> (demonstrated in 8 actions), showing he excels at uniting diverse stakeholders for lasting impact.
+                                                <span className="font-semibold">Through {allActions.length} civic actions totaling {allActions.reduce((sum, action) => sum + (action.hours || 0), 0)} hours</span>, Kuppendra has proven himself as a strategic changemaker who tackles complex community challenges. His standout strength is <span className="font-semibold">Community Collaboration</span> (demonstrated in 8 actions), showing he excels at uniting diverse stakeholders for lasting impact.
                                             </p>
                                             {/* <div className="flex flex-wrap gap-2 mb-4">
                                                 <div className="flex items-center gap-2 bg-white border border-green-200 px-3 py-1.5 rounded-lg">
@@ -2011,7 +2076,7 @@ export default function Portfolio() {
                                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                                         {currentTopActions.map(action => (
                                             <ActionCard
-                                                key={action.id}
+                                                key={action.uuid}
                                                 action={action}
                                                 onActionClick={(a) => setSelectedAction(a)}
                                                 skills={skills}
@@ -2063,7 +2128,7 @@ export default function Portfolio() {
                                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                                     {allActions.map(action => (
                                         <ActionCard
-                                            key={action.id}
+                                            key={action.uuid}
                                             action={action}
                                             onActionClick={(a) => setSelectedAction(a)}
                                             skills={skills}

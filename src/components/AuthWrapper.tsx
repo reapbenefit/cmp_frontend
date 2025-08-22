@@ -2,6 +2,7 @@
 
 import { useAuth, getUrlParameter, removeUrlParameter } from "@/lib/auth";
 import { useState, useEffect } from "react";
+import AuthContainer from "./AuthContainer";
 
 interface AuthWrapperProps {
     children: React.ReactNode;
@@ -71,6 +72,11 @@ export default function AuthWrapper({ children }: AuthWrapperProps) {
                 return null; // Return null while redirect is happening
             }
         }
+        // return (
+        //     <div>
+        //         <AuthContainer />
+        //     </div>
+        // );
     }
 
     // Show main app if authenticated
