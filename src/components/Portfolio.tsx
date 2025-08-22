@@ -33,7 +33,9 @@ const scrollAnimation = `
 `;
 
 export default function Portfolio({ username, viewOnly }: { username: string, viewOnly: boolean }) {
-    const { isLoading: authLoading } = useAuth();
+    // Only use auth when not in viewOnly mode
+    const authHook = viewOnly ? { isLoading: false } : useAuth();
+    const { isLoading: authLoading } = authHook;
     const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -65,8 +67,8 @@ export default function Portfolio({ username, viewOnly }: { username: string, vi
     // Fetch user profile data
     useEffect(() => {
         const fetchUserProfile = async () => {
-            // Don't fetch if auth is still loading or no username
-            if (authLoading || !username) {
+            // Don't fetch if auth is still loading (only check auth in non-viewOnly mode) or no username
+            if ((!viewOnly && authLoading) || !username) {
                 return;
             }
 
@@ -103,7 +105,7 @@ export default function Portfolio({ username, viewOnly }: { username: string, vi
         };
 
         fetchUserProfile();
-    }, [username, authLoading]);
+    }, [username, authLoading, viewOnly]);
 
     // Get current top actions based on selected IDs
     const currentTopActions = (userProfile?.actions || []).filter(action => topActionIds.includes(action['uuid']));
@@ -197,68 +199,65 @@ export default function Portfolio({ username, viewOnly }: { username: string, vi
         setEditState('');
     };
 
-    // Show loading state while auth is loading or profile is loading
-    if (authLoading || loading) {
-        return (
-            <AuthWrapper>
-                <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                    <div className="text-center">
-                        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                        <p className="text-gray-600">Loading profile...</p>
-                    </div>
+    // Show loading state while auth is loading (only in non-viewOnly mode) or profile is loading
+    if ((!viewOnly && authLoading) || loading) {
+        const loadingContent = (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                    <p className="text-gray-600">Loading profile...</p>
                 </div>
-            </AuthWrapper>
+            </div>
         );
+        return viewOnly ? loadingContent : <AuthWrapper>{loadingContent}</AuthWrapper>;
     }
 
-    // Show error if no username after auth loading is complete
-    if (!authLoading && !username) {
-        return (
-            <AuthWrapper>
-                <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                    <div className="text-center">
-                        <div className="text-red-500 mb-4">
-                            <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                        </div>
-                        <h3 className="text-lg font-medium text-gray-900 mb-2">Authentication Error</h3>
-                        <p className="text-gray-600 mb-4">Unable to load user information. Please log in again.</p>
-                        <button
-                            onClick={() => window.location.reload()}
-                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors cursor-pointer"
-                        >
-                            Refresh Page
-                        </button>
+    // Show error if no username after auth loading is complete (only check auth in non-viewOnly mode)
+    if (!viewOnly && !authLoading && !username) {
+        const errorContent = (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="text-red-500 mb-4">
+                        <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
                     </div>
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">Authentication Error</h3>
+                    <p className="text-gray-600 mb-4">Unable to load user information. Please log in again.</p>
+                    <button
+                        onClick={() => window.location.reload()}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors cursor-pointer"
+                    >
+                        Refresh Page
+                    </button>
                 </div>
-            </AuthWrapper>
+            </div>
         );
+        return <AuthWrapper>{errorContent}</AuthWrapper>;
     }
 
     // Show error state for API fetch errors
     if (error) {
-        return (
-            <AuthWrapper>
-                <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                    <div className="text-center">
-                        <div className="text-red-500 mb-4">
-                            <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                        </div>
-                        <h3 className="text-lg font-medium text-gray-900 mb-2">Failed to load profile</h3>
-                        <p className="text-gray-600 mb-4">{error}</p>
-                        <button
-                            onClick={() => window.location.reload()}
-                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors cursor-pointer"
-                        >
-                            Try Again
-                        </button>
+        const apiErrorContent = (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="text-red-500 mb-4">
+                        <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
                     </div>
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">Failed to load profile</h3>
+                    <p className="text-gray-600 mb-4">{error}</p>
+                    <button
+                        onClick={() => window.location.reload()}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors cursor-pointer"
+                    >
+                        Try Again
+                    </button>
                 </div>
-            </AuthWrapper>
+            </div>
         );
+        return viewOnly ? apiErrorContent : <AuthWrapper>{apiErrorContent}</AuthWrapper>;
     }
 
     // Don't render if no user profile
@@ -268,16 +267,15 @@ export default function Portfolio({ username, viewOnly }: { username: string, vi
 
     const fullName = `${userProfile.first_name} ${userProfile.last_name}`;
 
-    return (
-        <AuthWrapper>
-            <div className="min-h-screen bg-gray-50">
+    const content = (
+        <div className="min-h-screen bg-gray-50">
                 {/* Inject animation styles */}
                 <style dangerouslySetInnerHTML={{ __html: scrollAnimation }} />
 
-                <div className="max-w-7xl mx-auto p-6">
+                <div className="max-w-7xl mx-auto p-4 md:p-6">
                     {/* Back to Home Button */}
                     {!viewOnly && (
-                        <div className="mb-6">
+                        <div className="mb-4 md:mb-6">
                             <button
                                 onClick={() => window.location.href = '/'}
                             className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
@@ -290,34 +288,34 @@ export default function Portfolio({ username, viewOnly }: { username: string, vi
                         </div>
                     )}
 
-                    <div className="flex gap-20">
+                    <div className="flex flex-col lg:flex-row gap-6 lg:gap-20">
                         {/* Left sidebar - Profile */}
-                        <div className="w-72 flex-shrink-0">
-                            <div className="sticky top-8">
+                        <div className="w-full lg:w-72 lg:flex-shrink-0">
+                            <div className="lg:sticky lg:top-8">
                                 {/* Avatar and Name Section */}
-                                <div className="flex items-center gap-4 mb-6">
+                                <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 mb-6 text-center sm:text-left">
                                     {/* Avatar Circle */}
-                                    <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-green-500 rounded-full flex items-center justify-center flex-shrink-0">
-                                        <span className="text-white text-xl font-bold">
+                                    <div className="w-20 h-20 sm:w-16 sm:h-16 bg-gradient-to-br from-blue-500 to-green-500 rounded-full flex items-center justify-center flex-shrink-0">
+                                        <span className="text-white text-2xl sm:text-xl font-bold">
                                             {userProfile.first_name.charAt(0).toUpperCase()}
                                         </span>
                                     </div>
 
                                     {/* Name and Username */}
                                     <div className="flex-1 min-w-0">
-                                        <div className="flex items-center gap-2 mb-1">
-                                            <h1 className="text-xl font-bold text-gray-900 truncate">{fullName}</h1>
+                                        <div className="flex items-center justify-center sm:justify-start gap-2 mb-1">
+                                            <h1 className="text-2xl sm:text-xl font-bold text-gray-900 truncate">{fullName}</h1>
                                             {userProfile.is_verified && (
-                                                <CheckCircle className="w-4 h-4 text-blue-500 flex-shrink-0" />
+                                                <CheckCircle className="w-5 h-5 sm:w-4 sm:h-4 text-blue-500 flex-shrink-0" />
                                             )}
                                         </div>
-                                        <p className="text-lg text-gray-600 font-light truncate">{userProfile.username}</p>
+                                        <p className="text-xl sm:text-lg text-gray-600 font-light truncate">{userProfile.username}</p>
                                     </div>
                                 </div>
 
                                 {/* Bio */}
                                 {!isEditingProfile && (
-                                    <div className="mb-4">
+                                    <div className="mb-4 text-center sm:text-left">
                                         {userProfile.bio && (
                                             <p className="text-gray-700 leading-relaxed">
                                                 {userProfile.bio}
@@ -330,7 +328,7 @@ export default function Portfolio({ username, viewOnly }: { username: string, vi
                                 {!isEditingProfile && (
                                     <div className="mb-4">
                                         {(userProfile.location_city || userProfile.location_state) && (
-                                            <div className="flex items-center gap-2 text-sm text-gray-600">
+                                            <div className="flex items-center justify-center sm:justify-start gap-2 text-sm text-gray-600">
                                                 <MapPin className="w-4 h-4" />
                                                 <span>{formatLocation(userProfile.location_city, userProfile.location_state, userProfile.location_country)}</span>
                                             </div>
@@ -354,7 +352,7 @@ export default function Portfolio({ username, viewOnly }: { username: string, vi
 
                                         {/* Location Edit */}
                                         <div>
-                                            <div className="grid grid-cols-2 gap-2">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                                 <input
                                                     type="text"
                                                     value={editCity}
@@ -373,17 +371,17 @@ export default function Portfolio({ username, viewOnly }: { username: string, vi
                                         </div>
 
                                         {/* Cancel and Save Buttons */}
-                                        <div className="flex justify-end gap-2">
+                                        <div className="flex flex-col sm:flex-row justify-end gap-2">
                                             <button
                                                 onClick={cancelEditProfile}
-                                                className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-800 transition-colors cursor-pointer"
+                                                className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-800 transition-colors cursor-pointer order-2 sm:order-1"
                                             >
                                                 Cancel
                                             </button>
                                             <button
                                                 onClick={handleSaveProfile}
                                                 disabled={updateLoading}
-                                                className="flex items-center gap-1 px-3 py-1.5 bg-green-600 text-white rounded text-sm font-medium cursor-pointer hover:bg-green-700 transition-colors disabled:opacity-50"
+                                                className="flex items-center justify-center gap-1 px-3 py-1.5 bg-green-600 text-white rounded text-sm font-medium cursor-pointer hover:bg-green-700 transition-colors disabled:opacity-50 order-1 sm:order-2"
                                             >
                                                 {updateLoading ? (
                                                     <>
@@ -431,19 +429,22 @@ export default function Portfolio({ username, viewOnly }: { username: string, vi
                                     </div>
                                 )}
 
+                                {/* Horizontal separator */}
+                                <div className="border-t border-gray-200 my-6"></div>
+
                                 {/* Skills */}
                                 <div className="mb-6">
-                                    <h3 className="text-lg font-semibold text-gray-900 mb-3">Skills</h3>
-                                    <div className="grid grid-cols-3 gap-3">
+                                    <h3 className="text-lg font-semibold text-gray-900 mb-3 text-left">Skills</h3>
+                                    <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-3 gap-3">
                                         {userProfile?.skills && userProfile.skills.length > 0 ? (
                                             userProfile.skills.sort((a, b) => b.history.length - a.history.length).map((skill) => (
                                                 <div
                                                     key={skill.id}
-                                                    className="relative group cursor-pointer flex flex-col items-center"
+                                                    className="relative group cursor-pointer flex flex-col items-start sm:items-center"
                                                     onClick={() => setSelectedSkill(skill)}
                                                 >
                                                     <div className="relative mb-2">
-                                                        <div className="w-16 h-16 rounded-full border-2 border-gray-200 overflow-hidden hover:border-gray-300 transition-colors">
+                                                        <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full border-2 border-gray-200 overflow-hidden hover:border-gray-300 transition-colors">
                                                             <img
                                                                 src={`/badges/${skill.name}.png`}
                                                                 alt={skill.label}
@@ -456,12 +457,12 @@ export default function Portfolio({ username, viewOnly }: { username: string, vi
                                                             />
                                                         </div>
                                                         {skill.history.length > 1 && (
-                                                            <div className="absolute -bottom-1 -right-1 bg-gray-900 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center font-semibold">
+                                                            <div className="absolute -bottom-1 -right-1 bg-gray-900 text-white text-xs rounded-full w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center font-semibold">
                                                                 x{skill.history.length}
                                                             </div>
                                                         )}
                                                     </div>
-                                                    <span className="text-xs text-gray-700 text-center leading-tight">
+                                                    <span className="text-xs text-gray-700 text-left sm:text-center leading-tight px-1">
                                                         {skill.label}
                                                     </span>
                                                 </div>
@@ -486,11 +487,11 @@ export default function Portfolio({ username, viewOnly }: { username: string, vi
                         {/* Right content */}
                         <div className="flex-1 min-w-0">
                             {/* Navigation Tabs */}
-                            <div className="border-b border-gray-200 mb-8">
-                                <nav className="flex gap-8">
+                            <div className="border-b border-gray-200 mb-6 lg:mb-8">
+                                <nav className="flex gap-4 sm:gap-8 overflow-x-auto">
                                     <button
                                         onClick={() => setActiveTab('overview')}
-                                        className={`pb-3 px-1 border-b-2 font-medium text-sm cursor-pointer transition-colors ${activeTab === 'overview'
+                                        className={`pb-3 px-1 border-b-2 font-medium text-sm cursor-pointer transition-colors whitespace-nowrap ${activeTab === 'overview'
                                             ? 'border-orange-500 text-gray-900'
                                             : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                                             }`}
@@ -499,13 +500,13 @@ export default function Portfolio({ username, viewOnly }: { username: string, vi
                                             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                                 <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" />
                                             </svg>
-                                            Overview
+                                            <span>Overview</span>
                                         </div>
                                     </button>
 
                                     <button
                                         onClick={() => setActiveTab('actions')}
-                                        className={`pb-3 px-1 border-b-2 font-medium text-sm cursor-pointer transition-colors ${activeTab === 'actions'
+                                        className={`pb-3 px-1 border-b-2 font-medium text-sm cursor-pointer transition-colors whitespace-nowrap ${activeTab === 'actions'
                                             ? 'border-orange-500 text-gray-900'
                                             : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                                             }`}
@@ -514,7 +515,7 @@ export default function Portfolio({ username, viewOnly }: { username: string, vi
                                             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                                 <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
                                             </svg>
-                                            Actions
+                                            <span>Actions</span>
                                             <span className="bg-gray-200 text-gray-900 text-xs px-2 py-0.5 rounded-full">
                                                 {allActions.length}
                                             </span>
@@ -579,7 +580,7 @@ export default function Portfolio({ username, viewOnly }: { username: string, vi
                                         </div>
 
                                         {currentTopActions.length > 0 ? (
-                                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                 {currentTopActions.map(action => (
                                                     <ActionCard
                                                         key={action['uuid']}
@@ -591,19 +592,19 @@ export default function Portfolio({ username, viewOnly }: { username: string, vi
                                                 ))}
                                             </div>
                                         ) : (
-                                            <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200">
+                                            <div className="text-center py-8 sm:py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200 px-4">
                                                 <div className="text-gray-400 mb-4">
-                                                    <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <svg className="w-10 h-10 sm:w-12 sm:h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                                                     </svg>
                                                 </div>
                                                 <h3 className="text-lg font-medium text-gray-900 mb-2">Ready to make an impact?</h3>
-                                                <p className="text-gray-600 max-w-md mx-auto leading-relaxed">
+                                                <p className="text-gray-600 max-w-md mx-auto leading-relaxed mb-4">
                                                     Start your journey as a Solve Ninja by recording your first action. Your top actions will be showcased here to inspire others!
                                                 </p>
                                                 <button
                                                     onClick={() => window.location.href = '/'}
-                                                    className="mt-4 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors cursor-pointer font-medium"
+                                                    className="px-4 sm:px-6 py-2 sm:py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors cursor-pointer font-medium text-sm sm:text-base"
                                                 >
                                                     Record your first action
                                                 </button>
@@ -647,7 +648,7 @@ export default function Portfolio({ username, viewOnly }: { username: string, vi
                                 /* Actions Tab Content */
                                 <div className="space-y-6">
                                     {allActions.length > 0 ? (
-                                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             {allActions.map(action => (
                                                 <ActionCard
                                                     key={action['uuid']}
@@ -659,17 +660,17 @@ export default function Portfolio({ username, viewOnly }: { username: string, vi
                                             ))}
                                         </div>
                                     ) : (
-                                        <div className="text-center py-16">
+                                        <div className="text-center py-12 sm:py-16 px-4">
                                             <div className="text-gray-400 mb-6">
-                                                <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <svg className="w-12 h-12 sm:w-16 sm:h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                                 </svg>
                                             </div>
-                                            <h3 className="text-xl font-semibold text-gray-900 mb-3">Your action portfolio awaits!</h3>
+                                            <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-3">Your action portfolio awaits!</h3>
                                             <p className="text-gray-600 max-w-lg mx-auto leading-relaxed mb-6">
                                                 Every great changemaker starts with a single action. Record your actions to build your portfolio and inspire your community. Whether it is organizing a cleanup drive, advocating for local policy, or leading an environmental project - your actions matter!
                                             </p>
-                                            <div className="flex flex-wrap justify-center gap-3 text-sm text-gray-500">
+                                            <div className="flex flex-wrap justify-center gap-3 text-xs sm:text-sm text-gray-500">
                                                 <div className="flex items-center gap-2">
                                                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                                                     <span>Discover local issues</span>
@@ -734,34 +735,33 @@ export default function Portfolio({ username, viewOnly }: { username: string, vi
                         </div>
                     </div>
                 </div>
-            </div>
 
             {/* Share Profile Modal */}
             {isShareModalOpen && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-lg p-4 sm:p-6 w-full max-w-md">
                         <div className="flex items-center justify-between mb-4">
                             <h2 className="text-lg font-semibold text-gray-900">Share Profile</h2>
                             <button
                                 onClick={() => setIsShareModalOpen(false)}
-                                className="text-gray-400 hover:text-gray-600 cursor-pointer"
+                                className="text-gray-400 hover:text-gray-600 cursor-pointer p-1"
                             >
-                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                                 </svg>
                             </button>
                         </div>
 
-                        <div className="flex items-center gap-2 mb-4">
+                        <div className="flex flex-col sm:flex-row gap-2 mb-4">
                             <input
                                 type="text"
                                 value={isClient ? `${window.location.origin}/portfolio/${userProfile.username}` : ''}
                                 readOnly
-                                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-sm"
+                                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-xs sm:text-sm"
                             />
                             <button
                                 onClick={handleCopyLink}
-                                className={`px-3 py-2 rounded-lg text-sm font-medium cursor-pointer transition-colors flex items-center gap-2 ${copied
+                                className={`px-3 py-2 rounded-lg text-sm font-medium cursor-pointer transition-colors flex items-center justify-center gap-2 whitespace-nowrap ${copied
                                     ? 'bg-green-600 text-white'
                                     : 'bg-blue-600 text-white hover:bg-blue-700'
                                     }`}
@@ -813,6 +813,9 @@ export default function Portfolio({ username, viewOnly }: { username: string, vi
                 currentTopActionIds={topActionIds}
                 onSave={handleSaveTopActions}
             />
-        </AuthWrapper>
+        </div>
     );
+
+    // Conditionally wrap with AuthWrapper based on viewOnly mode
+    return viewOnly ? content : <AuthWrapper>{content}</AuthWrapper>;
 }

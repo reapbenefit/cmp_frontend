@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Tooltip from "./Tooltip";
 import { Action } from "@/types";
 
@@ -36,9 +37,25 @@ export default function ActionCard({
 }: ActionCardProps) {
     const isExpanded = variant === 'expanded';
     const categoryGradient = getCategoryColor(action.category || 'default');
+    const [isMobile, setIsMobile] = useState(false);
+    const [activeSkillIndex, setActiveSkillIndex] = useState<number | null>(null);
 
-    const handleSkillClick = (e: React.MouseEvent) => {
+    // Detect mobile device
+    useEffect(() => {
+        const checkIfMobile = () => {
+            setIsMobile(window.innerWidth < 768 || ('ontouchstart' in window));
+        };
+        
+        checkIfMobile();
+        window.addEventListener('resize', checkIfMobile);
+        return () => window.removeEventListener('resize', checkIfMobile);
+    }, []);
+
+    const handleSkillClick = (e: React.MouseEvent, skillIndex: number) => {
         e.stopPropagation();
+        if (isMobile) {
+            setActiveSkillIndex(activeSkillIndex === skillIndex ? null : skillIndex);
+        }
     };
 
     return (
@@ -109,29 +126,64 @@ export default function ActionCard({
 
                         <div className={`flex flex-wrap ${isExpanded ? 'gap-2' : 'gap-1.5'}`}>
                             {action.skills.map((skill, index) => (
-                                <Tooltip
-                                    key={index}
-                                    content={skill.relevance}
-                                    position="bottom"
-                                    width="w-64"
-                                >
-                                    <div
-                                        className={`flex items-center gap-1 bg-gray-50 hover:bg-blue-50 border border-gray-200 hover:border-blue-200 px-2 py-1 rounded-lg transition-all duration-200 ${isExpanded ? 'text-sm gap-2 px-3' : 'text-xs'
-                                            }`}
-                                        onClick={handleSkillClick}
-                                    >
-                                        <img
-                                            src={`/badges/${skill.name}.png`}
-                                            alt={skill.label}
-                                            className={`rounded-full ${isExpanded ? 'w-4 h-4' : 'w-3 h-3'}`}
-                                            onError={(e) => {
-                                                const target = e.target as HTMLImageElement;
-                                                target.style.display = 'none';
-                                            }}
-                                        />
-                                        <span className="text-gray-700 font-medium">{skill.label}</span>
-                                    </div>
-                                </Tooltip>
+                                <div key={index} className="relative">
+                                    {!isMobile ? (
+                                        <Tooltip
+                                            content={skill.relevance}
+                                            position="bottom"
+                                            width="w-64"
+                                        >
+                                            <div
+                                                className={`flex items-center gap-1 bg-gray-50 hover:bg-blue-50 border border-gray-200 hover:border-blue-200 px-2 py-1 rounded-lg transition-all duration-200 ${isExpanded ? 'text-sm gap-2 px-3' : 'text-xs'
+                                                    }`}
+                                                onClick={(e) => handleSkillClick(e, index)}
+                                            >
+                                                <img
+                                                    src={`/badges/${skill.name}.png`}
+                                                    alt={skill.label}
+                                                    className={`rounded-full ${isExpanded ? 'w-4 h-4' : 'w-3 h-3'}`}
+                                                    onError={(e) => {
+                                                        const target = e.target as HTMLImageElement;
+                                                        target.style.display = 'none';
+                                                    }}
+                                                />
+                                                <span className="text-gray-700 font-medium">{skill.label}</span>
+                                            </div>
+                                        </Tooltip>
+                                    ) : (
+                                        <div>
+                                            <div
+                                                className={`flex items-center gap-1 bg-gray-50 active:bg-blue-50 border border-gray-200 active:border-blue-200 px-2 py-1 rounded-lg transition-all duration-200 cursor-pointer ${
+                                                    activeSkillIndex === index ? 'bg-blue-50 border-blue-200' : ''
+                                                } ${isExpanded ? 'text-sm gap-2 px-3' : 'text-xs'}`}
+                                                onClick={(e) => handleSkillClick(e, index)}
+                                            >
+                                                <img
+                                                    src={`/badges/${skill.name}.png`}
+                                                    alt={skill.label}
+                                                    className={`rounded-full ${isExpanded ? 'w-4 h-4' : 'w-3 h-3'}`}
+                                                    onError={(e) => {
+                                                        const target = e.target as HTMLImageElement;
+                                                        target.style.display = 'none';
+                                                    }}
+                                                />
+                                                <span className="text-gray-700 font-medium">{skill.label}</span>
+                                                {isMobile && (
+                                                    <svg className="w-3 h-3 text-gray-400 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                    </svg>
+                                                )}
+                                            </div>
+                                            {isMobile && activeSkillIndex === index && (
+                                                <div className="absolute z-10 mt-1 p-2 bg-white border border-gray-200 rounded-lg shadow-lg max-w-xs left-0">
+                                                    <p className="text-xs text-gray-700 leading-relaxed">
+                                                        {skill.relevance}
+                                                    </p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
                             ))}
                         </div>
                     </div>

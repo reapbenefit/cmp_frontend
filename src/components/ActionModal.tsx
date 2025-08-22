@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Tooltip from "./Tooltip";
 import { Action } from "@/types";
 
@@ -11,6 +11,26 @@ interface ActionModalProps {
 
 export default function ActionModal({ action, onClose }: ActionModalProps) {
     const [activeTab, setActiveTab] = useState<'summary' | 'raw'>('summary');
+    const [isMobile, setIsMobile] = useState(false);
+    const [activeSkillIndex, setActiveSkillIndex] = useState<number | null>(null);
+
+    // Detect mobile device
+    useEffect(() => {
+        const checkIfMobile = () => {
+            setIsMobile(window.innerWidth < 768 || ('ontouchstart' in window));
+        };
+        
+        checkIfMobile();
+        window.addEventListener('resize', checkIfMobile);
+        return () => window.removeEventListener('resize', checkIfMobile);
+    }, []);
+
+    const handleSkillClick = (e: React.MouseEvent, skillIndex: number) => {
+        e.stopPropagation();
+        if (isMobile) {
+            setActiveSkillIndex(activeSkillIndex === skillIndex ? null : skillIndex);
+        }
+    };
 
     if (!action) return null;
 
@@ -56,29 +76,67 @@ export default function ActionModal({ action, onClose }: ActionModalProps) {
                     </div>
 
                     {action.skills && action.skills.length > 0 && (
-                        <div className="mt-3">
+                        <div className="mt-3 relative overflow-visible">
                             <span className="font-medium text-gray-700 text-sm">Skills</span>
                             <div className="flex flex-wrap gap-2 mt-1">
                                 {action.skills.map((skill, index) => (
-                                    <Tooltip
-                                        key={index}
-                                        content={skill.relevance}
-                                        position="top"
-                                        width="w-64"
-                                    >
-                                        <div className="flex items-center gap-1 px-2 py-1 rounded bg-gray-50 hover:bg-blue-50 border border-gray-200 hover:border-blue-200 transition-all duration-200">
-                                            <img
-                                                src={`/badges/${skill.name}.png`}
-                                                alt={skill.label}
-                                                className="w-4 h-4 rounded-full"
-                                                onError={(e) => {
-                                                    const target = e.target as HTMLImageElement;
-                                                    target.style.display = 'none';
-                                                }}
-                                            />
-                                            <span className="text-gray-700 text-xs">{skill.label}</span>
-                                        </div>
-                                    </Tooltip>
+                                    <div key={index} className="relative">
+                                        {!isMobile ? (
+                                            <Tooltip
+                                                content={skill.relevance}
+                                                position="top"
+                                                width="w-64"
+                                            >
+                                                <div
+                                                    className="flex items-center gap-1 px-2 py-1 rounded bg-gray-50 hover:bg-blue-50 border border-gray-200 hover:border-blue-200 transition-all duration-200 cursor-pointer"
+                                                    onClick={(e) => handleSkillClick(e, index)}
+                                                >
+                                                    <img
+                                                        src={`/badges/${skill.name}.png`}
+                                                        alt={skill.label}
+                                                        className="w-4 h-4 rounded-full"
+                                                        onError={(e) => {
+                                                            const target = e.target as HTMLImageElement;
+                                                            target.style.display = 'none';
+                                                        }}
+                                                    />
+                                                    <span className="text-gray-700 text-xs">{skill.label}</span>
+                                                </div>
+                                            </Tooltip>
+                                        ) : (
+                                            <div>
+                                                <div
+                                                    className={`flex items-center gap-1 px-2 py-1 rounded bg-gray-50 active:bg-blue-50 border border-gray-200 active:border-blue-200 transition-all duration-200 cursor-pointer ${
+                                                        activeSkillIndex === index ? 'bg-blue-50 border-blue-200' : ''
+                                                    }`}
+                                                    onClick={(e) => handleSkillClick(e, index)}
+                                                >
+                                                    <img
+                                                        src={`/badges/${skill.name}.png`}
+                                                        alt={skill.label}
+                                                        className="w-4 h-4 rounded-full"
+                                                        onError={(e) => {
+                                                            const target = e.target as HTMLImageElement;
+                                                            target.style.display = 'none';
+                                                        }}
+                                                    />
+                                                    <span className="text-gray-700 text-xs">{skill.label}</span>
+                                                    {isMobile && (
+                                                        <svg className="w-3 h-3 text-gray-400 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                        </svg>
+                                                    )}
+                                                </div>
+                                                {isMobile && activeSkillIndex === index && (
+                                                    <div className="absolute z-10 mt-1 p-2 bg-white border border-gray-200 rounded-lg shadow-lg max-w-xs left-0">
+                                                        <p className="text-xs text-gray-700 leading-relaxed">
+                                                            {skill.relevance}
+                                                        </p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
                                 ))}
                             </div>
                         </div>
@@ -97,7 +155,8 @@ export default function ActionModal({ action, onClose }: ActionModalProps) {
                         >
                             Overview
                         </button>
-                        <button
+                        {/* Commented out Learn More tab as requested */}
+                        {/* <button
                             onClick={() => setActiveTab('raw')}
                             className={`px-6 py-3 text-sm font-medium cursor-pointer transition-colors ${activeTab === 'raw'
                                 ? 'border-b-2 border-blue-500 text-blue-600'
@@ -105,23 +164,24 @@ export default function ActionModal({ action, onClose }: ActionModalProps) {
                                 }`}
                         >
                             Learn more
-                        </button>
+                        </button> */}
                     </nav>
                 </div>
 
                 {/* Content */}
                 <div className="p-6 max-h-96 overflow-y-auto overflow-x-visible">
-                    {activeTab === 'summary' ? (
-                        <div className="space-y-6">
-                            <div>
-                                <p className="text-gray-700 leading-relaxed">
-                                    {action.description}
-                                </p>
-                            </div>
+                    {/* Only showing summary tab since Learn More tab is commented out */}
+                    <div className="space-y-6">
+                        <div>
+                            <p className="text-gray-700 leading-relaxed">
+                                {action.description}
+                            </p>
                         </div>
-                    ) : (
+                    </div>
+                    
+                    {/* Commented out raw tab content since Learn More tab is removed */}
+                    {/* {activeTab === 'raw' && (
                         <div className="space-y-6">
-                            {/* Chat History */}
                             <div>
                                 <div className="bg-gray-50 p-4 rounded-lg">
                                     <p className="text-gray-700 mb-3">
@@ -168,7 +228,7 @@ export default function ActionModal({ action, onClose }: ActionModalProps) {
                                 </div>
                             </div>
                         </div>
-                    )}
+                    )} */}
                 </div>
             </div>
         </div>
