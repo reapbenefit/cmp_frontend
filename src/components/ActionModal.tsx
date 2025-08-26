@@ -35,12 +35,16 @@ export default function ActionModal({ action, onClose }: ActionModalProps) {
     if (!action) return null;
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
-            <div className="bg-white rounded-lg w-full max-w-[95vw] sm:max-w-2xl md:max-w-3xl lg:max-w-4xl max-h-[95vh] sm:max-h-[90vh] relative overflow-hidden">
+        <div 
+            className="fixed inset-0 bg-black bg-opacity-50 z-50 overflow-hidden"
+            style={{ margin: 0, padding: 0 }}
+        >
+            <div className="absolute inset-0 flex items-center justify-center p-2 sm:p-4">
+                <div className="bg-white rounded-lg w-full max-w-[calc(100vw-1rem)] sm:max-w-[calc(100vw-2rem)] md:max-w-3xl lg:max-w-4xl max-h-[calc(100vh-1rem)] sm:max-h-[calc(100vh-2rem)] relative overflow-hidden">
                 {/* Close Button */}
                 <button
                     onClick={onClose}
-                    className="absolute top-4 right-4 z-10 w-8 h-8 rounded-full bg-gray-600 text-white flex items-center justify-center hover:bg-gray-700 transition-colors cursor-pointer"
+                    className="absolute top-2 right-2 sm:top-4 sm:right-4 z-10 w-8 h-8 rounded-full bg-gray-600 text-white flex items-center justify-center hover:bg-gray-700 transition-colors cursor-pointer"
                 >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -48,8 +52,8 @@ export default function ActionModal({ action, onClose }: ActionModalProps) {
                 </button>
 
                 {/* Header */}
-                <div className="bg-gradient-to-br from-blue-50 to-green-50 p-4 sm:p-6 border-b border-gray-200">
-                    <h2 className="text-lg sm:text-2xl font-bold text-gray-900 mb-2 pr-8 break-words">
+                <div className="bg-gradient-to-br from-blue-50 to-green-50 p-3 sm:p-4 md:p-6 border-b border-gray-200">
+                    <h2 className="text-base sm:text-lg md:text-2xl font-bold text-gray-900 mb-2 pr-10 sm:pr-12 break-words leading-tight">
                         {action.title}
                     </h2>
 
@@ -128,7 +132,7 @@ export default function ActionModal({ action, onClose }: ActionModalProps) {
                                                     )}
                                                 </div>
                                                 {isMobile && activeSkillIndex === index && (
-                                                    <div className="absolute z-10 mt-1 p-2 bg-white border border-gray-200 rounded-lg shadow-lg w-64 max-w-[calc(100vw-2rem)] left-0 right-0">
+                                                    <div className="absolute z-10 mt-1 p-2 bg-white border border-gray-200 rounded-lg shadow-lg w-56 max-w-[calc(100vw-1rem)] left-0">
                                                         <p className="text-xs text-gray-700 leading-relaxed">
                                                             {skill.relevance}
                                                         </p>
@@ -148,7 +152,7 @@ export default function ActionModal({ action, onClose }: ActionModalProps) {
                     <nav className="flex">
                         <button
                             onClick={() => setActiveTab('summary')}
-                            className={`px-6 py-3 text-sm font-medium cursor-pointer transition-colors ${activeTab === 'summary'
+                            className={`px-4 sm:px-6 py-3 text-sm font-medium cursor-pointer transition-colors ${activeTab === 'summary'
                                 ? 'border-b-2 border-blue-500 text-blue-600'
                                 : 'text-gray-500 hover:text-gray-700'
                                 }`}
@@ -169,7 +173,7 @@ export default function ActionModal({ action, onClose }: ActionModalProps) {
                 </div>
 
                 {/* Content */}
-                <div className="p-4 sm:p-6 max-h-96 overflow-y-auto overflow-x-hidden">
+                <div className="p-3 sm:p-4 md:p-6 max-h-80 sm:max-h-96 overflow-y-auto overflow-x-hidden">
                     {/* Only showing summary tab since Learn More tab is commented out */}
                     <div className="space-y-6">
                         <div>
@@ -229,6 +233,7 @@ export default function ActionModal({ action, onClose }: ActionModalProps) {
                             </div>
                         </div>
                     )} */}
+                </div>
                 </div>
             </div>
         </div>

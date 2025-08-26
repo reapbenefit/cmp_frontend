@@ -273,7 +273,7 @@ export default function Portfolio({ username, viewOnly }: { username: string, vi
                 {/* Inject animation styles */}
                 <style dangerouslySetInnerHTML={{ __html: scrollAnimation }} />
 
-                <div className="max-w-7xl mx-auto p-4 md:p-6">
+                <div className="sm:max-w-7xl mx-auto p-4 md:p-6">
                     {/* Back to Home Button */}
                     {!viewOnly && (
                         <div className="mb-4 md:mb-6">
