@@ -35,8 +35,8 @@ export default function ActionModal({ action, onClose }: ActionModalProps) {
     if (!action) return null;
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] relative">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
+            <div className="bg-white rounded-lg w-full max-w-[95vw] sm:max-w-2xl md:max-w-3xl lg:max-w-4xl max-h-[95vh] sm:max-h-[90vh] relative overflow-hidden">
                 {/* Close Button */}
                 <button
                     onClick={onClose}
@@ -48,37 +48,37 @@ export default function ActionModal({ action, onClose }: ActionModalProps) {
                 </button>
 
                 {/* Header */}
-                <div className="bg-gradient-to-br from-blue-50 to-green-50 p-6 border-b border-gray-200">
-                    <h2 className="text-2xl font-bold text-gray-900 mb-2 pr-8">
+                <div className="bg-gradient-to-br from-blue-50 to-green-50 p-4 sm:p-6 border-b border-gray-200">
+                    <h2 className="text-lg sm:text-2xl font-bold text-gray-900 mb-2 pr-8 break-words">
                         {action.title}
                     </h2>
 
-                    <div className="flex flex-wrap gap-4 text-sm">
+                    <div className="flex flex-wrap gap-2 sm:gap-4 text-sm">
                         <div className="flex items-center gap-2">
-                            <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                            <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs sm:text-sm break-words">
                                 {action.category}
                             </span>
                         </div>
 
                         <div className="flex items-center gap-2">
-                            <span className="bg-green-100 text-green-800 px-2 py-1 rounded">
+                            <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs sm:text-sm break-words">
                                 {action.type}
                             </span>
                         </div>
 
-                        {action.hours && (
+                        {Number(action.hours_invested) > 0 && (
                             <div className="flex items-center gap-2">
-                                <span className="bg-orange-100 text-orange-800 px-2 py-1 rounded">
-                                    {action.hours}h
+                                <span className="bg-orange-100 text-orange-800 px-2 py-1 rounded text-xs sm:text-sm">
+                                    {action.hours_invested}h
                                 </span>
                             </div>
                         )}
                     </div>
 
                     {action.skills && action.skills.length > 0 && (
-                        <div className="mt-3 relative overflow-visible">
+                        <div className="mt-3 relative">
                             <span className="font-medium text-gray-700 text-sm">Skills</span>
-                            <div className="flex flex-wrap gap-2 mt-1">
+                            <div className="flex flex-wrap gap-1 sm:gap-2 mt-1">
                                 {action.skills.map((skill, index) => (
                                     <div key={index} className="relative">
                                         {!isMobile ? (
@@ -128,7 +128,7 @@ export default function ActionModal({ action, onClose }: ActionModalProps) {
                                                     )}
                                                 </div>
                                                 {isMobile && activeSkillIndex === index && (
-                                                    <div className="absolute z-10 mt-1 p-2 bg-white border border-gray-200 rounded-lg shadow-lg max-w-xs left-0">
+                                                    <div className="absolute z-10 mt-1 p-2 bg-white border border-gray-200 rounded-lg shadow-lg w-64 max-w-[calc(100vw-2rem)] left-0 right-0">
                                                         <p className="text-xs text-gray-700 leading-relaxed">
                                                             {skill.relevance}
                                                         </p>
@@ -169,11 +169,11 @@ export default function ActionModal({ action, onClose }: ActionModalProps) {
                 </div>
 
                 {/* Content */}
-                <div className="p-6 max-h-96 overflow-y-auto overflow-x-visible">
+                <div className="p-4 sm:p-6 max-h-96 overflow-y-auto overflow-x-hidden">
                     {/* Only showing summary tab since Learn More tab is commented out */}
                     <div className="space-y-6">
                         <div>
-                            <p className="text-gray-700 leading-relaxed">
+                            <p className="text-gray-700 leading-relaxed break-words">
                                 {action.description}
                             </p>
                         </div>
