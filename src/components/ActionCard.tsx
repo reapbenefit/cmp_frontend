@@ -106,6 +106,12 @@ export default function ActionCard({
                             }`}>
                             {action.type}
                         </span>
+                        {Number(action.hours_invested) > 0 && (
+                            <span className={`bg-orange-100 text-orange-800 px-2 py-1 rounded ${isExpanded ? 'text-sm' : 'text-xs'
+                                }`}>
+                                {action.hours_invested}h
+                            </span>
+                        )}
                     </div>
                 </div>
 

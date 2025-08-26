@@ -11,6 +11,7 @@ import CustomizeTopActionsModal from "@/components/CustomizeTopActionsModal";
 import AuthWrapper from "@/components/AuthWrapper";
 import { useAuth } from "@/lib/auth";
 import { Action, UserProfile, ApiSkill } from "@/types";
+import ContributionHeatmap from "@/components/ContributionHeatmap";
 
 // Auto-scroll animation styles
 const scrollAnimation = `
@@ -642,7 +643,7 @@ export default function Portfolio({ username, viewOnly }: { username: string, vi
                                     </div> */}
 
                                     {/* Contribution Graph */}
-                                    {/* <ContributionHeatmap setSelectedAction={setSelectedAction} /> */}
+                                    <ContributionHeatmap actions={userProfile?.actions || []} />
                                 </>
                             ) : activeTab === 'actions' ? (
                                 /* Actions Tab Content */

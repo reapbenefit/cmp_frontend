@@ -42,7 +42,7 @@ export interface Action {
     status?: string | null;
     created_at: string;
     isPublic?: boolean;
-    hours?: number;
+    hours_invested?: number;
     verified?: boolean;
     details?: ActionDetails;
     chat_history?: ChatHistoryMessage[];

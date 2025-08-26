@@ -1,7 +1,12 @@
 import { useEffect } from "react";
 import { useState } from "react";
+import { Action } from "@/types";
 
-export default function ContributionHeatmap() {
+interface ContributionHeatmapProps {
+    actions: Action[];
+}
+
+export default function ContributionHeatmap({ actions = [] }: ContributionHeatmapProps) {
     const [data, setData] = useState<{ date: string; count: number }[]>([]);
     const [selectedYear, setSelectedYear] = useState<number>(2025); // Fixed value to avoid hydration mismatch
     const [showingAllActivity, setShowingAllActivity] = useState(false);
@@ -10,30 +15,44 @@ export default function ContributionHeatmap() {
     const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     const years = [2025, 2024, 2023, 2022, 2021];
 
-    // Generate contribution data only on client side to avoid hydration issues
+    // Process actions data to generate contribution heatmap
     useEffect(() => {
         setIsClient(true);
 
         // Set the current year only on client side
         setSelectedYear(new Date().getFullYear());
 
-        const generateData = () => {
+        const processActionsData = () => {
             const contributionData = [];
             const today = new Date();
             const startDate = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate());
 
+            // Create a map of dates to count contributions
+            const contributionMap = new Map<string, number>();
+
+            // Count actions by date
+            actions.forEach(action => {
+                if (action.created_at) {
+                    const actionDate = new Date(action.created_at);
+                    const dateString = actionDate.toISOString().split('T')[0];
+                    contributionMap.set(dateString, (contributionMap.get(dateString) || 0) + 1);
+                }
+            });
+
+            // Generate data for the last year with actual contributions
             for (let d = new Date(startDate); d <= today; d.setDate(d.getDate() + 1)) {
-                const contributions = Math.random() > 0.7 ? Math.floor(Math.random() * 4) + 1 : 0;
+                const dateString = new Date(d).toISOString().split('T')[0];
+                const count = contributionMap.get(dateString) || 0;
                 contributionData.push({
-                    date: new Date(d).toISOString().split('T')[0],
-                    count: contributions
+                    date: dateString,
+                    count: count
                 });
             }
             return contributionData;
         };
 
-        setData(generateData());
-    }, []);
+        setData(processActionsData());
+    }, [actions]);
 
     const getContributionColor = (count: number) => {
         if (count === 0) return 'bg-gray-100';
@@ -45,114 +64,69 @@ export default function ContributionHeatmap() {
 
     const totalContributions = data.reduce((sum, day) => sum + day.count, 0);
 
-    // Generate activity data for selected year
+    // Generate activity data for selected year from actual actions
     const getYearlyActivity = (year: number) => {
-        const baseActivities = [
-            {
-                month: 'June',
-                year: year,
-                totalActions: 3,
-                timeline: [
-                    {
-                        action: 'plastic-waste-management',
-                        date: 'Jun 15',
-                        description: 'Started working with Saahas Waste Management on plastic waste diversion project'
-                    },
-                    {
-                        action: 'community-outreach-session',
-                        date: 'Jun 22',
-                        description: 'Conducted awareness session about waste segregation in local community'
-                    },
-                    {
-                        action: 'materials-recovery-setup',
-                        date: 'Jun 28',
-                        description: 'Set up Materials Recovery Facility for processing collected plastics'
-                    }
-                ]
-            },
-            {
-                month: 'May',
-                year: year,
-                totalActions: 5,
-                timeline: [
-                    {
-                        action: 'tree-plantation-planning',
-                        date: 'May 5',
-                        description: 'Coordinated with local authorities for tree plantation permissions'
-                    },
-                    {
-                        action: 'volunteer-mobilization',
-                        date: 'May 12',
-                        description: 'Mobilized 25+ volunteers for upcoming plantation drive'
-                    },
-                    {
-                        action: 'tree-plantation-drive',
-                        date: 'May 18',
-                        description: 'Successfully planted 50+ native species saplings'
-                    },
-                    {
-                        action: 'labor-welfare-research',
-                        date: 'May 24',
-                        description: 'Researched government welfare schemes for construction workers'
-                    },
-                    {
-                        action: 'youth-rights-workshop',
-                        date: 'May 30',
-                        description: 'Attended 4-day residential workshop on youth rights in Mangalore'
-                    }
-                ]
-            }
-        ];
+        // Filter actions for the selected year
+        const yearlyActions = actions.filter(action => {
+            if (!action.created_at) return false;
+            const actionDate = new Date(action.created_at);
+            return actionDate.getFullYear() === year;
+        });
 
-        // Add more months if showing all activity
-        const additionalActivities = [
-            {
-                month: 'April',
-                year: year,
-                totalActions: 2,
-                timeline: [
-                    {
-                        action: 'waste-audit-initiative',
-                        date: 'Apr 8',
-                        description: 'Conducted comprehensive waste audit in local residential areas'
-                    },
-                    {
-                        action: 'skill-development-workshop',
-                        date: 'Apr 20',
-                        description: 'Organized skill development workshop for construction workers'
-                    }
-                ]
-            },
-            {
-                month: 'March',
-                year: year,
-                totalActions: 4,
-                timeline: [
-                    {
-                        action: 'water-conservation-drive',
-                        date: 'Mar 3',
-                        description: 'Initiated water conservation awareness campaign in schools'
-                    },
-                    {
-                        action: 'community-garden-setup',
-                        date: 'Mar 12',
-                        description: 'Set up community garden with organic farming techniques'
-                    },
-                    {
-                        action: 'environmental-education',
-                        date: 'Mar 18',
-                        description: 'Conducted environmental education sessions for local youth'
-                    },
-                    {
-                        action: 'clean-energy-advocacy',
-                        date: 'Mar 25',
-                        description: 'Advocated for solar energy adoption in residential complexes'
-                    }
-                ]
+        // Group actions by month
+        const monthMap = new Map<string, Action[]>();
+        const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
+                          'July', 'August', 'September', 'October', 'November', 'December'];
+        
+        yearlyActions.forEach(action => {
+            const actionDate = new Date(action.created_at);
+            const monthName = monthNames[actionDate.getMonth()];
+            const monthKey = `${monthName}-${year}`;
+            
+            if (!monthMap.has(monthKey)) {
+                monthMap.set(monthKey, []);
             }
-        ];
+            monthMap.get(monthKey)!.push(action);
+        });
 
-        return showingAllActivity ? [...baseActivities, ...additionalActivities] : baseActivities;
+        // Convert to activity format and sort by month (newest first)
+        const activities = Array.from(monthMap.entries())
+            .map(([monthKey, monthActions]) => {
+                const [monthName] = monthKey.split('-');
+                const monthIndex = monthNames.indexOf(monthName);
+                
+                const timeline = monthActions
+                    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+                    .map(action => {
+                        const actionDate = new Date(action.created_at);
+                        const dateStr = actionDate.toLocaleDateString('en-US', { 
+                            month: 'short', 
+                            day: 'numeric' 
+                        });
+                        
+                        return {
+                            action: action.title || action.uuid,
+                            date: dateStr,
+                            description: action.description || `${action.type} action`
+                        };
+                    });
+
+                return {
+                    month: monthName,
+                    year: year,
+                    totalActions: monthActions.length,
+                    timeline: timeline,
+                    monthIndex: monthIndex
+                };
+            })
+            .sort((a, b) => b.monthIndex - a.monthIndex); // Sort by month (newest first)
+
+        // Limit display based on showingAllActivity flag
+        if (!showingAllActivity && activities.length > 2) {
+            return activities.slice(0, 2);
+        }
+        
+        return activities;
     };
 
     const yearlyActivity = getYearlyActivity(selectedYear);
@@ -313,7 +287,7 @@ export default function ContributionHeatmap() {
                 </div>
 
                 <div className="mt-8">
-                    {!showingAllActivity && (
+                    {!showingAllActivity && yearlyActivity.length >= 2 && (
                         <button
                             onClick={handleShowMoreActivity}
                             className="w-full bg-white hover:bg-gray-50 text-blue-600 text-sm py-3 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors cursor-pointer"
