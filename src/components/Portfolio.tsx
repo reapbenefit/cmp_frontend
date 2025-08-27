@@ -295,8 +295,21 @@ export default function Portfolio({ username, viewOnly }: { username: string, vi
                             <div className="lg:sticky lg:top-8">
                                 {/* Avatar and Name Section */}
                                 <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 mb-6 text-center sm:text-left">
-                                    {/* Avatar Circle */}
-                                    <div className="w-20 h-20 sm:w-16 sm:h-16 bg-gradient-to-br from-blue-500 to-green-500 rounded-full flex items-center justify-center flex-shrink-0">
+                                    {/* Avatar Image */}
+                                    {userProfile.image ? (
+                                        <img 
+                                            src={userProfile.image} 
+                                            alt={`${userProfile.first_name} ${userProfile.last_name}`}
+                                            className="w-20 h-20 sm:w-16 sm:h-16 rounded-full object-cover flex-shrink-0"
+                                            onError={(e) => {
+                                                const target = e.target as HTMLImageElement;
+                                                target.style.display = 'none';
+                                                const fallback = target.nextElementSibling as HTMLDivElement;
+                                                if (fallback) fallback.style.display = 'flex';
+                                            }}
+                                        />
+                                    ) : null}
+                                    <div className={`w-20 h-20 sm:w-16 sm:h-16 bg-gradient-to-br from-blue-500 to-green-500 rounded-full flex items-center justify-center flex-shrink-0 ${userProfile.image ? 'hidden' : ''}`}>
                                         <span className="text-white text-2xl sm:text-xl font-bold">
                                             {userProfile.first_name.charAt(0).toUpperCase()}
                                         </span>

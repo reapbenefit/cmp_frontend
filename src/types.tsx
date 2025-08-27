@@ -173,6 +173,7 @@ export interface UserProfile {
     username: string;
     email: string;
     id: number;
+    image: string | null;
     is_verified: boolean;
     bio: string | null;
     location_state: string | null;
