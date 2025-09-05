@@ -25,4 +25,4 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 ## Deployment
 
-Deployment is managed on vercel.
+Deployment is managed on Vercel.
