@@ -572,9 +572,10 @@ export default function Portfolio({ username, viewOnly }: { username: string, vi
                                                     </div>
                                                 </div>
                                                 <div className="flex-1">
-                                                    <p className="text-gray-700 leading-relaxed">
-                                                        {userProfile.highlight}
-                                                    </p>
+                                                  <p
+                                                    className="text-gray-700 leading-relaxed"
+                                                    dangerouslySetInnerHTML={{ __html: userProfile.bio }}
+                                                  />
                                                 </div>
                                             </div>
                                         </div>
