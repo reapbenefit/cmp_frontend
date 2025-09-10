@@ -114,11 +114,12 @@ export default function ActionCard({
                         )}
                     </div>
                 </div>
+               <p
+                  className={`text-gray-700 leading-relaxed ${isExpanded ? 'text-base mb-4' : 'text-sm mb-4'}`}
+                  dangerouslySetInnerHTML={{ __html: action.description }}
+                />
 
-                <p className={`text-gray-700 leading-relaxed ${isExpanded ? 'text-base mb-4' : 'text-sm mb-4'
-                    }`}>
-                    {action.description}
-                </p>
+
 
                 {/* Skills section */}
                 {action.skills && action.skills.length > 0 && (
