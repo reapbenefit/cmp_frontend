@@ -332,7 +332,7 @@ export default function Portfolio({ username, viewOnly }: { username: string, vi
                                     <div className="mb-4 text-center sm:text-left">
                                         {userProfile.bio && (
                                             <p className="text-gray-700 leading-relaxed">
-                                                {userProfile.bio}
+                                                dangerouslySetInnerHTML={{ __html: userProfile.bio }}
                                             </p>
                                         )}
                                     </div>
