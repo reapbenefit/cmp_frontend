@@ -330,11 +330,12 @@ export default function Portfolio({ username, viewOnly }: { username: string, vi
                                 {/* Bio */}
                                 {!isEditingProfile && (
                                     <div className="mb-4 text-center sm:text-left">
-                                        {userProfile.bio && (
-                                            <p className="text-gray-700 leading-relaxed">
-                                                dangerouslySetInnerHTML={{ __html: userProfile.bio }}
-                                            </p>
-                                        )}
+                                       {userProfile.bio && (
+                                        <p
+                                          className="text-gray-700 leading-relaxed"
+                                          dangerouslySetInnerHTML={{ __html: userProfile.bio }}
+                                        />
+                                      )}
                                     </div>
                                 )}
 
