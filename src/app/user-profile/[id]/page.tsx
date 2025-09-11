@@ -8,7 +8,6 @@ import { useRouter } from 'next/navigation';
 export default function PortfolioPage({ params }: { params: Promise<{ id: string }> }) {
     const [id, setId] = useState<string>('');
     const { isAuthenticated, username, isLoading } = useAuth();
-    const router = useRouter();
 
     useEffect(() => {
         params.then(({ id: resolvedId }) => {
