@@ -350,14 +350,16 @@ export default function Portfolio({ username, viewOnly }: { username: string, vi
                                         )}
                                     </div>
                                 )}
-                                <div className="mb-4">
-                                <button
-                                  onClick={() => window.location.href = "https://solveninja.vercel.app/"}
-                                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium cursor-pointer w-full justify-center"
-                                >
-                                  Add Action
-                                </button>
-                              </div>
+                                {!viewOnly && (
+                                  <div className="mb-4">
+                                    <button
+                                      onClick={() => window.location.href = "/"}
+                                      className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium cursor-pointer w-full justify-center"
+                                    >
+                                      Add Action
+                                    </button>
+                                  </div>
+                                )}
                                 {/* Inline Edit Form */}
                                 {isEditingProfile && (
                                     <div className="mb-4 space-y-3 p-4 bg-gray-50 rounded-lg border">

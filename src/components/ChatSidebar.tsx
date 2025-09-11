@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, X, PanelLeft, User, LogOut } from "lucide-react";
-// import { useRouter } from "next/navigation";
+import { Plus, X, PanelLeft, User, LogOut, FileUser } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ChatSession } from "@/types";
 import { useAuth } from "@/lib/auth";
@@ -41,8 +41,8 @@ interface ChatSidebarProps {
 }
 
 export default function ChatSidebar({ currentChatId, onNewChat, onChatSelect, isOpen, onClose }: ChatSidebarProps) {
-    const { userEmail, userId, logout } = useAuth();
-    // const router = useRouter();
+    const { userEmail, userId, username, logout } = useAuth();
+    const router = useRouter();
     const [chatSessions, setChatSessions] = useState<ChatSession[]>([]);
     const [isLoading, setIsLoading] = useState(false);
 
@@ -66,9 +66,11 @@ export default function ChatSidebar({ currentChatId, onNewChat, onChatSelect, is
         loadChatSessions();
     }, [userId]);
 
-    // const handlePortfolioClick = () => {
-    //     router.push("/portfolio");
-    // };
+    const handlePortfolioClick = () => {
+        if (username) {
+            router.push(`/user-profile/${username}`);
+        }
+    };
 
     if (!isOpen) return null;
 
@@ -146,19 +148,18 @@ export default function ChatSidebar({ currentChatId, onNewChat, onChatSelect, is
                         <p className="text-sm font-medium text-gray-900 truncate">
                             {userEmail}
                         </p>
-                        <p className="text-xs text-gray-500">Solve Ninja</p>
                     </div>
                 </div>
 
                 <div className="space-y-2">
                     {/* Portfolio Button */}
-                    {/* <button
+                    <button
                         onClick={handlePortfolioClick}
                         className="w-full flex items-center gap-3 px-3 py-2 text-left rounded-lg hover:bg-blue-50 text-blue-600 hover:text-blue-700 transition-colors cursor-pointer"
                     >
                         <FileUser className="w-4 h-4" />
                         <span className="text-sm font-medium">View Portfolio</span>
-                    </button> */}
+                    </button>
 
                     {/* Logout Button */}
                     <button
