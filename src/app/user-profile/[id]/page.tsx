@@ -3,7 +3,6 @@
 import { useAuth } from '@/lib/auth';
 import Portfolio from '@/components/Portfolio';
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 
 export default function PortfolioPage({ params }: { params: Promise<{ id: string }> }) {
     const [id, setId] = useState<string>('');
