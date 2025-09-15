@@ -12,32 +12,16 @@ import AuthWrapper from "@/components/AuthWrapper";
 import { useAuth } from "@/lib/auth";
 import { Action, UserProfile, ApiSkill } from "@/types";
 import ContributionHeatmap from "@/components/ContributionHeatmap";
+import { ExpertReview } from "@/types";
+import ExpertReviewCard from "@/components/ExpertReviewCard";
 
-// Auto-scroll animation styles
-const scrollAnimation = `
-  @keyframes scroll {
-    0% {
-      transform: translateX(0);
-    }
-    100% {
-      transform: translateX(-50%);
-    }
-  }
-  
-  .animate-scroll {
-    animation: scroll 20s linear infinite;
-  }
-  
-  .animate-scroll:hover {
-    animation-play-state: paused;
-  }
-`;
 
 export default function Portfolio({ username, viewOnly }: { username: string, viewOnly: boolean }) {
     // Always call useAuth hook but ignore its values in viewOnly mode
     const authHook = useAuth();
     const { isLoading: authLoading, userEmail } = viewOnly ? { isLoading: false, userEmail: null } : authHook;
     const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+    const [expertReviews, setExpertReviews] = useState<ExpertReview[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [selectedSkill, setSelectedSkill] = useState<ApiSkill | null>(null);
@@ -51,6 +35,7 @@ export default function Portfolio({ username, viewOnly }: { username: string, vi
     const [copied, setCopied] = useState(false);
     const [isClient, setIsClient] = useState(false);
     const [isEditingProfile, setIsEditingProfile] = useState(false);
+    const [currentReviewIndex, setCurrentReviewIndex] = useState(0);
 
     // Edit states - remove unused inline editing states
     const [updateLoading, setUpdateLoading] = useState(false);
@@ -83,8 +68,7 @@ export default function Portfolio({ username, viewOnly }: { username: string, vi
 
                 const userData: UserProfile = await response.json();
                 setUserProfile(userData);
-                // Set user communities from API response
-                // setUserCommunities(userData.communities || []);
+                setExpertReviews(userData.expert_reviews || []);
 
                 // Set pinned actions - if none are pinned, use top 4
                 if (userData.actions) {
@@ -201,6 +185,19 @@ export default function Portfolio({ username, viewOnly }: { username: string, vi
         setEditState('');
     };
 
+    // Expert review navigation functions
+    const handlePreviousReview = () => {
+        setCurrentReviewIndex(prev => 
+            prev === 0 ? expertReviews.length - 1 : prev - 1
+        );
+    };
+
+    const handleNextReview = () => {
+        setCurrentReviewIndex(prev => 
+            prev === expertReviews.length - 1 ? 0 : prev + 1
+        );
+    };
+
     // Show loading state while auth is loading (only in non-viewOnly mode) or profile is loading
     if ((!viewOnly && authLoading) || loading) {
         const loadingContent = (
@@ -271,8 +268,6 @@ export default function Portfolio({ username, viewOnly }: { username: string, vi
 
     const content = (
         <div className="min-h-screen bg-gray-50">
-                {/* Inject animation styles */}
-                <style dangerouslySetInnerHTML={{ __html: scrollAnimation }} />
 
                 <div className="sm:max-w-7xl mx-auto p-4 md:p-6">
                     {/* Back to Home Button */}
@@ -357,7 +352,7 @@ export default function Portfolio({ username, viewOnly }: { username: string, vi
                                       onClick={() => window.location.href = "/"}
                                       className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium cursor-pointer w-full justify-center"
                                     >
-                                      Add Action
+                                      Add action
                                     </button>
                                   </div>
                                 )}
@@ -607,7 +602,7 @@ export default function Portfolio({ username, viewOnly }: { username: string, vi
                                     {/* Pinned Actions */}
                                     <div className="mb-8">
                                         <div className="flex items-center justify-between mb-4">
-                                            <h2 className="text-lg font-semibold text-gray-900">Top Actions</h2>
+                                            <h2 className="text-lg font-semibold text-gray-900">Top actions</h2>
                                             {currentTopActions.length > 0 && !viewOnly && (
                                                 <button
                                                     onClick={() => setIsCustomizeModalOpen(true)}
@@ -652,33 +647,72 @@ export default function Portfolio({ username, viewOnly }: { username: string, vi
                                     </div>
 
                                     {/* Expert Reviews */}
-                                    {/* <div className="mb-8">
-                                        <h2 className="text-lg font-semibold text-gray-900 mb-6">Expert Reviews</h2>
+                                    {expertReviews.length > 0 && (
+                                        <div className="mb-8">
+                                            <h2 className="text-lg font-semibold text-gray-900 mb-6">Expert reviews</h2>
 
-                                        <div className="relative overflow-hidden">
-                                            <div className="flex gap-6 animate-scroll">
-                                                {expertReviews.map(review => (
-                                                    <div key={review.id} className="flex-shrink-0 w-80">
-                                                        <ExpertReviewCard
-                                                            review={review}
-                                                            variant="default"
-                                                        />
+                                            <div className="relative">
+                                                <div className="w-full max-w-4xl mx-auto">
+                                                    <ExpertReviewCard
+                                                        review={expertReviews[currentReviewIndex]}
+                                                        variant="default"
+                                                    />
+                                                </div>
+
+                                                {expertReviews.length > 1 && (
+                                                    <div className="flex items-center justify-center gap-4 mt-6">
+                                                        <button
+                                                            onClick={handlePreviousReview}
+                                                            className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors cursor-pointer"
+                                                        >
+                                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                                                            </svg>
+                                                            Previous
+                                                        </button>
+                                                        
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-sm text-gray-600">
+                                                                {currentReviewIndex + 1} of {expertReviews.length}
+                                                            </span>
+                                                        </div>
+
+                                                        <button
+                                                            onClick={handleNextReview}
+                                                            className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors cursor-pointer"
+                                                        >
+                                                            Next
+                                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                                            </svg>
+                                                        </button>
                                                     </div>
-                                                ))}
-                                                {expertReviews.map(review => (
-                                                    <div key={`${review.id}-duplicate`} className="flex-shrink-0 w-80">
-                                                        <ExpertReviewCard
-                                                            review={review}
-                                                            variant="default"
-                                                        />
-                                                    </div>
-                                                ))}
+                                                )}
                                             </div>
-
-                                            <div className="absolute top-0 left-0 w-20 h-full bg-gradient-to-r from-gray-50 to-transparent pointer-events-none z-10"></div>
-                                            <div className="absolute top-0 right-0 w-20 h-full bg-gradient-to-l from-gray-50 to-transparent pointer-events-none z-10"></div>
                                         </div>
-                                    </div> */}
+                                    )}
+
+                                    {/* Expert Reviews Placeholder - only show if no reviews and not view-only */}
+                                    {expertReviews.length === 0 && !viewOnly && (
+                                        <div className="mb-8">
+                                            <h2 className="text-lg font-semibold text-gray-900 mb-6">Expert reviews</h2>
+                                            <div className="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200">
+                                                <div className="text-gray-400 mb-4">
+                                                    <Star className="w-12 h-12 mx-auto" />
+                                                </div>
+                                                <h3 className="text-lg font-medium text-gray-900 mb-2">No expert reviews yet</h3>
+                                                <p className="text-gray-600 mb-4">
+                                                    Expert reviews will appear here once you request them for your actions.
+                                                </p>
+                                                <button
+                                                    onClick={handleRequestExpertReview}
+                                                    className="px-4 py-2 bg-orange-700 text-white rounded-lg hover:bg-orange-800 transition-colors cursor-pointer"
+                                                >
+                                                    Request expert review
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
 
                                     {/* Contribution Graph */}
                                     <ContributionHeatmap actions={userProfile?.actions || []} />

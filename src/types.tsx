@@ -164,6 +164,14 @@ export interface SignupError {
     field?: string;
 }
 
+export interface ExpertReview {
+    comment: string;
+    review_title: string;
+    designation: string;
+    organisation: string;
+    reviewer_name: string;
+}
+
 
 
 // User data interface matching backend response
@@ -183,4 +191,5 @@ export interface UserProfile {
     actions: Action[];
     skills: ApiSkill[];
     highlight: string | null;
+    expert_reviews: ExpertReview[];
 }

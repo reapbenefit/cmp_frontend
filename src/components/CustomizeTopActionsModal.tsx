@@ -57,7 +57,7 @@ export default function CustomizeTopActionsModal({
             <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-hidden">
                 {/* Header */}
                 <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-                    <h2 className="text-xl font-semibold text-gray-900">Customize Your Top Actions</h2>
+                    <h2 className="text-xl font-semibold text-gray-900">Customize your top actions</h2>
                     <button
                         onClick={onClose}
                         className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors cursor-pointer"
