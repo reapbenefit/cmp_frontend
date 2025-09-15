@@ -33,7 +33,7 @@ interface AuthProviderProps {
 }
 
 // Helper function to set cookie
-const setCookie = (name: string, value: string, days: number = 3650) => {
+export const setCookie = (name: string, value: string, days: number = 3650) => {
     const expires = new Date();
     expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
     document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;SameSite=Strict`;
@@ -118,6 +118,9 @@ export function AuthProvider({ children, backendUrl }: AuthProviderProps) {
                 localStorage.setItem("userId", data.id);
                 setUserId(data.id);
             }
+
+            // Set test session ID in cookie for development
+            // data.sid = "pkV5fpChSt4sGSgWsWhDxA0txqtMqv";
 
             // Store the email used for login
             localStorage.setItem("userEmail", email);

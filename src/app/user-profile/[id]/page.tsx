@@ -59,7 +59,7 @@ export default function PortfolioPage({ params }: { params: Promise<{ id: string
                             <div className="flex-shrink-0">
                                 <button
                                     onClick={() => {
-                                        const portfolioBaseUrl = `${process.env.NEXT_PUBLIC_PORTFOLIO_BASE_URL}/api/method/frappe.integrations.oauth2.authorize?client_id=${process.env.NEXT_PUBLIC_SSO_CLIENT_ID}&response_type=code&redirect_uri=${process.env.NEXT_PUBLIC_APP_URL}&scope=all`;
+                                        const portfolioBaseUrl = `${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}/api/method/frappe.integrations.oauth2.authorize?client_id=${process.env.NEXT_PUBLIC_SSO_CLIENT_ID}&response_type=code&redirect_uri=${process.env.NEXT_PUBLIC_APP_URL}&scope=all`;
                                         if (portfolioBaseUrl && typeof window !== 'undefined') {
                                             window.location.href = portfolioBaseUrl;
                                         }

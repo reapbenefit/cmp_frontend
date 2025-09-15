@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { MapPin, CheckCircle, Share2, Copy, Check } from "lucide-react";
+import { MapPin, CheckCircle, Share2, Copy, Check, Star } from "lucide-react";
 import ActionCard from "@/components/ActionCard";
 import SkillModal from "@/components/SkillModal";
 import ActionModal from "@/components/ActionModal";
@@ -36,7 +36,7 @@ const scrollAnimation = `
 export default function Portfolio({ username, viewOnly }: { username: string, viewOnly: boolean }) {
     // Always call useAuth hook but ignore its values in viewOnly mode
     const authHook = useAuth();
-    const { isLoading: authLoading } = viewOnly ? { isLoading: false } : authHook;
+    const { isLoading: authLoading, userEmail } = viewOnly ? { isLoading: false, userEmail: null } : authHook;
     const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -128,7 +128,7 @@ export default function Portfolio({ username, viewOnly }: { username: string, vi
     };
 
     const handleCopyLink = async () => {
-        const profileLink = `${window.location.origin}/portfolio/${userProfile?.username || 'user'}`;
+        const profileLink = `${window.location.origin}/user-profile/${userProfile?.username}`;
         try {
             await navigator.clipboard.writeText(profileLink);
             setCopied(true);
@@ -187,10 +187,11 @@ export default function Portfolio({ username, viewOnly }: { username: string, vi
     };
 
     const handleEditProfile = () => {
-        setEditBio(userProfile?.bio || '');
-        setEditCity(userProfile?.location_city || '');
-        setEditState(userProfile?.location_state || '');
-        setIsEditingProfile(true);
+        window.location.href = `${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}/edit-profile/${userEmail}/edit`;
+    };
+
+    const handleRequestExpertReview = () => {
+        window.open(`${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}/request-expert-recommendations/new?user=${userEmail}`, '_blank');
     };
 
     const cancelEditProfile = () => {
@@ -440,12 +441,25 @@ export default function Portfolio({ username, viewOnly }: { username: string, vi
                                     </div>
                                 )}
 
+                                {/* Request Expert Review Button */}
+                                {!viewOnly && (
+                                    <div className="mb-4">
+                                        <button
+                                            onClick={handleRequestExpertReview}
+                                            className="flex items-center gap-2 px-4 py-2 bg-orange-700 text-white rounded-lg hover:bg-orange-800 transition-colors text-sm font-medium cursor-pointer w-full justify-center"
+                                        >
+                                            <Star className="w-4 h-4" />
+                                            Request expert review
+                                        </button>
+                                    </div>
+                                )}
+
                                 {/* Share Profile Button */}
                                 {!viewOnly && (
                                     <div className="mb-4">
                                         <button
                                             onClick={handleShareProfile}
-                                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium cursor-pointer w-full justify-center"
+                                        className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium cursor-pointer w-full justify-center"
                                     >
                                         <Share2 className="w-4 h-4" />
                                             Share profile
@@ -780,7 +794,7 @@ export default function Portfolio({ username, viewOnly }: { username: string, vi
                         <div className="flex flex-col sm:flex-row gap-2 mb-4">
                             <input
                                 type="text"
-                                value={isClient ? `${window.location.origin}/portfolio/${userProfile.username}` : ''}
+                                value={isClient ? `${window.location.origin}/user-profile/${userProfile.username}` : ''}
                                 readOnly
                                 className="flex-1 px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-xs sm:text-sm"
                             />

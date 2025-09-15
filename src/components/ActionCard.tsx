@@ -58,6 +58,10 @@ export default function ActionCard({
         }
     };
 
+    const handleVerifyNow = () => {
+        window.open(`${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}/request-actions-review/new?events=${action.uuid}`, '_blank');
+    };
+
     return (
         <div
             className={`relative bg-white rounded-xl border border-gray-100 hover:border-gray-200 hover:shadow-lg transition-all duration-300 cursor-pointer ${isExpanded ? 'p-6' : 'p-5'
@@ -86,7 +90,13 @@ export default function ActionCard({
                                     Verified
                                 </div>
                             ) : !viewOnly && (
-                                <div className="flex items-center gap-1 bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-xs font-medium">
+                                <div 
+                                    className="flex items-center gap-1 bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-xs font-medium hover:bg-orange-200 transition-colors cursor-pointer"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleVerifyNow();
+                                    }}
+                                >
                                     <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                                         <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                                     </svg>

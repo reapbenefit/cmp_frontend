@@ -36,13 +36,6 @@ export default function AuthWrapper({ children }: AuthWrapperProps) {
                 } finally {
                     setSsoLoading(false);
                 }
-            } else {
-                // Show auth forms if not authenticated
-                // const portfolioBaseUrl = `${process.env.NEXT_PUBLIC_PORTFOLIO_BASE_URL}/api/method/frappe.integrations.oauth2.authorize?client_id=${process.env.NEXT_PUBLIC_SSO_CLIENT_ID}&response_type=code&redirect_uri=${process.env.NEXT_PUBLIC_APP_URL}&scope=all`;
-                // if (portfolioBaseUrl && typeof window !== 'undefined') {
-                //     window.location.href = portfolioBaseUrl;
-                //     return null; // Return null while redirect is happening
-                // }
             }
         };
 
@@ -66,7 +59,7 @@ export default function AuthWrapper({ children }: AuthWrapperProps) {
         const ssoCode = getUrlParameter("code");
 
         if (!ssoCode) {
-            const portfolioBaseUrl = `${process.env.NEXT_PUBLIC_PORTFOLIO_BASE_URL}/api/method/frappe.integrations.oauth2.authorize?client_id=${process.env.NEXT_PUBLIC_SSO_CLIENT_ID}&response_type=code&redirect_uri=${process.env.NEXT_PUBLIC_APP_URL}&scope=all`;
+            const portfolioBaseUrl = `${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}/api/method/frappe.integrations.oauth2.authorize?client_id=${process.env.NEXT_PUBLIC_SSO_CLIENT_ID}&response_type=code&redirect_uri=${process.env.NEXT_PUBLIC_APP_URL}&scope=all`;
             if (portfolioBaseUrl && typeof window !== 'undefined') {
                 window.location.href = portfolioBaseUrl;
                 return null; // Return null while redirect is happening
