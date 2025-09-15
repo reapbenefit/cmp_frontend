@@ -18,6 +18,11 @@ export default function ExpertReviewCard({ review, variant = 'default' }: Expert
     if (variant === 'compact') {
         return (
             <div className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                {/* Review Title */}
+                {review_title && (
+                    <h3 className="font-semibold text-gray-900 text-sm mb-2">{review_title}</h3>
+                )}
+
                 {/* Comment */}
                 <blockquote className="text-gray-600 text-sm leading-relaxed mb-3">
                     &ldquo;{comment}&rdquo;
@@ -35,6 +40,11 @@ export default function ExpertReviewCard({ review, variant = 'default' }: Expert
     // Default variant - used for all expert reviews now
     return (
         <div className="bg-white border border-gray-200 rounded-lg p-5 hover:shadow-md transition-shadow">
+            {/* Review Title */}
+            {review_title && (
+                <h3 className="font-semibold text-gray-900 text-base mb-3">{review_title}</h3>
+            )}
+
             {/* Quote icon */}
             <div className="flex items-start gap-3 mb-4">
                 <div className="flex-shrink-0 mt-0.5">
