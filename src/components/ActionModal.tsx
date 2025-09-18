@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import Tooltip from "./Tooltip";
+import { useState } from "react";
 import { Action } from "@/types";
 
 interface ActionModalProps {
@@ -11,26 +10,8 @@ interface ActionModalProps {
 
 export default function ActionModal({ action, onClose }: ActionModalProps) {
     const [activeTab, setActiveTab] = useState<'summary' | 'skills'>('summary');
-    const [isMobile, setIsMobile] = useState(false);
-    const [activeSkillIndex, setActiveSkillIndex] = useState<number | null>(null);
 
-    // Detect mobile device
-    useEffect(() => {
-        const checkIfMobile = () => {
-            setIsMobile(window.innerWidth < 768 || ('ontouchstart' in window));
-        };
-        
-        checkIfMobile();
-        window.addEventListener('resize', checkIfMobile);
-        return () => window.removeEventListener('resize', checkIfMobile);
-    }, []);
-
-    const handleSkillClick = (e: React.MouseEvent, skillIndex: number) => {
-        e.stopPropagation();
-        if (isMobile) {
-            setActiveSkillIndex(activeSkillIndex === skillIndex ? null : skillIndex);
-        }
-    };
+    
 
     if (!action) return null;
 
@@ -140,19 +121,23 @@ export default function ActionModal({ action, onClose }: ActionModalProps) {
                                         
                                         {/* Microskill details */}
                                         {skill.microskill && (
-                                            <div className="ml-8 space-y-2">
-                                                <div className="flex font-medium items-center gap-2 text-sm">
-                                                    <span className="text-gray-600">
-                                                        {skill.microskill.title}
-                                                    </span>
-                                                    <span className="text-gray-400">•</span>
-                                                    <span className="text-gray-500">
-                                                        {skill.microskill.level}
-                                                    </span>
-                                                    <span className="text-gray-400">•</span>
-                                                    <span className="text-gray-500">
-                                                        {skill.microskill.description}
-                                                    </span>
+                                            <div className="ml-4 sm:ml-8 space-y-2">
+                                                <div className="space-y-1 sm:space-y-0 sm:flex sm:space-x-2">
+                                                    <div className="flex items-center gap-2 text-sm">
+                                                        <span className="text-gray-600 font-medium">
+                                                            {skill.microskill.title}
+                                                        </span>
+                                                        <span className="text-gray-400">•</span>
+                                                        <span className="text-gray-500">
+                                                            {skill.microskill.level}
+                                                        </span>
+                                                    </div>
+                                                    <div className="text-sm sm:inline flex space-x-2">
+                                                        <span className="hidden sm:inline text-gray-400">•</span>
+                                                        <span className="text-gray-500">
+                                                            {skill.microskill.description}
+                                                        </span>
+                                                    </div>
                                                 </div>
                                             </div>
                                         )}
