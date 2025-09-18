@@ -120,7 +120,7 @@ export function AuthProvider({ children, backendUrl }: AuthProviderProps) {
             }
 
             // Set test session ID in cookie for development
-            // data.sid = "pkV5fpChSt4sGSgWsWhDxA0txqtMqv";
+            // data.sid = "m1UE9g04K9jO1YHUgatdCGCWukGTRv";
 
             // Store the email used for login
             localStorage.setItem("userEmail", email);

@@ -203,7 +203,7 @@ const MessageBubble = ({ message, isStreaming, username }: { message: ChatMessag
                     <div className="flex items-center gap-2 mb-2 md:mb-4">
                         <Trophy className="h-6 w-6 text-green-600" />
                         <h3 className="text-base md:text-lg font-semibold text-gray-800">
-                            {typeof message.content === 'object' && 'has_changed' in message.content && message.content.has_changed ? 'Skills Updated' : 'Skills Unlocked'}
+                            {typeof message.content === 'object' && 'has_changed' in message.content && message.content.has_changed ? 'Skills updated' : 'Skills unlocked'}
                         </h3>
                     </div>
 
