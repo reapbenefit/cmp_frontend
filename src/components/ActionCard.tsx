@@ -164,7 +164,9 @@ export default function ActionCard({
                                                         target.style.display = 'none';
                                                     }}
                                                 />
-                                                <span className="text-gray-700 font-medium">{skill.label}</span>
+                                                <span className="text-gray-700 font-medium">
+                                                    {skill.microskill?.title ? `${skill.microskill.level}: ${skill.microskill.title}` : skill.label}
+                                                </span>
                                             </div>
                                         </Tooltip>
                                     ) : (
@@ -184,7 +186,9 @@ export default function ActionCard({
                                                         target.style.display = 'none';
                                                     }}
                                                 />
-                                                <span className="text-gray-700 font-medium">{skill.label}</span>
+                                                <span className="text-gray-700 font-medium">
+                                                    {skill.microskill?.title ? `${skill.microskill.level}: ${skill.microskill.title}` : skill.label}
+                                                </span>
                                                 {isMobile && (
                                                     <svg className="w-3 h-3 text-gray-400 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />

@@ -10,7 +10,7 @@ interface ActionModalProps {
 }
 
 export default function ActionModal({ action, onClose }: ActionModalProps) {
-    const [activeTab, setActiveTab] = useState<'summary' | 'raw'>('summary');
+    const [activeTab, setActiveTab] = useState<'summary' | 'skills'>('summary');
     const [isMobile, setIsMobile] = useState(false);
     const [activeSkillIndex, setActiveSkillIndex] = useState<number | null>(null);
 
@@ -79,72 +79,6 @@ export default function ActionModal({ action, onClose }: ActionModalProps) {
                         )}
                     </div>
 
-                    {action.skills && action.skills.length > 0 && (
-                        <div className="mt-3 relative">
-                            <span className="font-medium text-gray-700 text-sm">Skills</span>
-                            <div className="flex flex-wrap gap-1 sm:gap-2 mt-1">
-                                {action.skills.map((skill, index) => (
-                                    <div key={index} className="relative">
-                                        {!isMobile ? (
-                                            <Tooltip
-                                                content={skill.relevance}
-                                                position="top"
-                                                width="w-64"
-                                            >
-                                                <div
-                                                    className="flex items-center gap-1 px-2 py-1 rounded bg-gray-50 hover:bg-blue-50 border border-gray-200 hover:border-blue-200 transition-all duration-200 cursor-pointer"
-                                                    onClick={(e) => handleSkillClick(e, index)}
-                                                >
-                                                    <img
-                                                        src={`/badges/${skill.name}.png`}
-                                                        alt={skill.label}
-                                                        className="w-4 h-4 rounded-full"
-                                                        onError={(e) => {
-                                                            const target = e.target as HTMLImageElement;
-                                                            target.style.display = 'none';
-                                                        }}
-                                                    />
-                                                    <span className="text-gray-700 text-xs">{skill.label}</span>
-                                                </div>
-                                            </Tooltip>
-                                        ) : (
-                                            <div>
-                                                <div
-                                                    className={`flex items-center gap-1 px-2 py-1 rounded bg-gray-50 active:bg-blue-50 border border-gray-200 active:border-blue-200 transition-all duration-200 cursor-pointer ${
-                                                        activeSkillIndex === index ? 'bg-blue-50 border-blue-200' : ''
-                                                    }`}
-                                                    onClick={(e) => handleSkillClick(e, index)}
-                                                >
-                                                    <img
-                                                        src={`/badges/${skill.name}.png`}
-                                                        alt={skill.label}
-                                                        className="w-4 h-4 rounded-full"
-                                                        onError={(e) => {
-                                                            const target = e.target as HTMLImageElement;
-                                                            target.style.display = 'none';
-                                                        }}
-                                                    />
-                                                    <span className="text-gray-700 text-xs">{skill.label}</span>
-                                                    {isMobile && (
-                                                        <svg className="w-3 h-3 text-gray-400 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                        </svg>
-                                                    )}
-                                                </div>
-                                                {isMobile && activeSkillIndex === index && (
-                                                    <div className="absolute z-10 mt-1 p-2 bg-white border border-gray-200 rounded-lg shadow-lg w-56 max-w-[calc(100vw-1rem)] left-0">
-                                                        <p className="text-xs text-gray-700 leading-relaxed">
-                                                            {skill.relevance}
-                                                        </p>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        )}
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
                 </div>
 
                 {/* Tabs */}
@@ -159,80 +93,85 @@ export default function ActionModal({ action, onClose }: ActionModalProps) {
                         >
                             Overview
                         </button>
-                        {/* Commented out Learn More tab as requested */}
-                        {/* <button
-                            onClick={() => setActiveTab('raw')}
-                            className={`px-6 py-3 text-sm font-medium cursor-pointer transition-colors ${activeTab === 'raw'
+                        <button
+                            onClick={() => setActiveTab('skills')}
+                            className={`px-4 sm:px-6 py-3 text-sm font-medium cursor-pointer transition-colors ${activeTab === 'skills'
                                 ? 'border-b-2 border-blue-500 text-blue-600'
                                 : 'text-gray-500 hover:text-gray-700'
                                 }`}
                         >
-                            Learn more
-                        </button> */}
+                            Skills
+                        </button>
                     </nav>
                 </div>
 
                 {/* Content */}
                 <div className="p-3 sm:p-4 md:p-6 max-h-80 sm:max-h-96 overflow-y-auto overflow-x-hidden">
-                    {/* Only showing summary tab since Learn More tab is commented out */}
-                    <div className="space-y-6">
-                        <div>
-                            <p className="text-gray-700 leading-relaxed break-words">
-                                {action.description}
-                            </p>
-                        </div>
-                    </div>
-                    
-                    {/* Commented out raw tab content since Learn More tab is removed */}
-                    {/* {activeTab === 'raw' && (
+                    {activeTab === 'summary' && (
                         <div className="space-y-6">
                             <div>
-                                <div className="bg-gray-50 p-4 rounded-lg">
-                                    <p className="text-gray-700 mb-3">
-                                        {action.chat_history && action.chat_history.length > 0
-                                            ? action.chat_history[0]?.content || "No initial submission available"
-                                            : "No chat history available"
-                                        }
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div>
-                                <div className="space-y-4">
-                                    <div className="border-l-2 border-blue-200 pl-4">
-                                        <h4 className="font-medium text-gray-900 mb-2">Conversation history</h4>
-                                        <div className="bg-gray-50 p-3 rounded">
-                                            {action.chat_history && action.chat_history.length > 0 ? (
-                                                <div className="space-y-3">
-                                                    {action.chat_history.map((message, index) => (
-                                                        <div key={message.id || index} className={`mb-6 p-3 rounded-lg ${message.role === 'user'
-                                                            ? 'bg-blue-50  border-blue-200'
-                                                            : 'bg-gray-50  border-gray-300'
-                                                            }`}>
-                                                            <div className="flex items-center justify-between mb-2">
-                                                                <span className={`text-xs font-medium ${message.role === 'user' ? 'text-blue-700' : 'text-gray-600'
-                                                                    }`}>
-                                                                    {message.role === 'user' ? 'You' : 'Assistant'}
-                                                                </span>
-                                                                <span className="text-xs text-gray-400">
-                                                                    {new Date(message.created_at).toLocaleDateString()} {new Date(message.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                                                </span>
-                                                            </div>
-                                                            <p className="text-gray-700 text-sm leading-relaxed">{message.content}</p>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            ) : (
-                                                <p className="text-gray-700 mb-3">
-                                                    No conversation history available.
-                                                </p>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
+                                <p className="text-gray-700 leading-relaxed break-words">
+                                    {action.description}
+                                </p>
                             </div>
                         </div>
-                    )} */}
+                    )}
+                    
+                    {activeTab === 'skills' && (
+                        <div className="space-y-4">
+                            {action.skills && action.skills.length > 0 ? (
+                                action.skills.map((skill, index) => (
+                                    <div key={index} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                                        {/* Skill chip */}
+                                        <div className="flex items-center gap-2 mb-3">
+                                            <img
+                                                src={`/badges/${skill.name}.png`}
+                                                alt={skill.label}
+                                                className="w-6 h-6 rounded-full"
+                                                onError={(e) => {
+                                                    const target = e.target as HTMLImageElement;
+                                                    target.style.display = 'none';
+                                                }}
+                                            />
+                                            <h2>
+                                                {skill.label}
+                                            </h2>
+                                        </div>
+                                        
+                                        {/* Microskill details */}
+                                        {skill.microskill && (
+                                            <div className="ml-8 space-y-2">
+                                                <div className="flex font-medium items-center gap-2 text-sm">
+                                                    <span className="text-gray-600">
+                                                        {skill.microskill.title}
+                                                    </span>
+                                                    <span className="text-gray-400">•</span>
+                                                    <span className="text-gray-500">
+                                                        {skill.microskill.level}
+                                                    </span>
+                                                    <span className="text-gray-400">•</span>
+                                                    <span className="text-gray-500">
+                                                        {skill.microskill.description}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        )}
+                                        
+                                        {/* Skill relevance */}
+                                        <div className="mt-3 pt-3 border-t border-gray-200">
+                                            <p className="text-xs text-gray-500 leading-relaxed">
+                                                {skill.relevance}
+                                            </p>
+                                        </div>
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="text-center py-8">
+                                    <p className="text-gray-500">No skills available for this action.</p>
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
                 </div>
             </div>

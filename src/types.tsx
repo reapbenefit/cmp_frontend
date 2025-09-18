@@ -31,6 +31,21 @@ export interface ActionDetails {
     };
 }
 
+export interface Microskill {
+    title: string;
+    description: string;
+    level: string;
+}
+
+export interface ActionSkill {
+    id: number;
+    name: string;
+    label: string;
+    relevance: string;
+    response?: string | null;
+    microskill?: Microskill | null;
+}
+
 export interface Action {
     uuid: string;
     title: string;
@@ -46,13 +61,7 @@ export interface Action {
     verified?: boolean;
     details?: ActionDetails;
     chat_history?: ChatHistoryMessage[];
-    skills?: Array<{
-        id: number;
-        name: string;
-        label: string;
-        relevance: string;
-        response?: string | null;
-    }>;
+    skills?: Array<ActionSkill>;
 }
 
 export interface Skill {
