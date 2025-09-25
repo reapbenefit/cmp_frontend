@@ -438,7 +438,7 @@ export default function Portfolio({ username, viewOnly }: { username: string, vi
 
                                 {/* Request Expert Review Button */}
                                 {!viewOnly && (
-                                    <div className="mb-4">
+                                    <div className="mb-4 hidden">
                                         <button
                                             onClick={handleRequestExpertReview}
                                             className="flex items-center gap-2 px-4 py-2 bg-orange-700 text-white rounded-lg hover:bg-orange-800 transition-colors text-sm font-medium cursor-pointer w-full justify-center"
@@ -701,12 +701,12 @@ export default function Portfolio({ username, viewOnly }: { username: string, vi
                                                     <Star className="w-12 h-12 mx-auto" />
                                                 </div>
                                                 <h3 className="text-lg font-medium text-gray-900 mb-2">No expert reviews yet</h3>
-                                                <p className="text-gray-600 mb-4">
+                                                <p className="text-gray-600 mb-4 hidden">
                                                     Expert reviews will appear here once you request them for your actions.
                                                 </p>
                                                 <button
                                                     onClick={handleRequestExpertReview}
-                                                    className="px-4 py-2 bg-orange-700 text-white rounded-lg hover:bg-orange-800 transition-colors cursor-pointer"
+                                                    className="px-4 py-2 bg-orange-700 text-white rounded-lg hover:bg-orange-800 transition-colors cursor-pointer hidden"
                                                 >
                                                     Request expert review
                                                 </button>

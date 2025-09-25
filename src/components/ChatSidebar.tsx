@@ -75,8 +75,8 @@ export default function ChatSidebar({ currentChatId, onNewChat, onChatSelect, is
     if (!isOpen) return null;
 
     return (
-        <div className="fixed md:relative w-[80%] md:w-64 bg-white border-r border-gray-200 h-screen flex flex-col shadow-lg z-50 md:z-auto">
-            <div className="p-4 border-b border-gray-200">
+        <div className="fixed md:relative w-[80%] md:w-64 bg-white border-r border-gray-200 h-dvh flex flex-col shadow-lg z-50 md:z-auto">
+            <div className="p-4 border-b border-gray-200 flex-shrink-0">
                 <div className="flex gap-2 items-center">
                     <Button
                         onClick={onNewChat}
@@ -96,7 +96,7 @@ export default function ChatSidebar({ currentChatId, onNewChat, onChatSelect, is
                 </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-4">
+            <div className="flex-1 overflow-y-auto p-4 min-h-0">
                 {isLoading ? (
                     <div className="flex flex-col items-center justify-center h-full text-center px-2">
                         <div className="text-gray-400 mb-2">
@@ -139,7 +139,7 @@ export default function ChatSidebar({ currentChatId, onNewChat, onChatSelect, is
             </div>
 
             {/* Profile Section */}
-            <div className="border-t border-gray-200 p-4">
+            <div className="border-t border-gray-200 p-4 flex-shrink-0">
                 <div className="flex items-center gap-3 mb-3">
                     <div className="w-10 h-10 bg-gradient-to-r from-green-600 to-blue-600 rounded-full flex items-center justify-center">
                         <User className="w-5 h-5 text-white" />

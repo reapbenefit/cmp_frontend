@@ -91,7 +91,7 @@ export default function ActionCard({
                                 </div>
                             ) : !viewOnly && (
                                 <div 
-                                    className="flex items-center gap-1 bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-xs font-medium hover:bg-orange-200 transition-colors cursor-pointer"
+                                    className="flex items-center gap-1 bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-xs font-medium hover:bg-orange-200 transition-colors cursor-pointer hidden"
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         handleVerifyNow();
