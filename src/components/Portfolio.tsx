@@ -275,7 +275,7 @@ export default function Portfolio({ username, viewOnly }: { username: string, vi
                         <div className="mb-4 md:mb-6">
                             <button
                                 onClick={() => window.location.href = '/'}
-                            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
+                            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors cursor-pointer hidden"
                         >
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -606,7 +606,7 @@ export default function Portfolio({ username, viewOnly }: { username: string, vi
                                             {currentTopActions.length > 0 && !viewOnly && (
                                                 <button
                                                     onClick={() => setIsCustomizeModalOpen(true)}
-                                                    className="text-sm text-blue-600 hover:underline cursor-pointer"
+                                                    className="text-sm text-blue-600 hover:underline cursor-pointer hidden"
                                                 >
                                                     Customize your top actions
                                                 </button>
