@@ -362,7 +362,7 @@ export default function ContributionHeatmap({ actions = [] }: ContributionHeatma
                                             <div className="flex-1 pb-2">
                                                 <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-1">
                                                     <span
-                                                        className="text-blue-600 hover:underline text-sm font-medium cursor-pointer"
+                                                        className="text-black-600"
                                                     >
                                                         {item.action}
                                                     </span>
