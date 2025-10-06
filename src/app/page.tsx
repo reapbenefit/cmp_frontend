@@ -53,7 +53,7 @@ export default function Home() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { userEmail } = useAuth();
+  const { userEmail, username } = useAuth();
 
   // Set initial sidebar state based on screen size after component mounts
   useEffect(() => {
@@ -205,12 +205,7 @@ export default function Home() {
                   </button>
                   <button
                     onClick={() => {
-                      // Navigate back to profile
-                      if (userEmail) {
-                        // Extract username from email or use a different approach
-                        const username = userEmail.split('@')[0]; // Simple approach
-                        window.location.href = `/user-profile/${username}`;
-                      }
+                      window.location.href = `${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}/user-profile/${username}`;
                     }}
                     className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors cursor-pointer"
                   >
