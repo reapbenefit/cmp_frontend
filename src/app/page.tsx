@@ -207,7 +207,7 @@ export default function Home() {
                     onClick={() => {
                       window.location.href = `${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}/user-profile/${username}`;
                     }}
-                    className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors cursor-pointer"
+                    className="text-gray-700 hover:text-blue-600 transition-colors text-sm font-medium cursor-pointer"
                   >
                     Go back to profile
                   </button>
