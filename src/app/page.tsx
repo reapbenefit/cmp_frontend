@@ -167,7 +167,61 @@ export default function Home() {
 
         {/* Main content */}
         <div className="flex-1 flex flex-col w-full">
-          {/* Header */}
+          {/* Top Header */}
+          <header className="bg-white border-b border-gray-200 flex-shrink-0">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+              <div className="flex items-center justify-between">
+                {/* Left side - Logo/Image */}
+                <div className="flex items-center">
+                  <img 
+                    src="/solve-ninja-logo22f1bc.png" 
+                    alt="Solve Ninja" 
+                    className="h-8 w-auto sm:h-10 cursor-pointer"
+                    onClick={() => {
+                      window.location.href = `${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}`;
+                    }}
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                      const fallback = target.nextElementSibling as HTMLDivElement;
+                      if (fallback) fallback.style.display = 'flex';
+                    }}
+                  />
+                  <div className="hidden ml-3 bg-gradient-to-r from-blue-500 to-green-500 rounded-lg px-3 py-1">
+                    <span className="text-white text-sm font-semibold">Solve Ninja</span>
+                  </div>
+                </div>
+                
+                {/* Right side - Navigation items */}
+                <nav className="flex items-center space-x-6">
+                  <button
+                    onClick={() => {
+                      // Navigate to leaderboard page
+                      window.location.href = `${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}`;
+                    }}
+                    className="text-gray-700 hover:text-blue-600 transition-colors text-sm font-medium cursor-pointer"
+                  >
+                    Leaderboard
+                  </button>
+                  <button
+                    onClick={() => {
+                      // Navigate back to profile
+                      if (userEmail) {
+                        // Extract username from email or use a different approach
+                        const username = userEmail.split('@')[0]; // Simple approach
+                        window.location.href = `/user-profile/${username}`;
+                      }
+                    }}
+                    className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors cursor-pointer"
+                  >
+                    Go back to profile
+                  </button>
+                </nav>
+              </div>
+            </div>
+          </header>
+
+          {/* Sidebar Toggle Header */}
           <div className="p-4 flex items-center gap-3 h-16 flex-shrink-0">
             <SidebarToggle isOpen={isSidebarOpen} onToggle={toggleSidebar} />
           </div>
