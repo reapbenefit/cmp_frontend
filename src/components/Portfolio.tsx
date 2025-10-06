@@ -601,7 +601,7 @@ export default function Portfolio({ username, viewOnly }: { username: string, vi
 
                                     {/* Pinned Actions */}
                                     <div className="mb-8">
-                                        <div className="flex items-center justify-between mb-4">
+                                        {/* <div className="flex items-center justify-between mb-4">
                                             <h2 className="text-lg font-semibold text-gray-900">Top actions</h2>
                                             {currentTopActions.length > 0 && !viewOnly && (
                                                 <button
@@ -611,7 +611,7 @@ export default function Portfolio({ username, viewOnly }: { username: string, vi
                                                     Customize your top actions
                                                 </button>
                                             )}
-                                        </div>
+                                        </div> */}
 
                                         {currentTopActions.length > 0 ? (
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
