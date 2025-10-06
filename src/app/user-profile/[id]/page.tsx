@@ -43,43 +43,44 @@ export default function PortfolioPage({ params }: { params: Promise<{ id: string
 
     return (
         <div className="min-h-screen bg-gray-50">
-            {/* Header for non-logged-in users */}
-            {!isAuthenticated && (
-                <header className="bg-white border-b border-gray-200">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-                        <div className="flex items-center justify-between">
-                            {/* Left side - Logo/Image */}
-                            <div className="flex items-center">
-                                <img 
-                                    src="/solve-ninja-logo22f1bc.png" 
-                                    alt="Solve Ninja" 
-                                    className="h-8 w-auto sm:h-10 cursor-pointer"
-                                    onClick={() => {
-                                        window.location.href = `${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}`;
-                                    }}
-                                    onError={(e) => {
-                                        const target = e.target as HTMLImageElement;
-                                        target.style.display = 'none';
-                                        const fallback = target.nextElementSibling as HTMLDivElement;
-                                        if (fallback) fallback.style.display = 'flex';
-                                    }}
-                                />
-                                <div className="hidden ml-3 bg-gradient-to-r from-blue-500 to-green-500 rounded-lg px-3 py-1">
-                                    <span className="text-white text-sm font-semibold">Solve Ninja</span>
-                                </div>
+            {/* Header - always visible */}
+            <header className="bg-white border-b border-gray-200">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+                    <div className="flex items-center justify-between">
+                        {/* Left side - Logo/Image */}
+                        <div className="flex items-center">
+                            <img 
+                                src="/solve-ninja-logo22f1bc.png" 
+                                alt="Solve Ninja" 
+                                className="h-8 w-auto sm:h-10 cursor-pointer"
+                                onClick={() => {
+                                    window.location.href = `${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}`;
+                                }}
+                                onError={(e) => {
+                                    const target = e.target as HTMLImageElement;
+                                    target.style.display = 'none';
+                                    const fallback = target.nextElementSibling as HTMLDivElement;
+                                    if (fallback) fallback.style.display = 'flex';
+                                }}
+                            />
+                            <div className="hidden ml-3 bg-gradient-to-r from-blue-500 to-green-500 rounded-lg px-3 py-1">
+                                <span className="text-white text-sm font-semibold">Solve Ninja</span>
                             </div>
-                            
-                            {/* Right side - Navigation items */}
-                            <nav className="flex items-center space-x-6">
-                                <button
-                                    onClick={() => {
-                                        // Navigate to leaderboard page
-                                        window.location.href = `${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}`;
-                                    }}
-                                    className="text-gray-700 hover:text-blue-600 transition-colors text-sm font-medium cursor-pointer"
-                                >
-                                    Leaderboard
-                                </button>
+                        </div>
+                        
+                        {/* Right side - Navigation items */}
+                        <nav className="flex items-center space-x-6">
+                            <button
+                                onClick={() => {
+                                    // Navigate to leaderboard page
+                                    window.location.href = `${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}`;
+                                }}
+                                className="text-gray-700 hover:text-blue-600 transition-colors text-sm font-medium cursor-pointer"
+                            >
+                                Leaderboard
+                            </button>
+                            {/* Only show Login button if user is not authenticated */}
+                            {!isAuthenticated && (
                                 <button
                                     onClick={() => {
                                         const portfolioBaseUrl = `${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}/api/method/frappe.integrations.oauth2.authorize?client_id=${process.env.NEXT_PUBLIC_SSO_CLIENT_ID}&response_type=code&redirect_uri=${process.env.NEXT_PUBLIC_APP_URL}&scope=all`;
@@ -91,11 +92,11 @@ export default function PortfolioPage({ params }: { params: Promise<{ id: string
                                 >
                                     Login
                                 </button>
-                            </nav>
-                        </div>
+                            )}
+                        </nav>
                     </div>
-                </header>
-            )}
+                </div>
+            </header>
             
             <Portfolio username={id} viewOnly={!isOwnProfile} />
         </div>
