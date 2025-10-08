@@ -197,7 +197,7 @@ export default function Home() {
                   <button
                     onClick={() => {
                       // Navigate to leaderboard page
-                      window.location.href = `${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}`;
+                      window.location.href = `${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}/leaderboard`;
                     }}
                     className="text-gray-700 hover:text-blue-600 transition-colors text-sm font-medium cursor-pointer"
                   >

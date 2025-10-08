@@ -98,7 +98,6 @@ export default function PortfolioPage({ params }: { params: Promise<{ id: string
                         <nav className="flex items-center space-x-6">
                             <button
                                 onClick={() => {
-                                    console.log(`navigating to leaderboard page ${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}`);
                                     // Navigate to leaderboard page
                                     window.location.href = `${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}/leaderboard`;
                                 }}
