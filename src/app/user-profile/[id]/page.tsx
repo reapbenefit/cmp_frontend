@@ -39,7 +39,7 @@ export default function PortfolioPage({ params }: { params: Promise<{ id: string
                 method: 'POST',
                 headers: {
                     'Authorization': `token ${sessionToken}`,
-                    'Content-Type': 'application/json',
+                    'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
                     username: userEmail || username
