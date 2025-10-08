@@ -100,7 +100,7 @@ export default function PortfolioPage({ params }: { params: Promise<{ id: string
                                 onClick={() => {
                                     console.log(`navigating to leaderboard page ${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}`);
                                     // Navigate to leaderboard page
-                                    window.location.href = `${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}`;
+                                    window.location.href = `${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}/leaderboard`;
                                 }}
                                 className="text-gray-700 hover:text-blue-600 transition-colors text-sm font-medium cursor-pointer"
                             >
