@@ -1,6 +1,6 @@
 "use client";
 
-import { useAuth, getCookie } from '@/lib/auth';
+import { useAuth } from '@/lib/auth';
 import Portfolio from '@/components/Portfolio';
 import { useState, useEffect } from 'react';
 
