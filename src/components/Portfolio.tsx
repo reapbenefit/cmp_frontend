@@ -298,8 +298,49 @@ export default function Portfolio({ username, viewOnly }: { username: string, vi
 
     const content = (
         <div className="min-h-screen bg-gray-50">
+            {/* Navigation Header */}
+            {!viewOnly && (
+                <div className="bg-white border-b border-gray-200">
+                    <div className="sm:max-w-7xl mx-auto px-4 md:px-6 py-4">
+                        <div className="flex items-center justify-between">
+                            {/* Left side - Logo */}
+                            <div className="flex items-center">
+                                <div className="flex items-center">
+                                    <img 
+                                        src="/solve-ninja-logo22f1bc.png" 
+                                        alt="Solve Ninja" 
+                                        className="h-8 w-auto"
+                                    />
+                                    <div className="hidden ml-3 bg-gradient-to-r from-blue-500 to-green-500 rounded-lg px-3 py-1">
+                                        <span className="text-white text-sm font-semibold">Solve Ninja</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            {/* Right side - Navigation items */}
+                            <nav className="flex items-center space-x-6">
+                                <button
+                                    onClick={() => {
+                                        // Navigate to leaderboard page
+                                        window.location.href = `${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}`;
+                                    }}
+                                    className="text-gray-700 hover:text-blue-600 transition-colors text-sm font-medium cursor-pointer"
+                                >
+                                    Leaderboard
+                                </button>
+                                <button
+                                    onClick={handleSignOut}
+                                    className="text-gray-700 hover:text-red-600 transition-colors text-sm font-medium cursor-pointer"
+                                >
+                                    Sign out
+                                </button>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            )}
 
-                <div className="sm:max-w-7xl mx-auto p-4 md:p-6">
+            <div className="sm:max-w-7xl mx-auto p-4 md:p-6">
                     {/* Back to Home Button */}
                     {!viewOnly && (
                         <div className="mb-4 md:mb-6">
@@ -377,21 +418,12 @@ export default function Portfolio({ username, viewOnly }: { username: string, vi
                                     </div>
                                 )}
                                 {!viewOnly && (
-                                  <div className="mb-4 space-y-2">
+                                  <div className="mb-4">
                                     <button
                                       onClick={() => window.location.href = "/"}
                                       className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium cursor-pointer w-full justify-center"
                                     >
                                       Add action
-                                    </button>
-                                    <button
-                                      onClick={handleSignOut}
-                                      className="flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm font-medium cursor-pointer w-full justify-center"
-                                    >
-                                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                                      </svg>
-                                      Sign out
                                     </button>
                                   </div>
                                 )}
