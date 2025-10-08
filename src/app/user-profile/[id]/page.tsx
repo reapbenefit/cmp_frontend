@@ -33,14 +33,13 @@ export default function PortfolioPage({ params }: { params: Promise<{ id: string
         try {
             // Get dynamic auth headers and cookie
             const authHeaders = getAuthHeaders();
-            const cookieValue = getCookie('sid');
+  
             
             // Call the logout API
             const response = await fetch(`${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}/api/method/solve_ninja.api.user.logout`, {
                 method: 'POST',
                 headers: {
-                    ...authHeaders,
-                    'Cookie': cookieValue ? `sid=${cookieValue}` : ''
+                    ...authHeaders
                 },
                 body: JSON.stringify({
                     username: userEmail || username
