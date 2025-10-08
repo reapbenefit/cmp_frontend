@@ -44,7 +44,6 @@ export default function PortfolioPage({ params }: { params: Promise<{ id: string
                     username: userEmail || username
                 })
             });
-            console.log(`logout response: ${response}`);
             if (!response.ok) {
                 console.error('Logout API call failed:', response.status);
             }
@@ -52,11 +51,7 @@ export default function PortfolioPage({ params }: { params: Promise<{ id: string
             console.error('Error calling logout API:', error);
         } finally {
             // Always call the local logout function to clear local state
-            console.log(`caling logout`);
             logout();
-            console.log(`NOT redirecting to home page`);
-            // Redirect to home page after logout
-            //window.location.href = '/';
         }
     };
 
