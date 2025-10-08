@@ -6,7 +6,7 @@ import { useState, useEffect } from 'react';
 
 export default function PortfolioPage({ params }: { params: Promise<{ id: string }> }) {
     const [id, setId] = useState<string>('');
-    const { isAuthenticated, username, isLoading } = useAuth();
+    const { isAuthenticated, username, isLoading, userEmail, logout } = useAuth();
 
     useEffect(() => {
         params.then(({ id: resolvedId }) => {
@@ -28,6 +28,34 @@ export default function PortfolioPage({ params }: { params: Promise<{ id: string
             return;
         }
     }, [isAuthenticated, username, id, isLoading]);
+
+    const handleSignOut = async () => {
+        try {
+            // Call the logout API
+            const response = await fetch(`${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}/api/method/solve_ninja.api.user.logout`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `token c0cc2217644fb77:6ed939a14e50a07`,
+                    'Content-Type': 'application/json',
+                    'Cookie': 'Cookie_1=value'
+                },
+                body: JSON.stringify({
+                    username: userEmail || username
+                })
+            });
+
+            if (!response.ok) {
+                console.error('Logout API call failed:', response.status);
+            }
+        } catch (error) {
+            console.error('Error calling logout API:', error);
+        } finally {
+            // Always call the local logout function to clear local state
+            logout();
+            // Redirect to home page after logout
+            window.location.href = '/';
+        }
+    };
 
     if (isLoading || !id) {
         return <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -79,6 +107,15 @@ export default function PortfolioPage({ params }: { params: Promise<{ id: string
                             >
                                 Leaderboard
                             </button>
+                            {/* Show Sign out button if user is authenticated */}
+                            {isAuthenticated && (
+                                <button
+                                    onClick={handleSignOut}
+                                    className="text-gray-700 hover:text-red-600 transition-colors text-sm font-medium cursor-pointer"
+                                >
+                                    Sign out
+                                </button>
+                            )}
                             {/* Only show Login button if user is not authenticated */}
                             {!isAuthenticated && (
                                 <button

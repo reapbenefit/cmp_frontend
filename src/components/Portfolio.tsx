@@ -198,36 +198,6 @@ export default function Portfolio({ username, viewOnly }: { username: string, vi
         );
     };
 
-    const handleSignOut = async () => {
-        try {
-            // Call the logout API
-            const response = await fetch(`${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}/api/method/solve_ninja.api.user.logout`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `token c0cc2217644fb77:6ed939a14e50a07`,
-                    'Content-Type': 'application/json',
-                    'Cookie': 'Cookie_1=value'
-                },
-                body: JSON.stringify({
-                    username: userEmail || username
-                })
-            });
-
-            if (!response.ok) {
-                console.error('Logout API call failed:', response.status);
-            }
-        } catch (error) {
-            console.error('Error calling logout API:', error);
-        } finally {
-            // Always call the local logout function to clear local state
-            if (!viewOnly && authHook.logout) {
-                authHook.logout();
-                // Redirect to home page after logout
-                window.location.href = '/';
-            }
-        }
-    };
-
     // Show loading state while auth is loading (only in non-viewOnly mode) or profile is loading
     if ((!viewOnly && authLoading) || loading) {
         const loadingContent = (
@@ -298,49 +268,8 @@ export default function Portfolio({ username, viewOnly }: { username: string, vi
 
     const content = (
         <div className="min-h-screen bg-gray-50">
-            {/* Navigation Header */}
-            {!viewOnly && (
-                <div className="bg-white border-b border-gray-200">
-                    <div className="sm:max-w-7xl mx-auto px-4 md:px-6 py-4">
-                        <div className="flex items-center justify-between">
-                            {/* Left side - Logo */}
-                            <div className="flex items-center">
-                                <div className="flex items-center">
-                                    <img 
-                                        src="/solve-ninja-logo22f1bc.png" 
-                                        alt="Solve Ninja" 
-                                        className="h-8 w-auto"
-                                    />
-                                    <div className="hidden ml-3 bg-gradient-to-r from-blue-500 to-green-500 rounded-lg px-3 py-1">
-                                        <span className="text-white text-sm font-semibold">Solve Ninja</span>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            {/* Right side - Navigation items */}
-                            <nav className="flex items-center space-x-6">
-                                <button
-                                    onClick={() => {
-                                        // Navigate to leaderboard page
-                                        window.location.href = `${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}`;
-                                    }}
-                                    className="text-gray-700 hover:text-blue-600 transition-colors text-sm font-medium cursor-pointer"
-                                >
-                                    Leaderboard
-                                </button>
-                                <button
-                                    onClick={handleSignOut}
-                                    className="text-gray-700 hover:text-red-600 transition-colors text-sm font-medium cursor-pointer"
-                                >
-                                    Sign out
-                                </button>
-                            </nav>
-                        </div>
-                    </div>
-                </div>
-            )}
 
-            <div className="sm:max-w-7xl mx-auto p-4 md:p-6">
+                <div className="sm:max-w-7xl mx-auto p-4 md:p-6">
                     {/* Back to Home Button */}
                     {!viewOnly && (
                         <div className="mb-4 md:mb-6">
