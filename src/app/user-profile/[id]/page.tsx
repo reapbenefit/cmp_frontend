@@ -54,9 +54,9 @@ export default function PortfolioPage({ params }: { params: Promise<{ id: string
             // Always call the local logout function to clear local state
             console.log(`caling logout`);
             logout();
-            console.log(`redirecting to home page`);
+            console.log(`NOT redirecting to home page`);
             // Redirect to home page after logout
-            window.location.href = '/';
+            //window.location.href = '/';
         }
     };
 
