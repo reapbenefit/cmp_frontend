@@ -6,7 +6,7 @@ import { useState, useEffect } from 'react';
 
 export default function PortfolioPage({ params }: { params: Promise<{ id: string }> }) {
     const [id, setId] = useState<string>('');
-    const { isAuthenticated, username, isLoading, userEmail, logout, getAuthHeaders } = useAuth();
+    const { isAuthenticated, username, isLoading, userEmail, logout } = useAuth();
 
     useEffect(() => {
         params.then(({ id: resolvedId }) => {
