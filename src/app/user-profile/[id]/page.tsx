@@ -6,7 +6,7 @@ import { useState, useEffect } from 'react';
 
 export default function PortfolioPage({ params }: { params: Promise<{ id: string }> }) {
     const [id, setId] = useState<string>('');
-    const { isAuthenticated, username, isLoading, logout, getAuthHeaders } = useAuth();
+    const { isAuthenticated, username, isLoading, userEmail, logout, getAuthHeaders } = useAuth();
 
     useEffect(() => {
         params.then(({ id: resolvedId }) => {
@@ -41,7 +41,7 @@ export default function PortfolioPage({ params }: { params: Promise<{ id: string
                     ...authHeaders
                 },
                 body: JSON.stringify({
-                    username: 'hello@anupamvs.dev'
+                    username: userEmail || username
                 })
             });
             console.log(`logout response: ${response}`);
