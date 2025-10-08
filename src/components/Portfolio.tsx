@@ -198,6 +198,36 @@ export default function Portfolio({ username, viewOnly }: { username: string, vi
         );
     };
 
+    const handleSignOut = async () => {
+        try {
+            // Call the logout API
+            const response = await fetch(`${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}/api/method/solve_ninja.api.user.logout`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `token c0cc2217644fb77:6ed939a14e50a07`,
+                    'Content-Type': 'application/json',
+                    'Cookie': 'Cookie_1=value'
+                },
+                body: JSON.stringify({
+                    username: userEmail || username
+                })
+            });
+
+            if (!response.ok) {
+                console.error('Logout API call failed:', response.status);
+            }
+        } catch (error) {
+            console.error('Error calling logout API:', error);
+        } finally {
+            // Always call the local logout function to clear local state
+            if (!viewOnly && authHook.logout) {
+                authHook.logout();
+                // Redirect to home page after logout
+                window.location.href = '/';
+            }
+        }
+    };
+
     // Show loading state while auth is loading (only in non-viewOnly mode) or profile is loading
     if ((!viewOnly && authLoading) || loading) {
         const loadingContent = (
@@ -347,12 +377,21 @@ export default function Portfolio({ username, viewOnly }: { username: string, vi
                                     </div>
                                 )}
                                 {!viewOnly && (
-                                  <div className="mb-4">
+                                  <div className="mb-4 space-y-2">
                                     <button
                                       onClick={() => window.location.href = "/"}
                                       className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium cursor-pointer w-full justify-center"
                                     >
                                       Add action
+                                    </button>
+                                    <button
+                                      onClick={handleSignOut}
+                                      className="flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm font-medium cursor-pointer w-full justify-center"
+                                    >
+                                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                                      </svg>
+                                      Sign out
                                     </button>
                                   </div>
                                 )}
