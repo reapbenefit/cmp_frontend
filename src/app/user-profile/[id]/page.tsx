@@ -1,12 +1,12 @@
 "use client";
 
-import { useAuth } from '@/lib/auth';
+import { useAuth, getCookie } from '@/lib/auth';
 import Portfolio from '@/components/Portfolio';
 import { useState, useEffect } from 'react';
 
 export default function PortfolioPage({ params }: { params: Promise<{ id: string }> }) {
     const [id, setId] = useState<string>('');
-    const { isAuthenticated, username, isLoading, userEmail, logout } = useAuth();
+    const { isAuthenticated, username, isLoading, userEmail, logout, getAuthHeaders } = useAuth();
 
     useEffect(() => {
         params.then(({ id: resolvedId }) => {
@@ -31,12 +31,16 @@ export default function PortfolioPage({ params }: { params: Promise<{ id: string
 
     const handleSignOut = async () => {
         try {
+            // Get dynamic auth headers and cookie
+            const authHeaders = getAuthHeaders();
+            const cookieValue = getCookie('sid');
+            
             // Call the logout API
             const response = await fetch(`${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}/api/method/solve_ninja.api.user.logout`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'Cookie': 'Cookie_1=value'
+                    ...authHeaders,
+                    'Cookie': cookieValue ? `sid=${cookieValue}` : ''
                 },
                 body: JSON.stringify({
                     username: userEmail || username
