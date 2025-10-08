@@ -35,7 +35,6 @@ export default function PortfolioPage({ params }: { params: Promise<{ id: string
             const response = await fetch(`${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}/api/method/solve_ninja.api.user.logout`, {
                 method: 'POST',
                 headers: {
-                    'Authorization': `token c0cc2217644fb77:6ed939a14e50a07`,
                     'Content-Type': 'application/json',
                     'Cookie': 'Cookie_1=value'
                 },
