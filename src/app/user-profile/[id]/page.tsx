@@ -1,6 +1,6 @@
 "use client";
 
-import { useAuth } from '@/lib/auth';
+import { useAuth, getCookie } from '@/lib/auth';
 import Portfolio from '@/components/Portfolio';
 import { useState, useEffect } from 'react';
 
@@ -31,21 +31,21 @@ export default function PortfolioPage({ params }: { params: Promise<{ id: string
 
     const handleSignOut = async () => {
         try {
-            // Get dynamic auth headers and cookie
-            const authHeaders = getAuthHeaders();
-  
+            // Get the session token from cookie
+            const sessionToken = getCookie('sid');
             
-            // Call the logout API
+            // Call the logout API with token format (matching curl command)
             const response = await fetch(`${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}/api/method/solve_ninja.api.user.logout`, {
                 method: 'POST',
                 headers: {
-                    ...authHeaders
+                    'Authorization': `token ${sessionToken}`,
+                    'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
                     username: userEmail || username
                 })
             });
-
+           
             if (!response.ok) {
                 console.error('Logout API call failed:', response.status);
             }
