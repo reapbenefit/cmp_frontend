@@ -41,7 +41,7 @@ export default function PortfolioPage({ params }: { params: Promise<{ id: string
                     ...authHeaders
                 },
                 body: JSON.stringify({
-                    username: userEmail || username
+                    username: 'hello@anupamvs.dev'
                 })
             });
             console.log(`logout response: ${response}`);
