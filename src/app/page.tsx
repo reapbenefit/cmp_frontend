@@ -174,7 +174,7 @@ export default function Home() {
                 {/* Left side - Logo/Image */}
                 <div className="flex items-center">
                   <img 
-                    src="/solve-ninja-logo22f1bc.png" 
+                    src="/logo-vmXI3rix.png" 
                     alt="Solve Ninja" 
                     className="h-8 w-auto sm:h-10 cursor-pointer"
                     onClick={() => {
