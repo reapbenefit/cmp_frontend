@@ -196,8 +196,8 @@ export default function Home() {
                 <nav className="flex items-center space-x-6">
                   <button
                     onClick={() => {
-                      // Navigate to leaderboard page
-                      window.location.href = `${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}/leaderboard`;
+                      // Navigate to home page
+                      window.location.href = '/';
                     }}
                     className="text-gray-700 hover:text-blue-600 transition-colors text-sm font-medium cursor-pointer"
                   >
