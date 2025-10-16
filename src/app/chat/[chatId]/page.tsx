@@ -341,7 +341,7 @@ const ActionMetadataUpdateLoader = () => {
             </div>
         </div>
     );
-};
+}
 
 export default function ChatPage() {
     const router = useRouter();
@@ -904,26 +904,69 @@ export default function ChatPage() {
 
     return (
         <AuthWrapper>
-            <div className="relative flex h-screen bg-gray-50">
-                {/* Mobile backdrop overlay */}
-                {isSidebarOpen && (
-                    <div
-                        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 md:hidden"
-                        onClick={closeSidebar}
+            <div className="h-screen flex flex-col bg-gray-50">
+                {/* Fixed Navigation Header */}
+                <header className="bg-white border-b border-gray-200 flex-shrink-0">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+                        <div className="flex items-center justify-between">
+                            {/* Left side - Logo/Image */}
+                            <div className="flex items-center">
+                                <img 
+                                    src="/logo-vmXI3rix.png" 
+                                    alt="Solve Ninja" 
+                                    className="h-8 w-auto sm:h-10 cursor-pointer"
+                                    onClick={() => {
+                                        window.location.href = `${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}`;
+                                    }}
+                                    onError={(e) => {
+                                        const target = e.target as HTMLImageElement;
+                                        target.style.display = 'none';
+                                        const fallback = target.nextElementSibling as HTMLDivElement;
+                                        if (fallback) fallback.style.display = 'flex';
+                                    }}
+                                />
+                                <div className="hidden ml-3 bg-gradient-to-r from-blue-500 to-green-500 rounded-lg px-3 py-1">
+                                    <span className="text-white text-sm font-semibold">Solve Ninja</span>
+                                </div>
+                            </div>
+                            
+                            {/* Right side - Navigation items */}
+                            <nav className="flex items-center space-x-6">
+                                <button
+                                    onClick={() => {
+                                        // Navigate to home page
+                                        window.location.href = `${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}/`;
+                                    }}
+                                    className="text-gray-700 hover:text-blue-600 transition-colors text-sm font-medium cursor-pointer"
+                                >
+                                    Explore the Solve Ninja World
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        window.location.href = `${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}/user-profile/${username}`;
+                                    }}
+                                    className="text-gray-700 hover:text-blue-600 transition-colors text-sm font-medium cursor-pointer"
+                                >
+                                    My Portfolio
+                                </button>
+                            </nav>
+                        </div>
+                    </div>
+                </header>
+
+                {/* Chat Container - Takes remaining height and scrolls */}
+                <div className="flex-1 flex overflow-hidden">
+                    <ChatSidebar
+                        currentChatId={chatId}
+                        onNewChat={handleNewChat}
+                        onChatSelect={handleChatSelect}
+                        isOpen={isSidebarOpen}
+                        onClose={closeSidebar}
                     />
-                )}
 
-                <ChatSidebar
-                    currentChatId={chatId}
-                    onNewChat={handleNewChat}
-                    onChatSelect={handleChatSelect}
-                    isOpen={isSidebarOpen}
-                    onClose={closeSidebar}
-                />
-
-                <div className="flex-1 flex flex-col">
-                    {/* Header */}
-                    <div className="p-4 flex items-center gap-3">
+                <div className="flex-1 flex flex-col min-h-0">
+                    {/* Chat Header */}
+                    <div className="p-4 flex items-center gap-3 bg-white border-b border-gray-200 flex-shrink-0">
                         <SidebarToggle isOpen={isSidebarOpen} onToggle={toggleSidebar} />
                         <div>
                             <h1 className="text-lg font-semibold text-gray-800">
@@ -932,7 +975,7 @@ export default function ChatPage() {
                         </div>
                     </div>
 
-                    {/* Messages */}
+                    {/* Messages - Scrollable Area */}
                     <div className="flex-1 overflow-y-auto p-4 space-y-4 max-w-4xl mx-auto w-full px-4 md:px-8">
                         {messages.map((message, index) => (
                             <MessageBubble
@@ -1054,6 +1097,7 @@ export default function ChatPage() {
                         </div>
                     )}
                 </div>
+            </div>
             </div>
         </AuthWrapper>
     );

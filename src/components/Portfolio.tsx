@@ -346,6 +346,20 @@ export default function Portfolio({ username, viewOnly }: { username: string, vi
                                         )}
                                     </div>
                                 )}
+                                   {/* Edit Profile Button */}
+                                   {!isEditingProfile && !viewOnly && (
+                                    <div className="mb-4">
+                                        <button
+                                            onClick={handleEditProfile}
+                                            className="flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm font-medium cursor-pointer w-full justify-center"
+                                        >
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                            </svg>
+                                            Edit profile
+                                        </button>
+                                    </div>
+                                )}
                                 {!viewOnly && (
                                   <div className="mb-4">
                                     <button
@@ -421,20 +435,7 @@ export default function Portfolio({ username, viewOnly }: { username: string, vi
                                     </div>
                                 )}
 
-                                {/* Edit Profile Button */}
-                                {!isEditingProfile && !viewOnly && (
-                                    <div className="mb-4">
-                                        <button
-                                            onClick={handleEditProfile}
-                                            className="flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm font-medium cursor-pointer w-full justify-center"
-                                        >
-                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                            </svg>
-                                            Edit profile
-                                        </button>
-                                    </div>
-                                )}
+                             
 
                                 {/* Request Expert Review Button */}
                                 {!viewOnly && (
@@ -647,7 +648,7 @@ export default function Portfolio({ username, viewOnly }: { username: string, vi
                                     </div>
 
                                     {/* Expert Reviews */}
-                                    {expertReviews.length > 0 && (
+                                    {false && expertReviews.length > 0 && (
                                         <div className="mb-8">
                                             <h2 className="text-lg font-semibold text-gray-900 mb-6">Expert reviews</h2>
 
@@ -693,7 +694,7 @@ export default function Portfolio({ username, viewOnly }: { username: string, vi
                                     )}
 
                                     {/* Expert Reviews Placeholder - only show if no reviews and not view-only */}
-                                    {expertReviews.length === 0 && !viewOnly && (
+                                    {false && expertReviews.length === 0 && !viewOnly && (
                                         <div className="mb-8">
                                             <h2 className="text-lg font-semibold text-gray-900 mb-6">Expert reviews</h2>
                                             <div className="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200">

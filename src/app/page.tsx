@@ -201,7 +201,7 @@ export default function Home() {
                     }}
                     className="text-gray-700 hover:text-blue-600 transition-colors text-sm font-medium cursor-pointer"
                   >
-                    Leaderboard
+                    Explore the Solve Ninja World
                   </button>
                   <button
                     onClick={() => {

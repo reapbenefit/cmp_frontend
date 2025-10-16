@@ -65,10 +65,8 @@ export default function ChatSidebar({ currentChatId, onNewChat, onChatSelect, is
     }, [userId]);
 
 
-    if (!isOpen) return null;
-
     return (
-        <div className="fixed md:relative w-[80%] md:w-64 bg-white border-r border-gray-200 h-dvh flex flex-col shadow-lg z-50 md:z-auto">
+        <div className={`${isOpen ? 'w-64' : 'w-0'} transition-all duration-300 overflow-hidden bg-white border-r border-gray-200 h-full flex flex-col shadow-lg flex-shrink-0`}>
             <div className="p-4 border-b border-gray-200 flex-shrink-0">
                 <div className="flex gap-2 items-center">
                     <Button
