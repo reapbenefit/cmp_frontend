@@ -209,7 +209,7 @@ export default function Home() {
                     }}
                     className="text-gray-700 hover:text-blue-600 transition-colors text-sm font-medium cursor-pointer"
                   >
-                    Go back to profile
+                    My Profile
                   </button>
                 </nav>
               </div>

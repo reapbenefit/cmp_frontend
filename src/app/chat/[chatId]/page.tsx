@@ -162,19 +162,19 @@ const MessageBubble = ({ message, isStreaming, username }: { message: ChatMessag
     const isAnalysis = message.role === 'analysis';
 
     if (isAnalysis) {
-        // Handle case where no skills changed but we still want to show portfolio update
+        // Handle case where no skills changed but we still want to show Profile update
         if (typeof message.content === 'object' && 'has_changed' in message.content && !message.content.has_changed) {
             return (
                 <div className="flex justify-center mb-6">
                     <div className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-xl p-4 md:p-6 max-w-2xl w-full">
                         <div className="flex items-center gap-2 mb-2 md:mb-4">
                             <Trophy className="h-6 w-6 text-green-600" />
-                            <h3 className="text-base md:text-lg font-semibold text-gray-800">Portfolio Updated</h3>
+                            <h3 className="text-base md:text-lg font-semibold text-gray-800">Profile Updated</h3>
                         </div>
                         <div className="flex flex-col space-y-2 md:space-y-3">
                             <div className="flex items-center gap-2">
                                 <Star className="h-4 w-4 text-orange-500" />
-                                <span className="text-xs md:text-sm font-medium text-gray-600">Your portfolio has been updated. Go check it out!</span>
+                                <span className="text-xs md:text-sm font-medium text-gray-600">Your Profile has been updated. Go check it out!</span>
                             </div>
                             {username && (
                                 <div>
@@ -184,7 +184,7 @@ const MessageBubble = ({ message, isStreaming, username }: { message: ChatMessag
                                         rel="noopener noreferrer"
                                         className="inline-flex items-center gap-2 mt-2 px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors cursor-pointer"
                                     >
-                                        Open your portfolio
+                                        Open your Profile
                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                                         </svg>
@@ -235,8 +235,8 @@ const MessageBubble = ({ message, isStreaming, username }: { message: ChatMessag
                             </div>
                             <span className="text-xs md:text-sm font-medium text-gray-600 leading-1">
                                 {typeof message.content === 'object' && 'has_changed' in message.content && message.content.has_changed
-                                    ? 'The action details have been updated on your portfolio. Go check it out!'
-                                    : 'Your portfolio has been updated with your new action and skills. Go check it out!'
+                                    ? 'The action details have been updated on your Profile. Go check it out!'
+                                    : 'Your Profile has been updated with your new action and skills. Go check it out!'
                                 }
                             </span>
                             {username && (
@@ -247,7 +247,7 @@ const MessageBubble = ({ message, isStreaming, username }: { message: ChatMessag
                                         rel="noopener noreferrer"
                                         className="inline-flex items-center gap-2 mt-2 px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors cursor-pointer"
                                     >
-                                        Open your portfolio
+                                        Open your Profile
                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                                         </svg>
@@ -317,7 +317,7 @@ const ActionMetadataUpdateLoader = () => {
     const [currentMessage, setCurrentMessage] = useState(0);
     const messages = [
         "Updating your action details",
-        "Enhancing your portfolio",
+        "Enhancing your Profile",
         "Processing your insights",
         "Finalizing your impact story"
     ];
@@ -408,7 +408,7 @@ export default function ChatPage() {
             const continueMessage: ChatMessage = {
                 role: 'assistant',
                 content: {
-                    response: "Thank you for sharing that! Would you like me to ask you some more questions about this action to help enhance your portfolio even further? I can help you reflect on the impact, challenges, and learnings from your experience.",
+                    response: "Thank you for sharing that! Would you like me to ask you some more questions about this action to help enhance your Profile even further? I can help you reflect on the impact, challenges, and learnings from your experience.",
                 },
                 timestamp: new Date()
             };
@@ -947,7 +947,7 @@ export default function ChatPage() {
                                     }}
                                     className="text-gray-700 hover:text-blue-600 transition-colors text-sm font-medium cursor-pointer"
                                 >
-                                    My Portfolio
+                                    My Profile
                                 </button>
                             </nav>
                         </div>
