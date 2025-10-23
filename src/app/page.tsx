@@ -53,7 +53,7 @@ export default function Home() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { userEmail, username } = useAuth();
+  const { userEmail, username, redirectToLogin } = useAuth();
 
   // Set initial sidebar state based on screen size after component mounts
   useEffect(() => {
@@ -79,7 +79,7 @@ export default function Home() {
 
   const handleInputSubmit = async (type: 'text' | 'audio', content: string | Blob) => {
     if (!userEmail) {
-      alert('Please login to submit an action');
+      redirectToLogin();
       return;
     }
 
