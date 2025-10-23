@@ -105,13 +105,13 @@ export function AuthProvider({ children, backendUrl }: AuthProviderProps) {
                                         const profile = userProfile.message;
                                         
                                         // Store user data in localStorage
-                                        if (profile.username) {
-                                            localStorage.setItem("username", profile.username);
-                                            setUsername(profile.username);
+                                        if (profile.current_user.username) {
+                                            localStorage.setItem("username", profile.current_user.username);
+                                            setUsername(profile.current_user.username);
                                         }
-                                        if (profile.email) {
-                                            localStorage.setItem("userEmail", profile.email);
-                                            setUserEmail(profile.email);
+                                        if (profile.current_user.email) {
+                                            localStorage.setItem("userEmail", profile.current_user.email);
+                                            setUserEmail(profile.current_user.email);
                                         }
 
                                         // Call second API to get/create user by email
@@ -121,18 +121,18 @@ export function AuthProvider({ children, backendUrl }: AuthProviderProps) {
                                                 "Content-Type": "application/json",
                                             },
                                             body: JSON.stringify({
-                                                first_name: profile.first_name || "",
-                                                last_name: profile.last_name || "",
-                                                username: profile.username || "",
-                                                email: profile.email || "",
+                                                first_name: profile.current_user.first_name || "",
+                                                last_name: profile.current_user.last_name || "",
+                                                username: profile.current_user.username || "",
+                                                email: profile.current_user.email || "",
                                             }),
                                         });
 
                                         if (userResponse.ok) {
                                             const userData = await userResponse.json();
-                                            if (userData.id) {
-                                                localStorage.setItem("userId", userData.id);
-                                                setUserId(userData.id);
+                                            if (userData) {
+                                                localStorage.setItem("userId", userData);
+                                                setUserId(userData);
                                             }
                                         }
                                     }
