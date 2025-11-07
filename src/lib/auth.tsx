@@ -87,14 +87,13 @@ export function AuthProvider({ children, backendUrl }: AuthProviderProps) {
                     const loggedUserData = await loggedUserResponse.json();
                     
                     if (loggedUserData && loggedUserData.message) {
- 
                             try {
                                 // Call API to get user profile
                                 const profileResponse = await fetch(`${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}/api/method/solve_ninja.api.profile.get_user_profile`, {
-                                    method: "POST",
+                                    method: "GET",
                                     credentials: 'include',
                                     headers: {
-                                        "Content-Type": "application/json",
+                                        "Content-Type": "application/json"
                                     },
                                 });
 
