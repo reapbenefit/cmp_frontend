@@ -885,7 +885,7 @@ export default function ChatPage() {
     };
 
     const handleNewChat = () => {
-        router.push('/');
+        router.push('/record-action');
     };
 
     const handleChatSelect = (selectedChatId: string) => {
