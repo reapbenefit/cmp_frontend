@@ -363,7 +363,7 @@ export default function Portfolio({ username, viewOnly }: { username: string, vi
                                 {!viewOnly && (
                                   <div className="mb-4">
                                     <button
-                                      onClick={() => window.location.href = "/"}
+                                      onClick={() => window.location.href = "/record-action"}
                                       className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium cursor-pointer w-full justify-center"
                                     >
                                       Add action
@@ -638,7 +638,7 @@ export default function Portfolio({ username, viewOnly }: { username: string, vi
                                                     Start your journey as a Solve Ninja by recording your first action. Your top actions will be showcased here to inspire others!
                                                 </p>
                                                 <button
-                                                    onClick={() => window.location.href = '/'}
+                                                    onClick={() => window.location.href = '/record-action'}
                                                     className="px-4 sm:px-6 py-2 sm:py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors cursor-pointer font-medium text-sm sm:text-base"
                                                 >
                                                     Record your first action

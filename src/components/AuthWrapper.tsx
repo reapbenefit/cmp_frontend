@@ -9,7 +9,7 @@ interface AuthWrapperProps {
 }
 
 export default function AuthWrapper({ children }: AuthWrapperProps) {
-    const { isAuthenticated, isLoading, authenticateWithSSO } = useAuth();
+    const { isAuthenticated, isLoading, authenticateWithSSO, redirectToLogin } = useAuth();
     const [ssoLoading, setSsoLoading] = useState(false);
 
     // Handle SSO flow when component mounts
@@ -59,17 +59,10 @@ export default function AuthWrapper({ children }: AuthWrapperProps) {
         const ssoCode = getUrlParameter("code");
 
         if (!ssoCode) {
-            const portfolioBaseUrl = `${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}/api/method/frappe.integrations.oauth2.authorize?client_id=${process.env.NEXT_PUBLIC_SSO_CLIENT_ID}&response_type=code&redirect_uri=${process.env.NEXT_PUBLIC_APP_URL}&scope=all`;
-            if (portfolioBaseUrl && typeof window !== 'undefined') {
-                window.location.href = portfolioBaseUrl;
-                return null; // Return null while redirect is happening
-            }
+            // Redirect to external login page
+            redirectToLogin();
+            return null; // Return null while redirect is happening
         }
-        // return (
-        //     <div>
-        //         <AuthContainer />
-        //     </div>
-        // );
     }
 
     // Show main app if authenticated

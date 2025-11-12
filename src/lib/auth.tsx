@@ -1,13 +1,10 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { SignupData, SignupResponse } from "@/types";
 
 interface AuthContextType {
     isAuthenticated: boolean;
     isLoading: boolean;
-    login: (email: string, password: string) => Promise<void>;
-    signup: (data: SignupData) => Promise<void>;
     authenticateWithSSO: (code: string) => Promise<void>;
     logout: () => void;
     error: string | null;
@@ -15,6 +12,7 @@ interface AuthContextType {
     userEmail: string | null;
     username: string | null;
     getAuthHeaders: () => { [key: string]: string };
+    redirectToLogin: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -75,142 +73,99 @@ export function AuthProvider({ children, backendUrl }: AuthProviderProps) {
     const [userEmail, setUserEmail] = useState<string | null>(null);
     const [username, setUsername] = useState<string | null>(null);
 
-    // Check if user is already authenticated on mount
+    // Check if user is already authenticated on mount using get_logged_user endpoint
     useEffect(() => {
-        const storedUserId = localStorage.getItem("userId");
-        const storedUserEmail = localStorage.getItem("userEmail");
-        const storedUsername = localStorage.getItem("username");
-        const sessionToken = getCookie("sid");
+        const initializeAuth = async () => {
+            try {
+                // Call get_logged_user endpoint to check if user is authenticated
+                const loggedUserResponse = await fetch(`${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}/api/method/frappe.auth.get_logged_user`, {
+                    method: "GET",
+                    credentials: 'include', // Include cookies in the request
+                });
 
-        console.log(storedUserId, storedUserEmail, storedUsername, sessionToken)
+                if (loggedUserResponse.ok) {
+                    const loggedUserData = await loggedUserResponse.json();
+                    
+                    if (loggedUserData && loggedUserData.message) {
+                            try {
+                                // Call API to get user profile
+                                const profileResponse = await fetch(`${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}/api/method/solve_ninja.api.profile.get_user_profile`, {
+                                    method: "GET",
+                                    credentials: 'include',
+                                    headers: {
+                                        "Content-Type": "application/json"
+                                    },
+                                });
 
-        if (storedUserId && sessionToken) {
-            setUserId(storedUserId);
-            setUserEmail(storedUserEmail);
-            setUsername(storedUsername);
-            setIsAuthenticated(true);
-        }
-        setIsLoading(false);
-    }, []);
+                                if (profileResponse.ok) {
+                                    const userProfile = await profileResponse.json();
+                                    
+                                    if (userProfile && userProfile.message) {
+                                        const profile = userProfile.message;
+                                        
+                                        // Store user data in localStorage
+                                        if (profile.current_user.username) {
+                                            localStorage.setItem("username", profile.current_user.username);
+                                            setUsername(profile.current_user.username);
+                                        }
+                                        if (profile.current_user.email) {
+                                            localStorage.setItem("userEmail", profile.current_user.email);
+                                            setUserEmail(profile.current_user.email);
+                                        }
 
-    const login = async (email: string, password: string) => {
-        setIsLoading(true);
-        setError(null);
+                                        // Call second API to get/create user by email
+                                        const userResponse = await fetch(`${backendUrl}/get_or_create_user_by_email`, {
+                                            method: "POST",
+                                            headers: {
+                                                "Content-Type": "application/json",
+                                            },
+                                            body: JSON.stringify({
+                                                first_name: profile.current_user.first_name || "",
+                                                last_name: profile.current_user.last_name || "",
+                                                username: profile.current_user.username || "",
+                                                email: profile.current_user.email || "",
+                                            }),
+                                        });
 
-        try {
-            const response = await fetch(`${backendUrl}/login`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ email, password }),
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({ message: "Login failed" }));
-                throw new Error(errorData.message || "Invalid credentials");
-            }
-
-            const data = await response.json();
-
-            // Store user ID if provided by backend
-            if (data.id) {
-                localStorage.setItem("userId", data.id);
-                setUserId(data.id);
-            }
-
-            // Set test session ID in cookie for development
-            // data.sid = "m1UE9g04K9jO1YHUgatdCGCWukGTRv";
-
-            // Store the email used for login
-            localStorage.setItem("userEmail", email);
-            setUserEmail(email);
-
-            // Make an API call to get the username for the user and store it
-            const usernameResponse = await fetch(`${backendUrl}/users/${data.sid}/username`, {
-                method: "GET"
-            });
-
-            if (usernameResponse.ok) {
-                const username = await usernameResponse.json();
-                if (username) {
-                    localStorage.setItem("username", username);
-                    setUsername(username);
+                                        if (userResponse.ok) {
+                                            const userData = await userResponse.json();
+                                            if (userData) {
+                                                localStorage.setItem("userId", userData);
+                                                setUserId(userData);
+                                            }
+                                        }
+                                    }
+                                }
+                            } catch (profileError) {
+                                console.error("Error fetching user profile:", profileError);
+                            }
+  
+                        
+                        setIsAuthenticated(true);
+                    } else {
+                        setIsAuthenticated(false);
+                    }
+                } else {
+                    // User is not logged in
+                    setIsAuthenticated(false);
                 }
+            } catch (error) {
+                console.error("Error checking logged user:", error);
+                setIsAuthenticated(false);
             }
-
-            // Store the session token (sid) in cookies
-            if (data.sid) {
-                setCookie("sid", data.sid)
-            }
-
-            setIsAuthenticated(true);
-            setError(null);
-        } catch (err) {
-            setError(err instanceof Error ? err.message : "Login failed");
-            throw err;
-        } finally {
             setIsLoading(false);
-        }
+        };
+
+        initializeAuth();
+    }, [backendUrl]);
+
+    // Redirect to external login page
+    const redirectToLogin = () => {
+        const currentUrl = window.location.href;
+        const loginUrl = `/login?redirect-to=${encodeURIComponent(currentUrl)}`;
+        window.location.href = loginUrl;
     };
 
-    const signup = async (data: SignupData) => {
-        setIsLoading(true);
-        setError(null);
-
-        try {
-            const response = await fetch(`${backendUrl}/signup`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    first_name: data.firstName,
-                    last_name: data.lastName,
-                    username: data.username,
-                    email: data.email,
-                    password: data.password,
-                }),
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({ message: "Signup failed" }));
-
-                // Check for 'detail' field first (backend uses this), then 'message' as fallback
-                const errorMessage = errorData.detail || errorData.message || "Signup failed";
-                setError(errorMessage);
-                throw new Error(errorMessage);
-            }
-
-            const responseData: SignupResponse = await response.json();
-
-            // Store user information after successful signup
-            if (responseData.id) {
-                localStorage.setItem("userId", responseData.id);
-                setUserId(responseData.id);
-            }
-
-            localStorage.setItem("userEmail", data.email);
-            setUserEmail(data.email);
-
-            // Store the session token (sid) in cookies if provided
-            if (responseData.sid) {
-                setCookie("sid", responseData.sid)
-            }
-
-            setIsAuthenticated(true);
-            setError(null);
-        } catch (err) {
-            // Don't change authentication state on signup error
-            // Error is already set above for backend errors
-            if (!error) {
-                setError(err instanceof Error ? err.message : "Signup failed");
-            }
-            throw err;
-        } finally {
-            setIsLoading(false);
-        }
-    };
 
     const authenticateWithSSO = async (code: string) => {
         setIsLoading(true);
@@ -241,22 +196,76 @@ export function AuthProvider({ children, backendUrl }: AuthProviderProps) {
 
             const data = await response.json();
 
-            // Store user ID if provided by backend
-            if (data.id) {
-                localStorage.setItem("userId", data.id);
-                setUserId(data.id);
-            }
-
-            // Store the email used for login
-            localStorage.setItem("userEmail", data.email);
-            setUserEmail(data.email);
-
-            localStorage.setItem("username", data.username);
-            setUsername(data.username);
-
             // Store the session token (sid) in cookies
             if (data.sid) {
                 setCookie("sid", data.sid);
+                
+                // Now fetch user profile using the new API approach
+                try {
+                    // Call API to get user profile
+                    const profileResponse = await fetch(`${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}/api/method/solve_ninja.api.profile.get_user_profile`, {
+                        method: "POST",
+                        headers: {
+                            "Authorization": `Bearer ${data.sid}`,
+                            "Content-Type": "application/json",
+                        },
+                    });
+
+                    if (profileResponse.ok) {
+                        const userProfile = await profileResponse.json();
+                        
+                        if (userProfile && userProfile.message) {
+                            const profile = userProfile.message;
+                            
+                            // Store user data in localStorage
+                            if (profile.username) {
+                                localStorage.setItem("username", profile.username);
+                                setUsername(profile.username);
+                            }
+                            if (profile.email) {
+                                localStorage.setItem("userEmail", profile.email);
+                                setUserEmail(profile.email);
+                            }
+
+                            // Call second API to get/create user by email
+                            const userResponse = await fetch(`${backendUrl}/get_or_create_user_by_email`, {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                },
+                                body: JSON.stringify({
+                                    first_name: profile.first_name || "",
+                                    last_name: profile.last_name || "",
+                                    username: profile.username || "",
+                                    email: profile.email || "",
+                                }),
+                            });
+
+                            if (userResponse.ok) {
+                                const userData = await userResponse.json();
+                                if (userData.id) {
+                                    localStorage.setItem("userId", userData.id);
+                                    setUserId(userData.id);
+                                }
+                            }
+                        }
+                    }
+                } catch (profileError) {
+                    console.error("Error fetching user profile after SSO:", profileError);
+                    // Fallback to old data if available
+                    if (data.id) {
+                        localStorage.setItem("userId", data.id);
+                        setUserId(data.id);
+                    }
+                    if (data.email) {
+                        localStorage.setItem("userEmail", data.email);
+                        setUserEmail(data.email);
+                    }
+                    if (data.username) {
+                        localStorage.setItem("username", data.username);
+                        setUsername(data.username);
+                    }
+                }
             }
 
             setIsAuthenticated(true);
@@ -299,8 +308,6 @@ export function AuthProvider({ children, backendUrl }: AuthProviderProps) {
     const value = {
         isAuthenticated,
         isLoading,
-        login,
-        signup,
         authenticateWithSSO,
         logout,
         error,
@@ -308,6 +315,7 @@ export function AuthProvider({ children, backendUrl }: AuthProviderProps) {
         userEmail,
         username,
         getAuthHeaders,
+        redirectToLogin,
     };
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -6,7 +6,7 @@ import { useState, useEffect } from 'react';
 
 export default function PortfolioPage({ params }: { params: Promise<{ id: string }> }) {
     const [id, setId] = useState<string>('');
-    const { isAuthenticated, username, isLoading, userEmail, logout, getAuthHeaders } = useAuth();
+    const { isAuthenticated, username, isLoading, userEmail, logout, getAuthHeaders, redirectToLogin } = useAuth();
 
     useEffect(() => {
         params.then(({ id: resolvedId }) => {
@@ -15,6 +15,18 @@ export default function PortfolioPage({ params }: { params: Promise<{ id: string
     }, [params]);
 
     useEffect(() => {
+        if (!isLoading && id === 'me') {
+            if (isAuthenticated && username) {
+                // Redirect to the actual user's profile
+                window.location.href = `/user-profile/${username}`;
+                return;
+            } else {
+                // User is not logged in, redirect to login
+                redirectToLogin();
+                return;
+            }
+        }
+        
         if (!isLoading && isAuthenticated && username && id) {
             // If user is logged in and viewing their own profile, show edit mode
             if (username === id) {
@@ -27,7 +39,7 @@ export default function PortfolioPage({ params }: { params: Promise<{ id: string
             // If user is not logged in, show view-only mode
             return;
         }
-    }, [isAuthenticated, username, id, isLoading]);
+    }, [isAuthenticated, username, id, isLoading, redirectToLogin]);
 
     const handleSignOut = async () => {
         try {
@@ -117,12 +129,7 @@ export default function PortfolioPage({ params }: { params: Promise<{ id: string
                             {/* Only show Login button if user is not authenticated */}
                             {!isAuthenticated && (
                                 <button
-                                    onClick={() => {
-                                        const portfolioBaseUrl = `${process.env.NEXT_PUBLIC_FRAPPE_BASE_URL}/api/method/frappe.integrations.oauth2.authorize?client_id=${process.env.NEXT_PUBLIC_SSO_CLIENT_ID}&response_type=code&redirect_uri=${process.env.NEXT_PUBLIC_APP_URL}&scope=all`;
-                                        if (portfolioBaseUrl && typeof window !== 'undefined') {
-                                            window.location.href = portfolioBaseUrl;
-                                        }
-                                    }}
+                                    onClick={redirectToLogin}
                                     className="text-gray-700 hover:text-blue-600 transition-colors text-sm font-medium cursor-pointer"
                                 >
                                     Login
