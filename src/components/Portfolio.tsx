@@ -17,9 +17,11 @@ import ExpertReviewCard from "@/components/ExpertReviewCard";
 
 
 export default function Portfolio({ username, viewOnly }: { username: string, viewOnly: boolean }) {
+    console.log('Portfolio component rendering - username:', username, 'viewOnly:', viewOnly);
     // Always call useAuth hook but ignore its values in viewOnly mode
     const authHook = useAuth();
     const { isLoading: authLoading, userEmail } = viewOnly ? { isLoading: false, userEmail: null } : authHook;
+    console.log('Auth state - authLoading:', authLoading, 'userEmail:', userEmail);
     const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
     const [expertReviews, setExpertReviews] = useState<ExpertReview[]>([]);
     const [loading, setLoading] = useState(true);
@@ -55,18 +57,21 @@ export default function Portfolio({ username, viewOnly }: { username: string, vi
         const fetchUserProfile = async () => {
             // Don't fetch if auth is still loading (only check auth in non-viewOnly mode) or no username
             if ((!viewOnly && authLoading) || !username) {
+                console.log('Early return - viewOnly:', viewOnly, 'authLoading:', authLoading, 'username:', username);
                 return;
             }
 
             try {
+                console.log('Fetching user profile for:', username);
                 setLoading(true);
                 const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/portfolio/${username}`);
 
                 if (!response.ok) {
                     throw new Error('Failed to fetch user profile');
                 }
-
+                console.log('Response received:', response);
                 const userData: UserProfile = await response.json();
+                console.log('User data received:', userData);
                 setUserProfile(userData);
                 setExpertReviews(userData.expert_reviews || []);
 
@@ -322,7 +327,18 @@ export default function Portfolio({ username, viewOnly }: { username: string, vi
                                         <p className="text-xl sm:text-lg text-gray-600 font-light truncate">{userProfile.username}</p>
                                     </div>
                                 </div>
-
+                                {userProfile.partner && (
+                                <div className="mb-1 p-1 bg-gray-50 rounded-lg border">
+                                    <div className="flex items-center justify-center gap-3 sm:gap-4 flex-nowrap">
+                                        <div className="text-xs sm:text-base">
+                                            Partner Organization
+                                        </div>
+                                        <div className="w-10 h-10 flex items-center justify-center">
+                                            <img src={userProfile.partner.partner_logo} alt="Partner Logo" className="h-6 w-auto sm:h-10 " />
+                                        </div>
+                                    </div>
+                                 </div>
+                                 )}
                                 {/* Bio */}
                                 {!isEditingProfile && (
                                     <div className="mb-4 text-center sm:text-left">
