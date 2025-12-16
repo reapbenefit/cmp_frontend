@@ -201,7 +201,9 @@ export interface UserProfile {
     skills: ApiSkill[];
     highlight: string | null;
     expert_reviews: ExpertReview[];
-    partner_name: string | null;
-    partner_logo: string | null;
+    partner: {
+        partner_name: string | null;
+        partner_logo: string | null;
+    };
 }   
 

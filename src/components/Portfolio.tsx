@@ -334,7 +334,17 @@ export default function Portfolio({ username, viewOnly }: { username: string, vi
                                             Partner Organization
                                         </div>
                                         <div className="w-10 h-10 flex items-center justify-center">
-                                            <img src={userProfile.partner.partner_logo} alt="Partner Logo" className="h-6 w-auto sm:h-10 " />
+                                            {userProfile.partner.partner_logo && (
+                                                <img 
+                                                    src={userProfile.partner.partner_logo} 
+                                                    alt="Partner Logo" 
+                                                    className="h-6 w-auto sm:h-10 " 
+                                                    onError={(e) => {
+                                                        const target = e.target as HTMLImageElement;
+                                                        target.style.display = 'none';
+                                                    }}
+                                                />
+                                            )}
                                         </div>
                                     </div>
                                  </div>
